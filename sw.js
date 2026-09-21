@@ -9,10 +9,10 @@ self.addEventListener("push", event => {
 
   const options = {
     body: data.body || "Դուք ունեք նոր ծանուցում։",
-    icon: data.icon || "/aimrelax-pubg.github.io/icon-192.png",
-    badge: data.badge || "/aimrelax-pubg.github.io/icon-192.png",
+    icon: "/icon-192.png",
+    badge: "/icon-192.png",
     data: {
-      url: data.url || "/aimrelax-pubg.github.io/"
+      url: data.url || "https://aimrelax-pubg.github.io/"
     },
     vibrate: [200, 100, 200],
     tag: data.tag || "aimrelax-notification"
@@ -28,22 +28,24 @@ self.addEventListener("notificationclick", event => {
 
   const url =
     event.notification.data?.url ||
-    "/aimrelax-pubg.github.io/";
+    "https://aimrelax-pubg.github.io/";
 
   event.waitUntil(
     clients.matchAll({
       type: "window",
       includeUncontrolled: true
-    }).then(list => {
+    }).then(async list => {
 
       for (const client of list) {
         if ("focus" in client) {
-          client.navigate(url);
+          await client.navigate(url);
           return client.focus();
         }
       }
 
-      return clients.openWindow(url);
+      if (clients.openWindow) {
+        return clients.openWindow(url);
+      }
     })
   );
 });
