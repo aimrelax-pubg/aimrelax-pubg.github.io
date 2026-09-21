@@ -3,7 +3,9 @@ self.addEventListener("push", event => {
 
   try {
     data = event.data ? event.data.json() : {};
-  } catch (e) {}
+  } catch (e) {
+    console.error("Push data error:", e);
+  }
 
   const title = data.title || "AIMRELAX-PUBG";
 
@@ -15,7 +17,7 @@ self.addEventListener("push", event => {
       url: data.url || "https://aimrelax-pubg.github.io/"
     },
     vibrate: [200, 100, 200],
-    tag: data.tag || "aimrelax-notification"
+    tag: data.tag || ("aimrelax-" + Date.now())
   };
 
   event.waitUntil(
@@ -23,29 +25,17 @@ self.addEventListener("push", event => {
   );
 });
 
+
 self.addEventListener("notificationclick", event => {
   event.notification.close();
 
   const url =
-    event.notification.data?.url ||
+    event.notification?.data?.url ||
     "https://aimrelax-pubg.github.io/";
 
+  console.log("Notification clicked:", url);
+
   event.waitUntil(
-    clients.matchAll({
-      type: "window",
-      includeUncontrolled: true
-    }).then(async list => {
-
-      for (const client of list) {
-        if ("focus" in client) {
-          await client.navigate(url);
-          return client.focus();
-        }
-      }
-
-      if (clients.openWindow) {
-        return clients.openWindow(url);
-      }
-    })
+    clients.openWindow(url)
   );
 });
