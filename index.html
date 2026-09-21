@@ -1753,7 +1753,35 @@ async function refreshPushStatus(){
 
 setTimeout(refreshPushStatus,1500);
 </script>
+<script>
+(async function openChatFromNotification() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const chatId = params.get("chat");
 
+    if (!chatId) return;
+
+    if (typeof refreshUser === "function") {
+      await refreshUser();
+    }
+
+    if (!window.currentUser) return;
+
+    if (typeof openPrivateChat === "function") {
+      await openPrivateChat(chatId, "Ընկեր");
+    }
+
+    window.history.replaceState(
+      {},
+      document.title,
+      window.location.pathname + window.location.hash
+    );
+
+  } catch (e) {
+    console.error("Notification chat error:", e);
+  }
+})();
+</script>
 </body>
 </html>
   
