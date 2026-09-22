@@ -67,54 +67,39 @@ self.addEventListener('fetch', event => {
 
 // PUSH NOTIFICATION
 self.addEventListener('push', event => {
-  if (!event.data) return;
-
-  let data = {};
-
-  try {
-    data = event.data.json();
-  } catch (e) {
-    data = {
-      title: 'AIMRELAX-PUBG',
-      body: event.data.text()
-    };
-  }
-
-  const title = data.title || 'AIMRELAX-PUBG';
-  const body = data.body || 'Նոր հաղորդագրություն';
-
-  const options = {
-    body: body,
-
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
-
-    tag: data.tag || 'aimrelax-notification',
-
-    renotify: true,
-
-    requireInteraction: false,
-
-    data: {
-      url: data.url || '/',
-      type: data.type || 'notification'
-    }
-  };
+  console.log('AIMRELAX PUSH RECEIVED');
 
   event.waitUntil(
-    self.registration.showNotification(title, options)
-  );
-});
+    (async () => {
+      let data = {};
 
-// NOTIFICATION CLICK
-self.addEventListener('notificationclick', event => {
-  event.notification.close();
+      try {
+        if (event.data) {
+          data = event.data.json();
+        }
+      } catch (e) {
+        data = {
+          title: 'AIMRELAX-PUBG',
+          body: event.data ? event.data.text() : 'Նոր հաղորդագրություն'
+        };
+      }
 
-  const data = event.notification.data || {};
-  const url = data.url || '/';
+      const title = data.title || 'AIMRELAX-PUBG';
+      const body = data.body || 'Նոր հաղորդագրություն';
 
-  event.waitUntil(
-    clients.openWindow(url)
+      await self.registration.showNotification(title, {
+        body: body,
+        icon: '/icon-192.png',
+        badge: '/icon-192.png',
+        tag: data.tag || 'aimrelax-notification',
+        renotify: true,
+        data: {
+          url: data.url || '/',
+          chatId: data.chatId || null,
+          type: data.type || 'notification'
+        }
+      });
+    })()
   );
 });
         }
