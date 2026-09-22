@@ -8,7 +8,6 @@ const APP_FILES = [
   '/icon-512.png'
 ];
 
-// INSTALL
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -17,7 +16,6 @@ self.addEventListener('install', event => {
   );
 });
 
-// ACTIVATE
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -30,11 +28,9 @@ self.addEventListener('activate', event => {
   );
 });
 
-// FETCH
 self.addEventListener('fetch', event => {
   const request = event.request;
 
-  // Supabase/API հարցումները cache չենք անում
   if (
     request.method !== 'GET' ||
     request.url.includes('supabase.co') ||
@@ -65,12 +61,15 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// PUSH NOTIFICATION
-self.addEventListener('push', event => {
-  console.log('AIMRELAX PUSH RECEIVED');
 
+/* =========================
+   PUSH NOTIFICATION
+========================= */
+
+self.addEventListener('push', event => {
   event.waitUntil(
     (async () => {
+
       let data = {};
 
       try {
@@ -80,7 +79,9 @@ self.addEventListener('push', event => {
       } catch (e) {
         data = {
           title: 'AIMRELAX-PUBG',
-          body: event.data ? event.data.text() : 'Նոր հաղորդագրություն'
+          body: event.data
+            ? event.data.text()
+            : 'Նոր հաղորդագրություն'
         };
       }
 
@@ -93,22 +94,31 @@ self.addEventListener('push', event => {
         badge: '/icon-192.png',
         tag: data.tag || 'aimrelax-notification',
         renotify: true,
+        requireInteraction: false,
+
         data: {
           url: data.url || '/',
           chatId: data.chatId || null,
           type: data.type || 'notification'
         }
       });
+
     })()
   );
 });
-        }
-      }
 
-      // Եթե կայքը փակ է՝ բացում ենք
-      if (clients.openWindow) {
-        return clients.openWindow(url);
-      }
-    })
+
+/* =========================
+   NOTIFICATION CLICK
+========================= */
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+
+  const data = event.notification.data || {};
+  const url = data.url || '/';
+
+  event.waitUntil(
+    clients.openWindow(url)
   );
 });
