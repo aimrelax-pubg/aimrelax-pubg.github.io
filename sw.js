@@ -130,17 +130,63 @@ self.addEventListener('push', event => {
 /* =========================
    NOTIFICATION CLICK
 ========================= */
-
 self.addEventListener('notificationclick', event => {
 
   event.notification.close();
 
   const data = event.notification.data || {};
 
-  const url = data.url || '/';
+  let url = data.url || '/';
+
+  // Relative URL-ը դարձնում ենք ամբողջական URL
+  if (url.startsWith('/')) {
+    url = self.registration.scope + url.substring(1);
+  }
 
   event.waitUntil(
-    clients.openWindow(url)
+    (async () => {
+
+      try {
+
+        const clientList = await clients.matchAll({
+          type: 'window',
+          includeUncontrolled: true
+        });
+
+        // Եթե AIMRELAX-ը արդեն բաց է
+        for (const client of clientList) {
+
+          if (
+            client.url.startsWith(
+              'https://aimrelax-pubg.github.io/'
+            )
+          ) {
+
+            await client.focus();
+
+            if ('navigate' in client) {
+              await client.navigate(url);
+            }
+
+            return;
+          }
+        }
+
+        // Եթե ամբողջությամբ փակ է՝ բացում ենք
+        if (clients.openWindow) {
+          await clients.openWindow(url);
+        }
+
+      } catch (error) {
+
+        console.error(
+          'Notification click error:',
+          error
+        );
+
+      }
+
+    })()
   );
 
 });
