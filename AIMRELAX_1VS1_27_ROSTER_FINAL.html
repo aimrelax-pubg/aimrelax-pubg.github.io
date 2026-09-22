@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIMRELAX-PUBG | 1VS1 Bottle</title>
+<meta name="theme-color" content="#070707">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,Helvetica,sans-serif;background:#070707;color:#fff;min-height:100vh}
+a{color:inherit;text-decoration:none}
+header{position:sticky;top:0;z-index:20;background:rgba(0,0,0,.94);border-bottom:1px solid #292929;backdrop-filter:blur(10px)}
+.nav{max-width:1100px;margin:auto;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:15px}
+.logo{font-size:22px;font-weight:900;letter-spacing:1.5px;color:#ff7a00}.logo span{color:#fff}
+.back{border:1px solid #444;padding:10px 15px;border-radius:8px;font-weight:bold;font-size:14px}.back:hover{border-color:#ff7a00;color:#ff7a00}
+main{max-width:1050px;margin:auto;padding:55px 18px 80px}
+.hero{text-align:center;margin-bottom:35px}.tag{display:inline-block;border:1px solid #ff7a00;color:#ff7a00;border-radius:30px;padding:8px 15px;font-size:12px;font-weight:bold;letter-spacing:2px;margin-bottom:18px}.hero h1{font-size:clamp(38px,9vw,76px);line-height:1;letter-spacing:2px}.hero h1 span{color:#ff7a00}.hero p{color:#aaa;max-width:680px;margin:18px auto 0;line-height:1.6}
+.panel{background:linear-gradient(145deg,#151515,#0d0d0d);border:1px solid #2b2b2b;border-radius:18px;padding:22px;box-shadow:0 15px 50px rgba(0,0,0,.35);margin-bottom:22px}
+.adminbar{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}.adminbar strong{font-size:18px}.role{font-size:13px;color:#aaa;margin-top:5px}.role.admin{color:#ff9b3d}
+.spin{border:0;border-radius:10px;background:#ff7a00;color:#000;font-weight:900;font-size:16px;padding:15px 22px;cursor:pointer;box-shadow:0 0 25px rgba(255,122,0,.18)}.spin:hover{background:#fff}.spin:disabled{opacity:.5;cursor:not-allowed}
+.login-note{color:#aaa;text-align:center;padding:18px;border:1px dashed #3a3a3a;border-radius:12px}.login-note a{color:#ff7a00;font-weight:bold}
+.status{min-height:24px;margin-top:14px;text-align:center;color:#aaa}.error{color:#ff6b6b}.ok{color:#7ee787}
+.round-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}.round-head h2{font-size:24px}.round-date{font-size:13px;color:#777}
+.matches{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:15px}.match{position:relative;border:1px solid #2e2e2e;border-radius:15px;padding:18px;background:#0b0b0b;overflow:hidden}.match:before{content:'';position:absolute;inset:0 auto 0 0;width:3px;background:#ff7a00}.match-no{font-size:11px;color:#777;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px}.players{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px}.player{font-size:18px;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.player.right{text-align:right}.vs{color:#ff7a00;font-size:13px;font-weight:900}.waiting{border:1px solid #3b2d1f;background:#15100a;border-radius:14px;padding:18px;margin-top:18px}.waiting strong{color:#ff9b3d}.empty{text-align:center;padding:35px;color:#777;border:1px dashed #333;border-radius:14px}.info{font-size:13px;color:#888;line-height:1.6;margin-top:12px}
+.round-status{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border-radius:999px;background:#151515;border:1px solid #333;font-size:12px;font-weight:800}.round-status.active{color:#7ee787;border-color:#24552d}.round-status.paused{color:#ffd166;border-color:#66501c}.round-status.finished{color:#aaa}.score-line{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:10px;margin-top:16px}.score{font-size:34px;font-weight:900;line-height:1;color:#fff;min-width:48px;text-align:center}.score.left{text-align:left}.score.right{text-align:right}.score-controls{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:12px}.score-controls button,.game-controls button{border:1px solid #444;background:#171717;color:#fff;border-radius:7px;padding:7px 10px;font-weight:800;cursor:pointer}.score-controls button:hover,.game-controls button:hover{border-color:#ff7a00;color:#ff7a00}.score-controls button:disabled,.game-controls button:disabled{opacity:.4;cursor:not-allowed}.score-controls button:disabled:hover{border-color:#444;color:#fff}.admin-controls{margin-top:14px;padding-top:12px;border-top:1px solid #242424}.game-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.game-controls .pause{border-color:#80651c;color:#ffd166}.game-controls .finish{border-color:#7a3030;color:#ff7777}.status-banner{margin:0 0 18px;padding:12px 14px;border-radius:10px;text-align:center;font-weight:800;background:#151515;border:1px solid #333}.status-banner.paused{color:#ffd166;border-color:#66501c}.status-banner.finished{color:#aaa}.match.disabled{opacity:.72}
+footer{text-align:center;border-top:1px solid #222;color:#666;padding:25px}
+@media(max-width:600px){.nav{padding:13px 14px}.logo{font-size:18px}.back{padding:8px 10px;font-size:12px}main{padding:38px 12px 60px}.panel{padding:15px}.adminbar{align-items:stretch}.spin{width:100%}.players{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}.player{font-size:15px}.hero h1{font-size:43px}}
+</style>
+</head>
+<body>
+<header><div class="nav">
+<a class="logo" href="index.html">AIM<span>RELAX</span>-PUBG</a>
+<a class="back" href="index.html">← Գլխավոր էջ</a>
+</div></header>
+<main>
+<section class="hero">
+<div class="tag">AIMRELAX • 1VS1</div>
+<h1>🎰 <span>BOTTLE</span> 1VS1</h1>
+<p>Բոլոր գրանցված խաղացողների nickname-ները պատահական խառնվում են, և ստացված զույգերը խաղում են 1vs1։ Յուրաքանչյուր նոր պտույտ ստեղծում է նոր փուլ։</p>
+</section>
+<section class="panel" id="control-panel">
+<div class="adminbar">
+<div><strong id="access-title">Ստուգվում է մուտքը…</strong><div id="access-role" class="role"></div></div>
+<button id="spin-btn" class="spin" type="button" disabled>🎰 ՊՏՏԵԼ ԲՈՒՏԻԼԿԱՆ</button>
+</div>
+<div id="status" class="status"></div>
+<div class="info">Միայն Owner-ը կամ Admin-ը կարող է նոր փուլ ստեղծել, հաշիվ փոխել, դադարեցնել կամ ավարտել խաղը։ Արդյունքը պահվում է Supabase-ում, այնպես որ բոլոր սարքերում նույն տվյալներն են երևում։</div>
+</section>
+<section class="panel">
+<div class="round-head"><h2>🏆 Վերջին փուլը</h2><div><span id="round-status" class="round-status">Ստուգվում է…</span> <span id="round-date" class="round-date"></span></div></div>
+<div id="matches" class="empty">Մուտք գործեք՝ վերջին փուլը տեսնելու համար։</div>
+</section>
+</main>
+<footer>© 2026 <strong>AIMRELAX-PUBG</strong> — 1VS1 Bottle</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL="https://hvhlrbfjloiahbqmnrly.supabase.co";
+const SUPABASE_ANON_KEY="sb_publishable_EcZUkLdUCVv3qWDD7jlvhg_OjTYu1jA";
+const {createClient}=supabase;
+const sb=createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const OWNER_ID='5f1c951f-1e76-4f82-9849-46becf038b55';
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+let currentUser=null,myRole=null;
+function setStatus(text,type=''){const el=$('status');el.textContent=text;el.className='status '+type}
+function formatDate(v){if(!v)return '';try{return new Intl.DateTimeFormat('hy-AM',{timeZone:'Asia/Yerevan',dateStyle:'medium',timeStyle:'short'}).format(new Date(v))}catch{return v}}
+function isManager(){return myRole==='owner'||myRole==='admin'}
+function statusLabel(status){return status==='paused'?'⏸️ Դադարեցված':status==='finished'?'🏁 Ավարտված':'🟢 Ակտիվ'}
+function renderRound(data){
+ const box=$('matches');
+ if(!data||!data.round_id){box.className='empty';box.innerHTML='Դեռ ոչ մի 1VS1 փուլ չի ստեղծվել։';$('round-date').textContent='';$('round-status').textContent='';$('round-status').className='round-status';return}
+ const status=data.status||'active';
+ window.currentRoundId=data.round_id;
+ $('round-date').textContent='Ստեղծվել է՝ '+formatDate(data.created_at);
+ $('round-status').textContent=statusLabel(status);
+ $('round-status').className='round-status '+status;
+ const matches=data.matches||[];
+ let html='';
+ if(status==='paused')html+='<div class="status-banner paused">⏸️ Խաղերը ժամանակավորապես դադարեցված են</div>';
+ if(status==='finished')html+='<div class="status-banner finished">🏁 Այս փուլը ավարտված է</div>';
+ html+=matches.length?'<div class="matches">':'<div class="empty">Այս փուլում զույգեր չկան։</div>';
+ matches.forEach(m=>{
+   const s1=Number(m.player1_score||0),s2=Number(m.player2_score||0);
+   html+=`<div class="match ${status!=='active'?'disabled':''}">
+     <div class="match-no">ՄԱՏՉ ${esc(m.match_no)}</div>
+     <div class="players"><div class="player">${esc(m.player1_nickname)}</div><div class="vs">VS</div><div class="player right">${esc(m.player2_nickname)}</div></div>
+     <div class="score-line"><div class="score left">${s1}</div><div class="vs">ՀԱՇԻՎ</div><div class="score right">${s2}</div></div>
+     ${isManager()?`<div class="admin-controls"><div class="score-controls"><button type="button" class="score-btn" data-match="${m.id}" data-slot="1" data-delta="1" ${status!=='active'?'disabled':''}>+1 ${esc(m.player1_nickname)}</button><button type="button" class="score-btn" data-match="${m.id}" data-slot="2" data-delta="1" ${status!=='active'?'disabled':''}>+1 ${esc(m.player2_nickname)}</button><button type="button" class="score-btn" data-match="${m.id}" data-slot="1" data-delta="-1" ${status!=='active'?'disabled':''}>−1</button><button type="button" class="score-btn" data-match="${m.id}" data-slot="2" data-delta="-1" ${status!=='active'?'disabled':''}>−1</button><button type="button" class="set-score-btn" data-match="${m.id}" data-s1="${s1}" data-s2="${s2}" ${status!=='active'?'disabled':''}>✏️ Փոխել</button></div></div>`:''}
+   </div>`;
+ });
+ if(matches.length)html+='</div>';
+ if(data.waiting?.nickname)html+=`<div class="waiting">⏳ <strong>Սպասող խաղացող՝ ${esc(data.waiting.nickname)}</strong><br><span class="info">Կենտ թվով մասնակիցների դեպքում մեկ խաղացող մնում է առանց զույգի։</span></div>`;
+ if(isManager())html+=`<div class="admin-controls"><div class="game-controls">${status==='active'?'<button class="pause" type="button" onclick="setRoundStatus(\'paused\')">⏸️ Դադարեցնել խաղը</button>':'<button type="button" onclick="setRoundStatus(\'active\')">▶️ Շարունակել խաղը</button>'}${status!=='finished'?'<button class="finish" type="button" onclick="setRoundStatus(\'finished\')">🏁 Ավարտել խաղը</button>':''}</div></div>`;
+ box.className='';box.innerHTML=html;
+ box.querySelectorAll('.score-btn').forEach(btn=>btn.addEventListener('click',()=>changeScore(btn.dataset.match,Number(btn.dataset.slot),Number(btn.dataset.delta))));
+ box.querySelectorAll('.set-score-btn').forEach(btn=>btn.addEventListener('click',()=>setScores(btn.dataset.match,Number(btn.dataset.s1),Number(btn.dataset.s2))));
+}
+async function refreshRound(){await loadLatest()}
+async function changeScore(matchId,slot,delta){
+ if(!isManager())return;
+ const {data,error}=await sb.rpc('update_1v1_roster_score',{p_match_id:matchId,p_player_slot:slot,p_delta:delta});
+ if(error){console.error('update_1v1_score RPC error:',error);setStatus('Չհաջողվեց փոխել հաշիվը։ '+(error.message||error.details||error.hint||''),'error');return}
+ renderRound(data);setStatus('Հաշիվը պահպանվեց։','ok');
+}
+async function setScores(matchId,s1,s2){
+ if(!isManager())return;
+ const v=window.prompt('Մուտքագրեք նոր հաշիվները՝ օրինակ 5-3',`${s1}-${s2}`);if(v===null)return;
+ const m=String(v).trim().match(/^(\d+)\s*[-:]\s*(\d+)$/);if(!m){setStatus('Գրեք օրինակ՝ 5-3','error');return}
+ const {data,error}=await sb.rpc('set_1v1_roster_scores',{p_match_id:matchId,p_player1_score:Number(m[1]),p_player2_score:Number(m[2])});
+ if(error){console.error('set_1v1_scores RPC error:',error);setStatus('Չհաջողվեց պահպանել հաշիվը։ '+(error.message||error.details||error.hint||''),'error');return}
+ renderRound(data);setStatus('Հաշիվը պահպանվեց։','ok');
+}
+async function setRoundStatus(newStatus){
+ if(!isManager())return;
+ if(newStatus==='finished'&&!window.confirm('Վստա՞հ եք, որ ցանկանում եք ավարտել այս փուլը։'))return;
+ const {data,error}=await sb.rpc('set_1v1_roster_round_status',{p_round_id:window.currentRoundId,p_status:newStatus});
+ if(error){setStatus(error.message||'Չհաջողվեց փոխել խաղի վիճակը։','error');return}
+ renderRound(data);setStatus(newStatus==='paused'?'Խաղը դադարեցվեց։':newStatus==='finished'?'Խաղը ավարտվեց։':'Խաղը շարունակվեց։','ok');
+}
+window.changeScore=changeScore;window.setScores=setScores;window.setRoundStatus=setRoundStatus;
+async function loadRole(){
+ const {data,error}=await sb.auth.getUser();
+ if(error||!data.user){currentUser=null;myRole=null;$('access-title').textContent='🔒 Մուտք գործեք';$('access-role').textContent='1VS1 արդյունքները դիտելու համար նույնպես պետք է մուտք գործած լինեք։';$('spin-btn').disabled=true;$('matches').className='empty';$('matches').innerHTML='Մուտք գործեք ձեր AIMRELAX հաշիվ՝ վերջին փուլը տեսնելու համար։<br><br><a href="index.html" style="color:#ff7a00;font-weight:bold">← Գնալ գլխավոր էջ</a>';return}
+ currentUser=data.user;
+ const isOwner=currentUser.id===OWNER_ID;
+ let role=null;
+ try{const r=await sb.rpc('get_my_site_role');if(!r.error&&r.data)role=String(r.data).toLowerCase()}catch(e){}
+ if(isOwner)role='owner';myRole=role;
+ const allowed=role==='owner'||role==='admin';
+ $('access-title').textContent=allowed?'🛡️ 1VS1 կառավարում':'👤 1VS1 դիտում';
+ $('access-role').textContent=allowed?(role==='owner'?'Owner — կարող եք պտտել բուտիլկան':'Admin — կարող եք պտտել բուտիլկան'):'Սովորական օգտատեր — կարող եք միայն տեսնել արդյունքը';
+ $('access-role').className='role '+(allowed?'admin':'');
+ $('spin-btn').disabled=!allowed;
+ await loadLatest();
+}
+async function loadLatest(){
+ const {data,error}=await sb.rpc('get_latest_1v1_roster_round');
+ if(error){$('matches').className='empty';$('matches').innerHTML='Չհաջողվեց բեռնել 1VS1 արդյունքը։<br><small style="color:#666">'+esc(error.message)+'</small>';return}
+ renderRound(data);
+}
+async function loadRosterNicknamesFromIndex(){
+ try{
+   const res=await fetch('index.html?v='+Date.now(),{cache:'no-store'});
+   if(!res.ok) throw new Error('index.html-ը չբեռնվեց');
+   const text=await res.text();
+   const doc=new DOMParser().parseFromString(text,'text/html');
+   const names=[...doc.querySelectorAll('#players h3')]
+     .map(el=>el.textContent.trim())
+     .filter(Boolean);
+   const unique=[];
+   const seen=new Set();
+   for(const name of names){
+     const key=name.replace(/\s+/g,' ').trim().toLowerCase();
+     if(!seen.has(key)){seen.add(key);unique.push(name.replace(/\s+/g,' ').trim());}
+   }
+   if(unique.length<2) throw new Error('index.html-ի «Խաղացողներ» բաժնում առնվազն 2 նիկ պետք է լինի');
+   if(unique.length!==27) throw new Error(`index.html-ի «Խաղացողներ» բաժնում գտնվեց ${unique.length} եզակի նիկ, իսկ 27 է անհրաժեշտ։`);
+   return unique;
+ }catch(e){
+   console.error('Roster sync failed:',e);
+   throw e;
+ }
+}
+$('spin-btn').onclick=async()=>{
+ if(myRole!=='owner'&&myRole!=='admin'){setStatus('Միայն Owner/Admin-ը կարող է պտտել բուտիլկան։','error');return}
+ const btn=$('spin-btn');btn.disabled=true;btn.textContent='🎰 Խառնվում է…';setStatus('«Խաղացողներ» բաժնից նիկերը բեռնվում են…');
+ try{
+   const rosterNicknames=await loadRosterNicknamesFromIndex();
+   const {data,error}=await sb.rpc('create_1v1_roster_round',{p_roster_nicknames:rosterNicknames});
+   if(error) throw error;
+   renderRound(data);
+   setStatus(`Նոր 1VS1 փուլը ստեղծվեց՝ ${data?.participant_count ?? rosterNicknames.length} մասնակից, ${data?.match_count ?? 0} խաղ։${data?.waiting_count ? ` ${data.waiting_count} խաղացող սպասման մեջ։` : ''} 🔥`,'ok');
+ }catch(e){
+   setStatus(e?.message||'Չհաջողվեց ստեղծել փուլ։','error');
+ }finally{
+   btn.textContent='🎰 ՊՏՏԵԼ ԲՈՒՏԻԼԿԱՆ';
+   btn.disabled=!(myRole==='owner'||myRole==='admin');
+ }
+};
+sb.auth.onAuthStateChange(()=>{setTimeout(loadRole,0)});
+loadRole();
+setInterval(()=>{if(currentUser) loadLatest()},3000);
+</script>
+</body>
+</html>
