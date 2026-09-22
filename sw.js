@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aimrelax-pubg-v2';
+const CACHE_NAME = 'aimrelax-pubg-v3';
 
 const APP_FILES = [
   '/',
@@ -8,6 +8,10 @@ const APP_FILES = [
   '/icon-512.png'
 ];
 
+/* =========================
+   INSTALL
+========================= */
+
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -15,6 +19,11 @@ self.addEventListener('install', event => {
       .then(() => self.skipWaiting())
   );
 });
+
+
+/* =========================
+   ACTIVATE
+========================= */
 
 self.addEventListener('activate', event => {
   event.waitUntil(
@@ -28,14 +37,17 @@ self.addEventListener('activate', event => {
   );
 });
 
+
+/* =========================
+   FETCH
+========================= */
+
 self.addEventListener('fetch', event => {
   const request = event.request;
 
   if (
     request.method !== 'GET' ||
-    request.url.includes('supabase.co') ||
-    request.url.includes('/rest/') ||
-    request.url.includes('/auth/')
+    request.url.includes('supabase.co')
   ) {
     return;
   }
@@ -63,10 +75,11 @@ self.addEventListener('fetch', event => {
 
 
 /* =========================
-   PUSH NOTIFICATION
+   PUSH
 ========================= */
 
 self.addEventListener('push', event => {
+
   event.waitUntil(
     (async () => {
 
@@ -76,7 +89,7 @@ self.addEventListener('push', event => {
         if (event.data) {
           data = event.data.json();
         }
-      } catch (e) {
+      } catch (error) {
         data = {
           title: 'AIMRELAX-PUBG',
           body: event.data
@@ -88,23 +101,29 @@ self.addEventListener('push', event => {
       const title = data.title || 'AIMRELAX-PUBG';
       const body = data.body || 'Նոր հաղորդագրություն';
 
+      const notificationData = {
+        url: data.url || '/',
+        chatId: data.chatId || null,
+        type: data.type || 'notification'
+      };
+
       await self.registration.showNotification(title, {
-        body: body,
+        body,
         icon: '/icon-192.png',
         badge: '/icon-192.png',
+
         tag: data.tag || 'aimrelax-notification',
+
         renotify: true,
+
         requireInteraction: false,
 
-        data: {
-          url: data.url || '/',
-          chatId: data.chatId || null,
-          type: data.type || 'notification'
-        }
+        data: notificationData
       });
 
     })()
   );
+
 });
 
 
@@ -113,12 +132,15 @@ self.addEventListener('push', event => {
 ========================= */
 
 self.addEventListener('notificationclick', event => {
+
   event.notification.close();
 
   const data = event.notification.data || {};
+
   const url = data.url || '/';
 
   event.waitUntil(
     clients.openWindow(url)
   );
+
 });
