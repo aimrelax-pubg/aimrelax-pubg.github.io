@@ -110,23 +110,33 @@ self.addEventListener('push', event => {
 self.addEventListener('notificationclick', event => {
   event.notification.close();
 
-  const notificationData = event.notification.data || {};
-  const url = notificationData.url || '/';
+  const data = event.notification.data || {};
+  const url = data.url || '/';
 
   event.waitUntil(
     clients.matchAll({
       type: 'window',
       includeUncontrolled: true
-    }).then(clientList => {
+    }).then(async clientList => {
 
-      // Եթե կայքը արդեն բաց է
       for (const client of clientList) {
         if ('focus' in client) {
-          return client.focus().then(() => {
-            if ('navigate' in client) {
-              return client.navigate(url);
-            }
-          });
+          await client.focus();
+
+          if ('navigate' in client) {
+            await client.navigate(url);
+          }
+
+          return;
+        }
+      }
+
+      if (clients.openWindow) {
+        return clients.openWindow(url);
+      }
+    })
+  );
+});
         }
       }
 
