@@ -1,0 +1,2054 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>AIMRELAX-PUBG | Official Clan</title>
+<meta name="description" content="AIMRELAX-PUBG պաշտոնական կլանային կայք՝ խաղացողներ, քվեարկություն, ձեռքբերումներ և կապ։">
+<meta name="theme-color" content="#070707">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    font-family:Arial, Helvetica, sans-serif;
+    background:#070707;
+    color:#fff;
+}
+
+header{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    z-index:1000;
+    background:rgba(0,0,0,.92);
+    border-bottom:1px solid #242424;
+}
+
+.nav{
+    max-width:1200px;
+    margin:auto;
+    padding:18px 25px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.logo{
+    text-decoration:none;
+    display:inline-block;
+    font-size:24px;
+    font-weight:900;
+    letter-spacing:2px;
+    color:#ff7a00;
+}
+
+.logo span{
+    color:#fff;
+}
+
+nav a{
+    color:#fff;
+    text-decoration:none;
+    margin-left:22px;
+    font-size:14px;
+    font-weight:bold;
+    transition:.3s;
+}
+
+nav a:hover{
+    color:#ff7a00;
+}
+
+/* HERO */
+
+.hero{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:100px 20px 60px;
+    background:
+    radial-gradient(circle at center,#301500 0%,#100900 30%,#070707 65%);
+    position:relative;
+    overflow:hidden;
+}
+
+.hero:before{
+    content:"";
+    position:absolute;
+    width:500px;
+    height:500px;
+    border:1px solid rgba(255,122,0,.15);
+    border-radius:50%;
+    animation:pulse 4s infinite;
+}
+
+@keyframes pulse{
+    0%,100%{transform:scale(.8);opacity:.3}
+    50%{transform:scale(1.2);opacity:.7}
+}
+
+.hero-content{
+    position:relative;
+    z-index:2;
+}
+
+.badge{
+    display:inline-block;
+    border:1px solid #ff7a00;
+    color:#ff7a00;
+    padding:8px 18px;
+    border-radius:30px;
+    font-size:12px;
+    font-weight:bold;
+    letter-spacing:2px;
+    margin-bottom:25px;
+}
+
+.hero h1{
+    font-size:clamp(45px,10vw,100px);
+    font-weight:1000;
+    letter-spacing:5px;
+    line-height:1;
+    text-shadow:0 0 30px rgba(255,122,0,.35);
+}
+
+.hero h1 span{
+    color:#ff7a00;
+}
+
+.hero p{
+    margin:25px auto;
+    max-width:650px;
+    color:#aaa;
+    font-size:18px;
+}
+
+.buttons{
+    display:flex;
+    justify-content:center;
+    gap:15px;
+    flex-wrap:wrap;
+    margin-top:30px;
+}
+
+.btn{
+    display:inline-block;
+    padding:14px 28px;
+    border-radius:5px;
+    text-decoration:none;
+    font-weight:bold;
+    transition:.3s;
+}
+
+.btn-primary{
+    background:#ff7a00;
+    color:#000;
+}
+
+.btn-primary:hover{
+    background:#fff;
+    transform:translateY(-3px);
+}
+
+.btn-secondary{
+    border:1px solid #555;
+    color:#fff;
+}
+
+.btn-secondary:hover{
+    border-color:#ff7a00;
+    color:#ff7a00;
+}
+
+/* SECTIONS */
+
+section{
+    padding:90px 20px;
+}
+
+.container{
+    max-width:1100px;
+    margin:auto;
+}
+
+.section-title{
+    text-align:center;
+    margin-bottom:50px;
+}
+
+.section-title small{
+    color:#ff7a00;
+    letter-spacing:3px;
+    font-weight:bold;
+}
+
+.section-title h2{
+    font-size:40px;
+    margin-top:10px;
+}
+
+/* ABOUT */
+
+.about{
+    background:#0b0b0b;
+}
+
+.about-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:30px;
+}
+
+.card{
+    background:#111;
+    border:1px solid #242424;
+    border-radius:10px;
+    padding:30px;
+    transition:.3s;
+}
+
+.card:hover{
+    border-color:#ff7a00;
+    transform:translateY(-5px);
+}
+
+.card h3{
+    color:#ff7a00;
+    margin-bottom:15px;
+}
+
+.card p{
+    color:#aaa;
+    line-height:1.7;
+}
+
+/* STATS */
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:15px;
+    margin-top:40px;
+}
+
+.stat{
+    text-align:center;
+    background:#0e0e0e;
+    border:1px solid #222;
+    padding:25px 10px;
+    border-radius:8px;
+}
+
+.stat strong{
+    display:block;
+    font-size:32px;
+    color:#ff7a00;
+}
+
+.stat span{
+    color:#888;
+    font-size:13px;
+}
+
+/* PLAYERS */
+
+.players{
+    background:#080808;
+}
+
+.players-grid{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:20px;
+}
+  .player{
+    background:#111;
+    border:1px solid #222;
+    border-radius:10px;
+    padding:35px 20px;
+    text-align:center;
+    transition:.3s;
+}
+
+.player:hover{
+    border-color:#ff7a00;
+    transform:translateY(-6px);
+}
+
+.player-avatar{
+    width:90px;
+    height:90px;
+    margin:0 auto 20px;
+    border-radius:50%;
+    border:2px solid #ff7a00;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:30px;
+    background:#181818;
+}
+
+.player h3{
+    margin-bottom:8px;
+}
+
+.player p{
+    color:#888;
+    font-size:13px;
+}
+
+/* COMING */
+
+.coming{
+    color:#777;
+    text-align:center;
+    padding:40px;
+    border:1px dashed #333;
+    border-radius:10px;
+}
+
+/* ACHIEVEMENTS */
+
+.achievements{
+    background:#0b0b0b;
+}
+
+.achievement-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:20px;
+}
+
+.achievement{
+    padding:35px;
+    background:#111;
+    border:1px solid #242424;
+    border-radius:10px;
+    text-align:center;
+}
+
+.achievement .icon{
+    font-size:45px;
+    margin-bottom:15px;
+}
+
+.achievement h3{
+    margin-bottom:10px;
+}
+
+.achievement p{
+    color:#777;
+}
+
+/* GALLERY */
+
+.gallery-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:15px;
+}
+
+.gallery-item{
+    height:200px;
+    background:linear-gradient(135deg,#171717,#0b0b0b);
+    border:1px solid #252525;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#555;
+    font-weight:bold;
+    transition:.3s;
+}
+
+.gallery-item:hover{
+    border-color:#ff7a00;
+    color:#ff7a00;
+}
+
+/* CONTACT */
+
+.contact{
+    background:#0b0b0b;
+    text-align:center;
+}
+
+.socials{
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:12px;
+    margin-top:30px;
+}
+
+.social{
+    padding:14px 25px;
+    border:1px solid #333;
+    border-radius:5px;
+    color:#fff;
+    text-decoration:none;
+    transition:.3s;
+}
+
+.social:hover{
+    border-color:#ff7a00;
+    color:#ff7a00;
+}
+
+/* FOOTER */
+
+footer{
+    background:#050505;
+    border-top:1px solid #202020;
+    text-align:center;
+    padding:30px 20px;
+    color:#666;
+    font-size:13px;
+}
+
+footer strong{
+    color:#ff7a00;
+}
+
+/* MOBILE */
+
+@media(max-width:800px){
+
+    nav{
+        display:none;
+    }
+
+    .nav{
+        justify-content:center;
+    }
+
+    .about-grid{
+        grid-template-columns:1fr;
+    }
+
+    .stats{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .players-grid{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .achievement-grid{
+        grid-template-columns:1fr;
+    }
+
+    .gallery-grid{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .hero h1{
+        letter-spacing:2px;
+    }
+}
+
+@media(max-width:480px){
+
+    .players-grid{
+        grid-template-columns:1fr;
+    }
+
+    .gallery-grid{
+        grid-template-columns:1fr;
+    }
+
+    .hero p{
+        font-size:15px;
+    }
+
+    section{
+        padding:70px 15px;
+    }
+}
+
+/* AIMRELAX COMMUNITY UI */
+.account-open-btn{margin-left:14px;background:#ff7200;color:#000;border:0;border-radius:5px;padding:10px 13px;font-weight:800;cursor:pointer;white-space:nowrap}.account-modal{display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.82);align-items:center;justify-content:center;padding:18px}.account-modal.open{display:flex}.account-modal-card{position:relative;width:min(430px,100%);background:#111;border:1px solid #ff7200;border-radius:14px;padding:28px;box-shadow:0 0 40px rgba(255,122,0,.18)}.account-close{position:absolute;right:12px;top:7px;background:none;border:0;color:#aaa;font-size:30px;cursor:pointer}.account-tabs{display:flex;gap:8px;margin-bottom:20px}.account-tabs button{flex:1;background:#1a1a1a;border:1px solid #333;color:#aaa;padding:11px;border-radius:5px;cursor:pointer;font-weight:bold}.account-tabs button.active{background:#ff7200;color:#000;border-color:#ff7200}.account-modal-card input,.community-card input,.chat-send input,.comment-send input{box-sizing:border-box;width:100%;padding:13px;margin:6px 0;background:#0b0b0b;border:1px solid #333;color:#fff;border-radius:5px}.account-modal-card button:not(.account-close):not(.logout-btn){padding:12px;background:#ff7200;border:0;border-radius:5px;font-weight:bold;cursor:pointer;margin-top:8px}.account-modal-card #m-login-btn,.account-modal-card #m-reg-btn,.account-modal-card #m-reset-btn{width:100%}.google-login-btn{width:100%;background:#fff!important;color:#222!important;border:1px solid #ddd!important;margin-top:12px!important}.community-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.community-card,.chat-card{background:#101010;border:1px solid #292929;border-radius:10px;padding:22px}.community-help{color:#aaa;line-height:1.6}.friend-list{display:flex;flex-direction:column;gap:8px;margin:10px 0 18px}.friend-row{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#0b0b0b;border:1px solid #252525;padding:10px;border-radius:6px}.friend-row button{background:#ff7200;border:0;border-radius:4px;padding:7px 10px;font-weight:bold;cursor:pointer}.friend-row .muted{color:#888;font-size:12px}.community-card h4{color:#ff7200;margin:18px 0 8px}.chat-messages{height:350px;overflow:auto;background:#080808;border:1px solid #222;border-radius:7px;padding:12px}.chat-message{margin-bottom:12px}.chat-message strong{color:#ff7200}.chat-message small{color:#666;margin-left:6px}.chat-message p{margin:4px 0;color:#ddd;word-break:break-word}.chat-send{display:flex;gap:8px;margin-top:10px}.chat-send input{margin:0;flex:1}.chat-send button{background:#ff7200;border:0;border-radius:5px;padding:0 18px;font-weight:bold;cursor:pointer}.chat-online{color:#888;margin-bottom:10px}.media-comments{margin-top:10px;background:#0a0a0a;border:1px solid #222;padding:8px;border-radius:5px;text-align:left}.comments-list{max-height:130px;overflow:auto}.comment-row{padding:5px 0;border-bottom:1px solid #1e1e1e;color:#ccc;font-size:13px}.comment-row strong{color:#ff7200}.comment-send{display:flex;gap:5px}.comment-send input{margin:5px 0 0}.comment-send button{margin-top:5px;background:#ff7200;border:0;border-radius:4px;padding:0 12px;cursor:pointer}.loading-text{color:#777;text-align:center;padding:12px}@media(max-width:900px){.community-grid{grid-template-columns:1fr}.account-open-btn{margin-left:5px;font-size:11px;padding:9px 8px}}@media(max-width:650px){.nav{flex-wrap:wrap}.nav nav{order:3;width:100%;overflow-x:auto}.account-open-btn{margin-left:auto}.chat-send{flex-direction:column}.chat-send button{height:42px}}
+
+.account-logo-wrap{position:relative;display:inline-block}
+.account-logo-menu{display:none;position:absolute;top:calc(100% + 8px);right:0;min-width:190px;background:#111;border:1px solid #ff7200;border-radius:10px;padding:7px;box-shadow:0 10px 30px rgba(0,0,0,.45);z-index:10020}
+.account-logo-menu.show{display:block}
+.account-logo-menu button{display:block;width:100%;background:transparent;border:0;color:#fff;text-align:left;padding:10px 12px;border-radius:7px;cursor:pointer;font-size:14px}
+.account-logo-menu button:hover{background:#222;color:#ff7200}
+
+/* AIMRELAX PRIVATE CHAT EXTRAS */
+.typing-indicator{display:none;padding:3px 10px;color:#888;font-size:12px;font-style:italic;border-top:1px solid #1d1d1d}.typing-indicator.show{display:block}.emoji-panel{display:none;padding:8px;border-top:1px solid #292929;background:#0d0d0d;grid-template-columns:repeat(8,1fr);gap:4px}.emoji-panel.open{display:grid}.emoji-btn{background:#171717!important;border:1px solid #292929!important;color:#fff!important;border-radius:5px;padding:6px!important;font-size:19px;cursor:pointer}.emoji-toggle-btn{width:40px;min-width:40px;background:#222!important;color:#fff;border:1px solid #444!important;border-radius:5px;padding:0!important;font-size:18px;cursor:pointer}.message-actions{display:none;margin-top:5px;gap:5px}.private-message.selected .message-actions{display:flex}.message-delete-btn{background:#222!important;color:#fff!important;border:1px solid #444!important;border-radius:4px;padding:4px 7px!important;font-size:11px;cursor:pointer}.message-meta{font-size:11px;color:#777;margin-left:5px}.message-deleted{color:#777!important;font-style:italic}.read-check{font-weight:800;margin-left:4px}.private-message{cursor:pointer}.offline-last-seen{font-size:11px;color:#777;margin-left:4px}.chat-friend-status{white-space:nowrap}.chat-friend-name{display:flex;align-items:center;gap:4px}
+</style>
+
+<style>
+/* AIMRELAX AUTH + VOTING */
+#auth-vote { background:#080808; }
+.auth-vote-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; max-width:1000px; margin:auto; }
+.auth-card, .vote-card { background:#111; border:1px solid #242424; border-radius:10px; padding:28px; }
+.auth-card h3, .vote-card h3 { color:#ff7a00; margin-bottom:18px; }
+.auth-card input, .auth-card button, .vote-card button {
+  width:100%; padding:14px; border-radius:5px; font-size:16px; box-sizing:border-box;
+}
+.auth-card input {
+  margin-bottom:12px; background:#121212; border:1px solid #333; color:#fff;
+}
+.auth-card button, .vote-card button {
+  background:#ff7200; border:0; color:#000; font-weight:bold; cursor:pointer;
+}
+.auth-card button:hover, .vote-card button:hover { background:#ff8c32; }
+.auth-link { color:#ff7a00; cursor:pointer; display:inline-block; margin-top:12px; font-size:14px; }
+.auth-status, .vote-status { color:#ff7200; font-weight:bold; margin-top:12px; min-height:20px; }
+.user-box { display:none; margin-bottom:18px; color:#aaa; }
+.user-box strong { color:#ff7a00; }
+#vote-panel { display:none; }
+#login-panel { display:block; }
+#register-panel, #reset-panel { display:none; }
+.vote-total {
+  text-align:center; font-size:28px; font-weight:bold; color:#ff7a00; margin:10px 0 22px;
+}
+.player-options{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.player-option{display:flex;align-items:center;gap:10px;width:100%;padding:13px 15px;background:#0b0b0b;border:1px solid #252525;border-radius:7px;color:#fff;cursor:pointer;text-align:left}
+.player-option:hover,.player-option.selected{border-color:#ff7a00}
+.player-option input{accent-color:#ff7a00}
+.success-page{display:none;position:fixed;inset:0;z-index:9999;background:#070707;align-items:center;justify-content:center;padding:20px;text-align:center}
+.success-card{max-width:520px;width:100%;background:#111;border:1px solid #ff7a00;border-radius:14px;padding:45px 25px;box-shadow:0 0 40px rgba(255,122,0,.15)}
+.success-card .success-icon{font-size:60px;margin-bottom:15px}
+.success-card h2{color:#ff7a00;margin-bottom:12px}
+.success-card p{color:#aaa;line-height:1.7}
+.success-card button{margin-top:22px;width:100%;padding:14px;border:0;border-radius:5px;background:#ff7200;color:#000;font-weight:bold;cursor:pointer;font-size:16px}
+.vote-list { display:flex; flex-direction:column; gap:10px; }
+.vote-row {
+  display:flex; justify-content:space-between; align-items:center;
+  background:#0b0b0b; border:1px solid #252525; padding:13px 15px; border-radius:7px;
+}
+.vote-row span:last-child { color:#ff7a00; font-weight:bold; }
+.logout-btn { margin-top:12px !important; background:#222 !important; color:#fff !important; border:1px solid #444 !important; }
+@media(max-width:800px){ .auth-vote-grid{grid-template-columns:1fr;} }
+
+/* FRIENDS + PRIVATE CHAT */
+.profile-modal{display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.82);align-items:center;justify-content:center;padding:18px}.profile-modal.open{display:flex}.profile-card{width:min(420px,100%);background:#111;border:1px solid #ff7200;border-radius:14px;padding:25px;position:relative}.profile-close{position:absolute;right:12px;top:7px;background:none;border:0;color:#aaa;font-size:28px;cursor:pointer}.profile-name{font-size:24px;color:#ff7200;font-weight:800;margin:10px 0}.online-dot{font-size:13px;color:#8f8}.offline-dot{font-size:13px;color:#777}.friend-actions{display:flex;gap:6px;flex-wrap:wrap}.friend-actions button{background:#ff7200;border:0;border-radius:4px;padding:7px 9px;font-weight:bold;cursor:pointer}.friend-actions .danger{background:#222;color:#fff;border:1px solid #444}.private-chat-fab{position:fixed;right:16px;bottom:16px;z-index:3000;background:#ff7200;color:#050505;border:0;border-radius:999px;padding:10px 15px;font-weight:800;font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.45);cursor:pointer}.private-chat-popup{position:fixed;right:16px;bottom:62px;width:340px;max-width:calc(100vw - 28px);height:430px;z-index:2999;background:#101010;border:1px solid #ff7200;border-radius:12px;box-shadow:0 10px 35px rgba(0,0,0,.6);display:none;flex-direction:column;overflow:hidden}.private-chat-popup.open{display:flex}.private-chat-popup .friend-row{padding:7px}.private-chat-popup .friend-row button{padding:5px 8px}.private-chat-head{padding:11px 12px;border-bottom:1px solid #292929;display:flex;justify-content:space-between;align-items:center;gap:8px}.private-chat-head strong{color:#ff7200}.private-chat-head button{background:#222;color:#fff;border:1px solid #444;border-radius:5px;padding:5px 8px;cursor:pointer}.private-messages{flex:1;min-height:0;overflow:auto;background:#080808;padding:10px}.private-message{margin-bottom:9px;background:#101010;border-radius:7px;padding:7px}.private-message strong{color:#ff7200}.private-message p{margin:3px 0;color:#ddd;word-break:break-word}.private-send{display:flex;gap:6px;padding:8px;border-top:1px solid #292929}.voice-record-btn{width:42px;min-width:42px;background:#222!important;color:#fff;border:1px solid #444!important;border-radius:5px;padding:0!important;font-size:18px;cursor:pointer}
+.voice-record-btn.recording{background:#b00020!important;border-color:#ff3b30!important;animation:voicePulse 1s infinite}
+.voice-cancel-btn{display:none;width:42px;min-width:42px;background:#222!important;color:#fff;border:1px solid #444!important;border-radius:5px;padding:0!important;cursor:pointer}.chat-image{display:block;max-width:100%;max-height:260px;border-radius:8px;margin-top:6px;object-fit:contain}.chat-video{display:block;width:min(100%,300px);max-height:260px;border-radius:8px;margin-top:6px;background:#000}.chat-file{display:inline-block;margin-top:6px;color:#ff7200;text-decoration:none;word-break:break-all}.chat-file:hover{text-decoration:underline}
+.voice-recording-status{display:none;padding:5px 10px;color:#ff7200;font-size:12px;border-top:1px solid #292929}
+.voice-recording-status.show{display:block}
+.private-message.audio-message{background:#151515}
+.private-message .voice-audio{width:min(280px,100%);height:36px;margin-top:5px}
+@keyframes voicePulse{50%{opacity:.55}}
+@media(max-width:650px){.private-send{gap:5px}.voice-record-btn,.voice-cancel-btn{width:40px;min-width:40px}}.private-send input{flex:1;box-sizing:border-box;padding:10px;background:#0b0b0b;border:1px solid #333;color:#fff;border-radius:5px}.private-send button{background:#ff7200;border:0;border-radius:5px;padding:0 12px;font-weight:bold;cursor:pointer}.profile-open-btn{background:none!important;color:#ff7200!important;border:0!important;padding:0!important;cursor:pointer;font-weight:bold}.account-area{display:flex;align-items:center;gap:6px;margin-left:auto}.header-logout-btn{background:#222;color:#fff;border:1px solid #444;border-radius:5px;padding:9px 10px;font-size:11px;font-weight:bold;cursor:pointer}.settings-box{margin-top:16px;padding-top:14px;border-top:1px solid #292929}.settings-box h4{color:#ff7200;margin:0 0 10px}.settings-box input{margin:6px 0!important}.settings-box button{width:100%}@media(max-width:650px){.account-area{margin-left:auto}.private-chat-popup{right:10px;bottom:58px;width:calc(100vw - 20px);height:60vh}.private-chat-fab{right:10px;bottom:10px}}
+.friends-menu-btn{background:#171717;color:#fff;border:1px solid #333;border-radius:7px;padding:9px 11px;font-weight:800;cursor:pointer}.friends-menu-btn:hover{border-color:#ff7200;color:#ff7200}.friends-menu-popup{display:none;position:absolute;right:0;top:52px;width:360px;max-width:calc(100vw - 20px);background:#111;border:1px solid #ff7200;border-radius:10px;padding:13px;box-shadow:0 12px 35px rgba(0,0,0,.55);z-index:1099}.friends-menu-popup.open{display:block}.friends-menu-title{color:#ff7200;font-weight:900;font-size:16px;margin-bottom:10px}.friends-menu-popup h4{color:#ff7200;margin:12px 0 7px}.friends-menu-popup input{width:100%;box-sizing:border-box;padding:10px;background:#0b0b0b;border:1px solid #333;color:#fff;border-radius:5px}.friends-menu-scroll{max-height:170px;overflow:auto}.friends-menu-popup .friend-row{padding:8px}.friends-menu-popup .friend-actions button{padding:6px 8px}.settings-success{color:#8f8}.settings-error{color:#ff7777}@media(max-width:650px){.friends-menu-popup{right:-5px;width:calc(100vw - 20px)}.friends-menu-btn{padding:8px 9px;font-size:12px}}
+.friend-notify-btn{position:relative;background:#171717;color:#fff;border:1px solid #333;border-radius:7px;padding:9px 11px;font-size:16px;cursor:pointer;line-height:1}.friend-notify-btn:hover{border-color:#ff7200;color:#ff7200}.friend-badge{position:absolute;right:-5px;top:-7px;min-width:18px;height:18px;padding:0 4px;border-radius:999px;background:#ff7200;color:#000;font-size:11px;font-weight:900;display:none;align-items:center;justify-content:center;border:2px solid #070707}.friend-badge.show{display:flex}.friend-notify-popup{display:none;position:absolute;right:0;top:52px;width:330px;max-width:calc(100vw - 20px);background:#111;border:1px solid #ff7200;border-radius:10px;padding:12px;box-shadow:0 12px 35px rgba(0,0,0,.55);z-index:1100}.friend-notify-popup.open{display:block}.friend-notify-title{color:#ff7200;font-weight:900;margin-bottom:8px}.friend-notify-list{max-height:300px;overflow:auto}.friend-notify-row{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#0b0b0b;border:1px solid #252525;border-radius:7px;padding:9px;margin-bottom:7px}.friend-notify-actions{display:flex;gap:5px}.friend-notify-actions button{border:0;border-radius:4px;padding:6px 8px;font-weight:bold;cursor:pointer}.friend-accept{background:#ff7200;color:#000}.friend-reject{background:#222;color:#fff;border:1px solid #444!important}.account-settings-btn{background:#171717!important;color:#fff!important;border:1px solid #333!important;border-radius:7px!important;padding:9px 10px!important;font-size:16px!important;cursor:pointer}.account-settings-btn:hover{border-color:#ff7200!important;color:#ff7200!important}.account-area{position:relative} @media(max-width:650px){.friend-notify-popup{right:-5px;width:300px}.account-settings-btn{padding:8px!important}.friend-notify-btn{padding:8px 10px}}.user-dropdown{display:none;position:absolute;right:0;top:48px;width:180px;background:#111;border:1px solid #ff7200;border-radius:8px;padding:6px;box-shadow:0 10px 25px rgba(0,0,0,.55);z-index:1200}.user-dropdown.open{display:block}.user-dropdown button{display:block;width:100%;background:none;border:0;color:#fff;text-align:left;padding:11px 12px;border-radius:5px;cursor:pointer;font-weight:700}.user-dropdown button:hover{background:#1d1d1d;color:#ff7200}.account-open-btn.user-logo{background:#ff7200;color:#000}
+
+
+/* ADMIN GALLERY MANAGEMENT */
+.gallery-admin-tools{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:9px;border-top:1px solid #252525;background:#101010}
+.gallery-admin-tools[hidden]{display:none!important}
+.gallery-upload-label,.gallery-upload-btn,.gallery-delete-btn{background:#171717;color:#fff;border:1px solid #333;border-radius:5px;padding:7px 9px;font-size:11px;font-weight:800;cursor:pointer}
+.gallery-upload-label:hover,.gallery-upload-btn:hover{border-color:#ff7200;color:#ff7200}
+.gallery-delete-btn.danger{color:#ff7777}
+.gallery-admin-status{font-size:11px;color:#888;min-width:100%;line-height:1.3}
+.gallery-image{display:block;width:100%;height:200px;object-fit:contain;cursor:pointer}
+.gallery-placeholder{display:flex;align-items:center;justify-content:center;width:100%;height:100%}
+.gallery-reply{margin:6px 0 0 16px;padding:6px 8px;border-left:2px solid #ff7200;background:#111;color:#ccc;font-size:11px}
+.gallery-comment-actions{display:flex;gap:5px;margin-top:4px}
+.gallery-reply-btn{background:none!important;border:0!important;color:#ff7200!important;padding:0!important;font-size:11px;cursor:pointer}
+.gallery-reply-box{display:none;margin:5px 0 0 16px}
+.gallery-reply-box.open{display:flex;gap:5px}
+.gallery-reply-box input{margin:0!important;flex:1}
+.gallery-reply-box button{background:#ff7200;border:0;border-radius:4px;padding:0 9px;cursor:pointer}
+
+/* FINAL GALLERY + VOTING DESIGN */
+.gallery-grid{align-items:start}
+.gallery-item{height:auto;min-height:0;display:block;align-items:initial;justify-content:initial;overflow:hidden;background:#111;border:1px solid #252525;padding:0}
+.media-visual{position:relative;width:100%;height:200px;min-height:200px;display:block;overflow:hidden;background:#0b0b0b;color:#555;font-weight:bold}.media-visual .gallery-image{position:absolute;inset:0;width:100%;height:100%;min-width:0;min-height:0;max-width:100%;max-height:100%;display:block;object-fit:contain!important;object-position:center center;background:#0b0b0b}.media-visual .gallery-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}.media-visual.gallery-image-loading:after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,#111 8%,#1a1a1a 18%,#111 33%);background-size:200% 100%;animation:galleryShimmer 1.2s linear infinite;pointer-events:none}.media-visual.gallery-image-error .gallery-placeholder{color:#777}@keyframes galleryShimmer{to{background-position:-200% 0}}
+.gallery-item:hover .media-visual{color:#ff7a00}
+.media-comments{margin:0!important;border:0!important;border-top:1px solid #252525!important;border-radius:0!important;padding:10px!important;background:#0b0b0b!important}
+.comments-title{font-size:12px;font-weight:800;color:#ff7a00;margin-bottom:7px}
+.comments-list{max-height:120px;overflow:auto;margin-bottom:5px}
+.comment-row{padding:7px 2px;border-bottom:1px solid #1e1e1e;color:#ccc;font-size:12px}
+.comment-send{display:flex;gap:5px}
+.comment-send input{min-width:0}
+.comment-send button{flex:0 0 42px}
+
+#auth-vote{background:linear-gradient(180deg,#080808,#0d0d0d);padding-top:75px;padding-bottom:75px}
+#auth-vote .section-title{margin-bottom:28px}
+#auth-vote .community-grid{display:block;max-width:720px;margin:auto}
+#auth-vote .community-card{background:linear-gradient(145deg,#121212,#0b0b0b);border:1px solid #2b2b2b;border-radius:16px;padding:24px;box-shadow:0 15px 40px rgba(0,0,0,.28)}
+#auth-vote .community-card h3{font-size:22px;margin-bottom:8px;color:#fff}
+#auth-vote .community-help{font-size:13px;color:#888;margin-bottom:18px}
+#player-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:16px}
+#auth-vote .player-option{margin:0;padding:13px 15px;background:#101010;border:1px solid #292929;border-radius:9px;transition:.2s;display:flex;align-items:center;gap:12px;min-height:50px}
+#auth-vote .player-option input[type="radio"]{flex:0 0 18px;width:18px;height:18px;margin:0;padding:0;accent-color:#ff7200;vertical-align:middle}
+#auth-vote .player-option span{display:block;flex:1;min-width:0;line-height:22px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#auth-vote .player-option:hover{transform:translateY(-1px)}
+#auth-vote .player-option.selected{background:#1a1108;border-color:#ff7200;box-shadow:0 0 0 1px rgba(255,114,0,.15)}
+#vote-btn{width:100%;padding:14px;border-radius:9px;background:#ff7200;color:#050505;border:0;font-size:15px;font-weight:900;cursor:pointer;transition:.2s}
+#vote-btn:disabled{opacity:.45;cursor:not-allowed}
+.vote-status{text-align:center;min-height:20px}
+.vote-total{font-size:18px!important;margin:18px 0 12px!important;padding-top:15px;border-top:1px solid #252525}
+.vote-list{gap:7px!important}
+.vote-row{background:#0d0d0d;border:1px solid #242424;padding:11px 13px;border-radius:8px}
+@media(max-width:600px){#player-options{grid-template-columns:1fr}.media-visual{height:180px}}
+</style>
+
+
+<style>
+/* ADMIN PANEL */
+.admin-menu-btn{display:none;width:100%;background:transparent;border:0;color:#fff;text-align:left;padding:10px 12px;border-radius:7px;cursor:pointer;font-size:14px}.admin-menu-btn:hover{background:#222;color:#ff7200}.admin-modal{display:none;position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.86);align-items:center;justify-content:center;padding:16px}.admin-modal.open{display:flex}.admin-card{width:min(760px,100%);max-height:90vh;overflow:auto;background:#111;border:1px solid #ff7200;border-radius:14px;padding:24px;box-shadow:0 0 45px rgba(255,122,0,.2);position:relative}.admin-card h2{color:#ff7200;margin-bottom:8px}.admin-card .admin-help{color:#888;margin-bottom:16px;line-height:1.5}.admin-close{position:absolute;right:12px;top:7px;background:none;border:0;color:#aaa;font-size:30px;cursor:pointer}.admin-search{width:100%;padding:12px;background:#0b0b0b;border:1px solid #333;color:#fff;border-radius:6px;margin-bottom:12px}.admin-user-list{display:flex;flex-direction:column;gap:8px}.admin-user-row{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#0b0b0b;border:1px solid #252525;border-radius:8px;padding:11px 12px}.admin-user-info{min-width:0}.admin-user-info strong{display:block;color:#fff;overflow:hidden;text-overflow:ellipsis}.admin-user-info small{color:#777}.admin-user-actions{display:flex;gap:6px;flex-wrap:wrap}.admin-user-actions button{background:#ff7200;color:#000;border:0;border-radius:5px;padding:7px 9px;font-weight:800;cursor:pointer}.admin-user-actions button.danger{background:#222;color:#fff;border:1px solid #444}.admin-role{color:#ff7200;font-size:12px;font-weight:800;margin-top:3px}@media(max-width:650px){.admin-user-row{align-items:flex-start;flex-direction:column}.admin-user-actions{width:100%}.admin-user-actions button{flex:1}}
+</style>
+
+<style id="notification-route-style">html.notification-route body > *{visibility:hidden!important}html.notification-route .private-chat-popup{visibility:visible!important}</style>
+<script id="notification-route-early">(function(){try{if(new URLSearchParams(location.search).has('chat')){document.documentElement.classList.add('notification-route');}}catch(e){}})();</script>
+
+<style id="android-send-button-fix">
+/* Android chat send-button fix */
+.private-send{
+  display:flex !important;
+  align-items:center !important;
+  gap:6px !important;
+}
+.private-send input{
+  min-width:0 !important;
+  flex:1 1 auto !important;
+}
+#private-send-btn{
+  display:flex !important;
+  visibility:visible !important;
+  opacity:1 !important;
+  flex:0 0 44px !important;
+  width:44px !important;
+  min-width:44px !important;
+  max-width:44px !important;
+  height:40px !important;
+  min-height:40px !important;
+  padding:0 !important;
+  margin:0 !important;
+  align-items:center !important;
+  justify-content:center !important;
+  line-height:1 !important;
+  font-size:22px !important;
+  flex-shrink:0 !important;
+}
+#private-send-btn:disabled{
+  opacity:.55 !important;
+}
+@media(max-width:650px){
+  .private-send{gap:5px !important;padding:8px !important;}
+  #private-send-btn{
+    flex:0 0 42px !important;
+    width:42px !important;
+    min-width:42px !important;
+    max-width:42px !important;
+    height:40px !important;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div id="registration-success-page" class="success-page">
+  <div class="success-card">
+    <div class="success-icon">✅</div>
+    <h2>Ձեր գրանցումը հաջողությամբ կատարվել է</h2>
+    <p>Ձեր E-mail-ը հաստատված է։ Այժմ կարող եք մուտք գործել և մասնակցել քվեարկությանը։</p>
+    <button id="success-login-btn" type="button">ՄՈՒՏՔ ԳՈՐԾԵԼ</button>
+  </div>
+</div>
+
+
+<div id="account-modal" class="account-modal" aria-hidden="true">
+  <div class="account-modal-card">
+    <button id="account-close" class="account-close" type="button">×</button>
+    <div class="account-tabs">
+      <button id="tab-login" class="active" type="button">ՄՈՒՏՔ</button>
+      <button id="tab-register" type="button">ԳՐԱՆՑՈՒՄ</button>
+    </div>
+    <div id="modal-login">
+      <h3>🔐 Մուտք</h3>
+      <input id="m-login-email" type="email" placeholder="Ձեր E-mail">
+      <input id="m-login-password" type="password" placeholder="Գաղտնաբառ">
+      <button id="m-login-btn" type="button">ՄՈՒՏՔ ԳՈՐԾԵԼ</button>
+      <button id="google-login-btn" class="google-login-btn" type="button">🔵 Մուտք Google-ով</button>
+      <span id="m-show-reset" class="auth-link">Մոռացե՞լ եք գաղտնաբառը</span>
+      <p id="m-login-status" class="auth-status"></p>
+    </div>
+    <div id="modal-register" style="display:none;">
+      <h3>👤 Ստեղծել հաշիվ</h3>
+      <input id="m-reg-nickname" type="text" placeholder="PUBG Nickname" maxlength="30">
+      <input id="m-reg-email" type="email" placeholder="Ձեր E-mail">
+      <input id="m-reg-password" type="password" placeholder="Գաղտնաբառ (առնվազն 6 նիշ)">
+      <input id="m-reg-password2" type="password" placeholder="Կրկնել գաղտնաբառը">
+      <button id="m-reg-btn" type="button">ԳՐԱՆՑՎԵԼ</button>
+      <p id="m-reg-status" class="auth-status"></p>
+    </div>
+    <div id="modal-reset" style="display:none;">
+      <h3>🔄 Վերականգնել գաղտնաբառը</h3>
+      <input id="m-reset-email" type="email" placeholder="Ձեր E-mail">
+      <button id="m-reset-btn" type="button">ՈՒՂԱՐԿԵԼ ՀՂՈՒՄԸ</button>
+      <span id="m-back-login" class="auth-link">Վերադառնալ մուտք</span>
+      <p id="m-reset-status" class="auth-status"></p>
+    </div>
+    <div id="modal-account" style="display:none;">
+      <h3>👤 Իմ հաշիվը</h3>
+      <div class="user-box">Մուտք եք գործել որպես <strong id="modal-nickname"></strong></div>
+      <div class="settings-box">
+        <h4>⚙️ Անձնական կարգավորումներ</h4>
+        <input id="settings-nickname" type="text" maxlength="30" placeholder="Նոր Nickname">
+        <input id="settings-email" type="email" placeholder="Նոր E-mail">
+        <input id="settings-current-password" type="password" placeholder="Ընթացիկ գաղտնաբառ (եթե փոխում եք գաղտնաբառը)">
+        <input id="settings-new-password" type="password" placeholder="Նոր գաղտնաբառ (ըստ ցանկության)">
+        <button id="settings-save-btn" type="button">ՊԱՀՊԱՆԵԼ ՓՈՓՈԽՈՒԹՅՈՒՆՆԵՐԸ</button>
+        <p id="settings-status" class="auth-status"></p>
+      </div>
+      <button id="m-logout-btn" class="logout-btn" type="button">ԵԼՔ ՀԱՇՎԻՑ</button>
+    </div>
+  </div>
+</div>
+
+
+
+<div id="admin-modal" class="admin-modal" aria-hidden="true">
+  <div class="admin-card">
+    <button id="admin-close" class="admin-close" type="button">×</button>
+    <h2>🛡️ Ադմին պանել</h2>
+    <p class="admin-help">Այստեղ կարող եք տեսնել գրանցված օգտատերերին և կառավարել նրանց դերը։ Ադմին դարձնել կամ հանել կարող է միայն գլխավոր Owner-ը։</p>
+    <input id="admin-user-search" class="admin-search" type="text" placeholder="Փնտրել nickname-ով կամ email-ով">
+    <div id="admin-status" class="auth-status"></div>
+    <div id="admin-user-list" class="admin-user-list"><div class="loading-text">Բեռնվում է...</div></div>
+  </div>
+</div>
+
+<div id="profile-modal" class="profile-modal" aria-hidden="true">
+  <div class="profile-card">
+    <button id="profile-close" class="profile-close" type="button">×</button>
+    <div class="profile-name" id="profile-name">Օգտատեր</div>
+    <div id="profile-status" class="muted">Կարգավիճակ</div>
+    <div id="profile-actions" style="margin-top:18px"></div>
+  </div>
+</div>
+
+<header>
+<div class="nav">
+
+<a href="#home" class="logo" aria-label="AIMRELAX-PUBG — Գլխավոր էջ">
+AIM<span>RELAX</span>-PUBG
+</a>
+
+<nav>
+<a href="#home">Գլխավոր էջ</a>
+<a href="#clan">Կլան</a>
+<a href="#players">Խաղացողներ</a>
+<a href="#achievements">Նվաճումներ</a>
+<a href="#gallery">Նկարներ</a>
+<a href="#contact">Հետադարձ Կապ</a>
+</nav>
+<div id="account-area" class="account-area">
+<button id="friends-menu-btn" class="friends-menu-btn" type="button">👥 Ընկերներ</button>
+<div id="friends-menu-popup" class="friends-menu-popup" aria-hidden="true">
+  <div class="friends-menu-title">👥 Իմ ընկերները</div>
+  <input id="friend-search" type="text" placeholder="Փնտրել nickname-ով">
+  <div id="friend-search-results" class="friend-list"></div>
+  <h4>📨 Ուղարկված / ստացված հայտեր</h4>
+  <div id="friend-requests" class="friend-list friends-menu-scroll"><div class="loading-text">Մուտք գործեք՝ հայտերը տեսնելու համար։</div></div>
+  <h4>⭐ Իմ ընկերները</h4>
+  <div id="friends-list" class="friend-list friends-menu-scroll"></div>
+</div>
+<button id="friend-notify-btn" class="friend-notify-btn" type="button" title="Ընկերության հայտեր">👤<span id="friend-badge" class="friend-badge">0</span></button>
+<div id="friend-notify-popup" class="friend-notify-popup" aria-hidden="true">
+  <div class="friend-notify-title">👤 Ընկերության հայտեր</div>
+  <div id="friend-notify-list" class="friend-notify-list"><div class="loading-text">Մուտք գործեք՝ հայտերը տեսնելու համար։</div></div>
+</div>
+<div class="user-menu-wrap" style="position:relative">
+<button id="account-open-btn" class="account-open-btn" type="button">ՄՈՒՏՔ / ԳՐԱՆՑՈՒՄ</button>
+<div id="user-dropdown" class="user-dropdown" aria-hidden="true">
+  <button id="user-settings-menu" type="button">⚙️ Կարգավորումներ</button>
+  <button id="admin-menu-btn" class="admin-menu-btn" type="button">🛡️ Ադմին պանել</button>
+</div>
+</div>
+<button id="header-logout-btn" class="header-logout-btn" type="button" style="display:none">ԵԼՔ</button>
+</div>
+
+</div>
+</header>
+
+
+<!-- HOME -->
+
+
+<section class="hero" id="home">
+
+<div class="hero-content">
+    <div id="armenia-info">🇦🇲 Հայաստան | <span id="arm-time">--:--</span> | <span id="arm-date">--</span> | <span id="arm-weather">Եղանակը բեռնվում է...</span></div>
+
+<div class="badge">PUBG MOBILE CLAN</div>
+
+<h1>AIM<span>RELAX</span></h1>
+
+<p>
+ԽԱՂԱ • ԳԵՐԻՇԽԻՐ • ԿՐԿԻՆ ՀԱՂԹԻՐ
+<br>
+ԲԱՐԻ ԳԱԼՈՒՍՏ AIMRELAX ՊԱՇՏՈՆԱԿԱՆ ԿԼԱՆ
+</p>
+
+<div class="buttons">
+<a href="#players" class="btn btn-primary">Մեր Խաղացողները</a>
+<a href="#contact" class="btn btn-secondary">Միանալ Կլանին</a>
+</div>
+
+</div>
+
+</section>
+
+
+<!-- CLAN -->
+
+<section class="about" id="clan">
+
+<div class="container">
+
+<div class="section-title">
+<small>Ով ենք մենք</small>
+<h2>Կլանի Մասին</h2>
+</div>
+
+<div class="about-grid">
+
+<div class="card">
+<h3>🎮 AIMRELAX-PUBG</h3>
+<p>
+Մրցակցային PUBG Mobile կլան՝ ստեղծված այն խաղացողների համար, ովքեր սիրում են թիմային աշխատանքը, մրցակցությունը և հմտությունների կատարելագործումը։
+</p>
+</div>
+  <div class="card">
+<h3>🔥 Մեր նպատակը</h3>
+<p>
+    Կազմավորենք ուժեղ թիմ, մասնակցենք մրցաշարերի և ստեղծենք հմուտ PUBG Mobile խաղացողների համայնք։
+</p>
+</div>
+
+</div>
+
+<div class="stats">
+
+<div class="stat">
+<strong>2020թ.</strong>
+<span>Հիմնադրվել է</span>
+</div>
+
+<div class="stat">
+<strong>27</strong>
+<span>Խաղացողներ</span>
+</div>
+
+<div class="stat">
+<strong>0</strong>
+<span>Մրցաշարեր</span>
+</div>
+
+<div class="stat">
+<strong>ARM</strong>
+<span>Երկիր</span>
+</div>
+
+</div>
+
+</div>
+</section>
+
+
+<!-- Խաղացողներ -->
+
+<section class="players" id="players">
+
+<div class="container">
+
+<div class="section-title">
+<small>Մեր Թիմը</small>
+<h2>Խաղացողներ</h2>
+</div>
+
+<div class="players-grid">
+<div class="player"><div class="player-avatar">👤</div><h3>『Aim』MOMPO</h3></div>
+<div class="player"><div class="player-avatar">👤</div><h3>『Aim』DOMPO</h3></div>
+<div class="player"><div class="player-avatar">👤</div><h3>『Aim』INFERNO</h3></div>
+<div class="player"><div class="player-avatar">👤</div><h3>『Aim』KØKØ</h3></div>
+<div class="player"><div class="player-avatar">👩‍🦱</div><h3>『Aim』Princes</h3></div>
+<div class="player"><div class="player-avatar">👩‍🦱</div><h3>『Aim』yuki</h3></div>
+<div class="player"><div class="player-avatar">👩‍🦱</div><h3>『Aim』Wayツ</h3></div>
+<div class="player"><div class="player-avatar">👤</div><h3>『Aim』AKA</h3></div>
+<div class="player"><div class="player-avatar">👤</div><h3>『Aim』LOGIN</h3></div>
+<div class="player"><div class="player-avatar">👤</div><h3>『Aim』FURY</h3></div>
+<div class="player"><div class="player-avatar">👤</div><h3>『Aim』IMFERNO</h3></div>
+<div class="player"><div class="player-avatar">👤</div><h3>『Aim』AGILE</h3></div>
+<div class="player"><div class="player-avatar">👤</div><h3>『Aim』ANGRY</h3></div>
+<div class="player"><div class="player-avatar">👩‍🦱</div><h3>『Aim』Mane</h3></div>
+<div class="player"><div class="player-avatar">👤</div><h3>『Aim』DoubleV</h3></div>
+<div class="player"><div class="player-avatar">👤</div><h3>『Aim』SCARY</h3></div>
+<div class="player"><div class="player-avatar">👤</div><h3>『Aim』SIMBA</h3></div>
+<div class="player"><div class="player-avatar">👩‍🦱</div><h3>『Aim』CAT</h3></div>
+<div class="player"><div class="player-avatar">👤</div><h3>『Aim』Hov</h3></div>
+<div class="player"><div class="player-avatar">👤</div><h3>『Aim』Kar</h3></div>
+<div class="player"><div class="player-avatar">👤</div><h3>『Aim』FAN</h3></div>
+<div class="player"><div class="player-avatar">👤</div><h3>『Aim』R E Y</h3></div>
+<div class="player"><div class="player-avatar">👤</div><h3>『Aim』impÆR</h3></div>
+<div class="player"><div class="player-avatar">👤</div><h3>『Aim』BETON</h3></div>
+<div class="player"><div class="player-avatar">👤</div><h3>『Aim』BOX3R</h3></div>
+<div class="player"><div class="player-avatar">👤</div><h3>『Aim』STALIN</h3></div>
+<div class="player"><div class="player-avatar">👤</div><h3>『Aim』ZOMPO</h3></div>
+</div>
+
+</div>
+</section>
+
+
+<!-- Ձեռքբերումներ -->
+
+<section class="achievements" id="achievements">
+
+<div class="container">
+
+<div class="section-title">
+<small>Մեր Ուղին</small>
+<h2>Ձեռքբերումներ</h2>
+</div>
+
+<div class="achievement-grid">
+
+<div class="achievement">
+<div class="icon">🏆</div>
+<h3>Մրցաշարեր</h3>
+<p>ՇՈՒՏՈՎ</p>
+</div>
+
+<div class="achievement">
+<div class="icon">🥇</div>
+<h3>Հաղթանակներ</h3>
+<p>ՇՈՒՏՈՎ</p>
+</div>
+
+<div class="achievement">
+<div class="icon">🔥</div>
+<h3>ԼԱՎԱԳՈՒՅՆ ՖՐԱԳԵՐ</h3>
+<p>ՇՈՒՏՈՎ</p>
+</div>
+
+</div>
+
+</div>
+</section>
+
+
+<!-- ՆԿԱՐՆԵՐ -->
+
+<section id="gallery">
+
+<div class="container">
+
+<div class="section-title">
+<small>ՄԵԴԻԱ</small>
+<h2>ՊԱՏԿԵՐՆԵՐ</h2>
+</div>
+
+<div class="gallery-grid">
+
+<div class="gallery-item" data-gallery-slot="image-1">
+  <div class="media-visual"><div class="gallery-placeholder">ՆԿԱՐ</div></div>
+  <div class="gallery-admin-tools" hidden>
+    <label class="gallery-upload-label">📷 Նկար ընտրել<input class="gallery-file-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden></label>
+    <button class="gallery-upload-btn" type="button">⬆️ Ավելացնել</button>
+    <button class="gallery-delete-btn danger" type="button">🗑️ Ջնջել</button>
+    <span class="gallery-admin-status"></span>
+  </div>
+  <div class="media-comments" data-media-id="image-1"><div class="comments-title">💬 Մեկնաբանություններ</div><div class="comments-list"></div><div class="comment-send"><input class="comment-input" maxlength="500" placeholder="Մեկնաբանություն..." disabled><button class="comment-btn" type="button" disabled>➤</button></div></div>
+</div>
+<div class="gallery-item" data-gallery-slot="image-2">
+  <div class="media-visual"><div class="gallery-placeholder">ՆԿԱՐ</div></div>
+  <div class="gallery-admin-tools" hidden>
+    <label class="gallery-upload-label">📷 Նկար ընտրել<input class="gallery-file-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden></label>
+    <button class="gallery-upload-btn" type="button">⬆️ Ավելացնել</button>
+    <button class="gallery-delete-btn danger" type="button">🗑️ Ջնջել</button>
+    <span class="gallery-admin-status"></span>
+  </div>
+  <div class="media-comments" data-media-id="image-2"><div class="comments-title">💬 Մեկնաբանություններ</div><div class="comments-list"></div><div class="comment-send"><input class="comment-input" maxlength="500" placeholder="Մեկնաբանություն..." disabled><button class="comment-btn" type="button" disabled>➤</button></div></div>
+</div>
+<div class="gallery-item" data-gallery-slot="image-3">
+  <div class="media-visual"><div class="gallery-placeholder">ՆԿԱՐ</div></div>
+  <div class="gallery-admin-tools" hidden>
+    <label class="gallery-upload-label">📷 Նկար ընտրել<input class="gallery-file-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden></label>
+    <button class="gallery-upload-btn" type="button">⬆️ Ավելացնել</button>
+    <button class="gallery-delete-btn danger" type="button">🗑️ Ջնջել</button>
+    <span class="gallery-admin-status"></span>
+  </div>
+  <div class="media-comments" data-media-id="image-3"><div class="comments-title">💬 Մեկնաբանություններ</div><div class="comments-list"></div><div class="comment-send"><input class="comment-input" maxlength="500" placeholder="Մեկնաբանություն..." disabled><button class="comment-btn" type="button" disabled>➤</button></div></div>
+</div>
+<div class="gallery-item" data-gallery-slot="image-4">
+  <div class="media-visual"><div class="gallery-placeholder">ՆԿԱՐ</div></div>
+  <div class="gallery-admin-tools" hidden>
+    <label class="gallery-upload-label">📷 Նկար ընտրել<input class="gallery-file-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden></label>
+    <button class="gallery-upload-btn" type="button">⬆️ Ավելացնել</button>
+    <button class="gallery-delete-btn danger" type="button">🗑️ Ջնջել</button>
+    <span class="gallery-admin-status"></span>
+  </div>
+  <div class="media-comments" data-media-id="image-4"><div class="comments-title">💬 Մեկնաբանություններ</div><div class="comments-list"></div><div class="comment-send"><input class="comment-input" maxlength="500" placeholder="Մեկնաբանություն..." disabled><button class="comment-btn" type="button" disabled>➤</button></div></div>
+</div>
+<div class="gallery-item" data-gallery-slot="image-5">
+  <div class="media-visual"><div class="gallery-placeholder">ՆԿԱՐ</div></div>
+  <div class="gallery-admin-tools" hidden>
+    <label class="gallery-upload-label">📷 Նկար ընտրել<input class="gallery-file-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden></label>
+    <button class="gallery-upload-btn" type="button">⬆️ Ավելացնել</button>
+    <button class="gallery-delete-btn danger" type="button">🗑️ Ջնջել</button>
+    <span class="gallery-admin-status"></span>
+  </div>
+  <div class="media-comments" data-media-id="image-5"><div class="comments-title">💬 Մեկնաբանություններ</div><div class="comments-list"></div><div class="comment-send"><input class="comment-input" maxlength="500" placeholder="Մեկնաբանություն..." disabled><button class="comment-btn" type="button" disabled>➤</button></div></div>
+</div>
+<div class="gallery-item" data-gallery-slot="image-6">
+  <div class="media-visual"><div class="gallery-placeholder">ՆԿԱՐ</div></div>
+  <div class="gallery-admin-tools" hidden>
+    <label class="gallery-upload-label">📷 Նկար ընտրել<input class="gallery-file-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden></label>
+    <button class="gallery-upload-btn" type="button">⬆️ Ավելացնել</button>
+    <button class="gallery-delete-btn danger" type="button">🗑️ Ջնջել</button>
+    <span class="gallery-admin-status"></span>
+  </div>
+  <div class="media-comments" data-media-id="image-6"><div class="comments-title">💬 Մեկնաբանություններ</div><div class="comments-list"></div><div class="comment-send"><input class="comment-input" maxlength="500" placeholder="Մեկնաբանություն..." disabled><button class="comment-btn" type="button" disabled>➤</button></div></div>
+</div>
+
+</div>
+
+</div>
+</section>
+
+
+
+<!-- COMMUNITY -->
+<section id="auth-vote">
+  <div class="container">
+    <div class="section-title"><small>AIMRELAX COMMUNITY</small><h2>ՀԱՄԱՅՆՔ</h2></div>
+    <div class="community-grid">
+      <div class="community-card">
+        <h3>🗳 Քվեարկություն</h3>
+        <p class="community-help">Մուտք գործեք և ընտրեք խաղացողին։ Յուրաքանչյուր հաշիվ կարող է քվեարկել միայն մեկ անգամ։</p>
+        <div id="player-options" class="player-options"><div class="loading-text">Խաղացողները բեռնվում են...</div></div>
+        <button id="vote-btn" type="button" disabled>ՔՎԵԱՐԿԵԼ</button>
+        <p class="vote-status" id="vote-status"></p>
+        <div class="vote-total" id="vote-total">Ընդհանուր՝ 0 հոգի</div>
+        <div class="vote-list" id="vote-list"></div>
+      </div>
+      
+    </div>
+  </div>
+</section>
+
+<!-- ԿԱՊ -->
+
+<section class="contact" id="contact">
+
+<div class="container">
+
+<div class="section-title">
+<small>ԿԱՊ ՀԱՍՏԱՏԵԼ</small>
+<h2>ՄԻԱՆԱԼ AIMRELAX-ԻՆ</h2>
+</div>
+
+<p style="color:#888;">
+ՄԵՐ ՍՈՑ. ԷՋԵՐԸ
+</p>
+
+<div class="socials">
+
+<a href="https://t.me/aimmetrosopr" class="social" target="_blank" rel="noopener noreferrer">TELEGRAM PUBG SOPR.</a>
+<a href="https://www.tiktok.com/@aimoppolc" class="social" target="_blank" rel="noopener noreferrer">ԼԻԴԵՐԻ TIKTOK</a>
+
+</div>
+<form id="contact-form" action="https://formspree.io/f/xzezboby" method="POST">
+
+<input type="text" name="nickname" placeholder="PUBG Nickname" required>
+
+<input type="email" name="email" placeholder="Ձեր E-mail" required>
+
+<textarea name="message" placeholder="Ձեր նամակը" required></textarea>
+
+<button type="submit">ՈՒՂԱՐԿԵԼ ՆԱՄԱԿԸ</button>
+
+<p id="form-status"></p>
+
+</form>
+
+<style>
+#contact-form{
+max-width:600px;
+margin:30px auto;
+display:flex;
+flex-direction:column;
+gap:15px;
+}
+    #armenia-info { text-align: center; color: #ff7a00; font-size: 14px; font-weight: bold; position: relative; top: -80px;}
+
+#contact-form input,
+#contact-form textarea{
+width:100%;
+padding:15px;
+background:#121212;
+border:1px solid #333;
+color:white;
+border-radius:5px;
+font-size:16px;
+box-sizing:border-box;
+}
+
+#contact-form textarea{
+height:150px;
+resize:none;
+}
+
+#contact-form button{
+padding:15px;
+background:#ff7200;
+border:0;
+border-radius:5px;
+font-weight:bold;
+font-size:16px;
+cursor:pointer;
+}
+
+#contact-form button:hover{
+background:#ff8c32;
+}
+
+#form-status{
+color:#ff7200;
+font-weight:bold;
+}
+</style>
+
+<script>
+const form=document.getElementById("contact-form");
+const status=document.getElementById("form-status");
+
+form.addEventListener("submit",async function(event){
+event.preventDefault();
+
+const data=new FormData(form);
+
+const response=await fetch(form.action,{
+method:"POST",
+body:data,
+headers:{
+"Accept":"application/json"
+}
+});
+
+if(response.ok){
+status.innerHTML="Նամակը հաջողությամբ ուղարկվեց ✅";
+form.reset();
+}else{
+status.innerHTML="Չհաջողվեց ուղարկել նամակը ❌";
+}
+});
+</script>
+
+</div>
+</section>
+
+
+<button id="private-chat-fab" class="private-chat-fab" type="button">💬 Չատ</button>
+<div id="private-chat-popup" class="private-chat-popup" aria-hidden="true">
+  <div class="private-chat-head"><strong id="private-chat-title">💬 Անձնական Chat</strong><button id="private-chat-close" type="button">×</button></div>
+  <div id="private-friend-picker" class="friend-list" style="margin:8px 10px;max-height:105px;overflow:auto"></div>
+  <div id="private-messages" class="private-messages"><div class="loading-text">Բացեք ընկերոջ CHAT-ը՝ զրույցը սկսելու համար։</div></div>
+  <div id="voice-recording-status" class="voice-recording-status">🔴 Ձայնագրում է… <span id="voice-recording-time">0:00</span></div>
+  <div id="typing-indicator" class="typing-indicator">typing…</div>
+  <div class="private-send">
+    <button id="emoji-toggle-btn" class="emoji-toggle-btn" type="button" title="Էմոջիներ">😊</button>
+    <button id="chat-file-btn" class="voice-record-btn" type="button" disabled title="Նկար / տեսանյութ / ֆայլ">📎</button>
+    <input id="chat-file-input" type="file" accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar,.7z,.apk" multiple hidden>
+    <button id="voice-record-btn" class="voice-record-btn" type="button" disabled title="Ձայնային հաղորդագրություն">🎙️</button>
+    <button id="voice-cancel-btn" class="voice-cancel-btn" type="button" title="Չեղարկել">✕</button>
+    <input id="private-input" maxlength="1000" placeholder="Գրեք հաղորդագրություն..." disabled>
+    <button id="private-send-btn" type="button" disabled>➤</button>
+  </div>
+  <div id="emoji-panel" class="emoji-panel" aria-hidden="true"></div>
+  <p id="private-status" class="auth-status"></p>
+</div>
+
+<footer>
+
+© 2026 <strong>AIMRELAX-PUBG</strong> — All Rights Reserved.
+
+</footer>
+<script>document.querySelectorAll('input, textarea').forEach(function(field) { field.addEventListener('invalid', function() { if (field.validity.valueMissing) { if (field.name === 'nickname') { field.setCustomValidity('Խնդրում ենք գրել ձեր PUBG անունը'); } else if (field.name === 'email') { field.setCustomValidity('Խնդրում ենք գրել ձեր էլ․ փոստը'); } else if (field.name === 'message') { field.setCustomValidity('Խնդրում ենք գրել ձեր հաղորդագրությունը'); } else { field.setCustomValidity('Խնդրում ենք լրացնել այս դաշտը'); } } else if (field.validity.typeMismatch) { field.setCustomValidity('Խնդրում ենք գրել ճիշտ էլ․ փոստի հասցե'); } }); field.addEventListener('input', function() { field.setCustomValidity(''); }); })
+</script>
+    <script>function updateArmeniaTime() { const now = new Date(); const time = new Intl.DateTimeFormat('hy-AM', { timeZone: 'Asia/Yerevan', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(now); const date = new Intl.DateTimeFormat('hy-AM', { timeZone: 'Asia/Yerevan', day: 'numeric', month: 'long', year: 'numeric' }).format(now); document.getElementById('arm-time').textContent = time; document.getElementById('arm-date').textContent = date; } async function updateWeather() { try { const url = 'https://api.open-meteo.com/v1/forecast?latitude=40.1872&longitude=44.5152&current=temperature_2m,weather_code&timezone=Asia%2FYerevan'; const response = await fetch(url); const data = await response.json(); const temp = Math.round(data.current.temperature_2m); const code = data.current.weather_code; let weather = '☀️ Պարզ'; if (code === 1 || code === 2) weather = '🌤️ Մասամբ ամպամած'; else if (code === 3) weather = '☁️ Ամպամած'; else if (code >= 51 && code <= 67) weather = '🌧️ Անձրև'; else if (code >= 71 && code <= 77) weather = '❄️ Ձյուն'; else if (code >= 80 && code <= 82) weather = '🌦️ Անձրևային'; else if (code >= 95) weather = '⛈️ Ամպրոպ'; document.getElementById('arm-weather').textContent = weather + ' ' + temp + '°C'; } catch (error) { document.getElementById('arm-weather').textContent = 'Եղանակը հասանելի չէ'; } } updateArmeniaTime(); updateWeather(); setInterval(updateArmeniaTime, 1000); setInterval(updateWeather, 600000);</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL="https://hvhlrbfjloiahbqmnrly.supabase.co";
+const SUPABASE_ANON_KEY="sb_publishable_EcZUkLdUCVv3qWDD7jlvhg_OjTYu1jA";
+const {createClient}=supabase;
+const sb=createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const $=id=>document.getElementById(id);
+const siteUrl='https://aimrelax-pubg.github.io/';
+let selectedPlayerId=null,playersCache=[],currentUser=null;
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+function openModal(){ $('account-modal').classList.add('open'); $('account-modal').setAttribute('aria-hidden','false'); showModal('login'); }
+function closeModal(){ $('account-modal').classList.remove('open'); $('account-modal').setAttribute('aria-hidden','true'); }
+function showModal(which){ ['modal-login','modal-register','modal-reset','modal-account'].forEach(id=>$(id).style.display='none'); ['tab-login','tab-register'].forEach(id=>$(id).classList.remove('active')); if(which==='login'){ $('modal-login').style.display='block';$('tab-login').classList.add('active'); } if(which==='register'){ $('modal-register').style.display='block';$('tab-register').classList.add('active'); } if(which==='reset')$('modal-reset').style.display='block'; if(which==='account')$('modal-account').style.display='block'; }
+$('account-open-btn').onclick=(e)=>{e.stopPropagation();if(!currentUser){openModal();return}const menu=$('user-dropdown');const ab=$('admin-menu-btn');if(ab && currentUser.id==='5f1c951f-1e76-4f82-9849-46becf038b55'){ab.style.setProperty('display','block','important');ab.style.setProperty('visibility','visible','important');ab.style.setProperty('opacity','1','important');mySiteRole='owner';}menu.classList.toggle('open');menu.setAttribute('aria-hidden',String(!menu.classList.contains('open')))};
+$('user-settings-menu').onclick=(e)=>{e.stopPropagation();$('user-dropdown').classList.remove('open');$('user-dropdown').setAttribute('aria-hidden','true');openAccountSettings()};
+function openAccountSettings(){
+  if(!currentUser){ openModal(); return; }
+  $('account-modal').classList.add('open');
+  $('account-modal').setAttribute('aria-hidden','false');
+  $('settings-nickname').value=currentUser.user_metadata?.nickname||currentUser.email?.split('@')[0]||'';
+  $('settings-email').value=currentUser.email||'';
+  $('settings-current-password').value='';
+  $('settings-new-password').value='';
+  $('settings-status').textContent='';
+  $('settings-status').className='auth-status';
+  showModal('account');
+}
+$('account-close').onclick=closeModal;
+$('friends-menu-btn').onclick=async(e)=>{e.stopPropagation();if(!currentUser){openModal();return}const pop=$('friends-menu-popup');pop.classList.toggle('open');pop.setAttribute('aria-hidden',String(!pop.classList.contains('open')));if(pop.classList.contains('open'))await loadFriends()};
+$('friend-notify-btn').onclick=async(e)=>{e.stopPropagation();if(!currentUser){openModal();return}const pop=$('friend-notify-popup');pop.classList.toggle('open');pop.setAttribute('aria-hidden',String(!pop.classList.contains('open')));if(pop.classList.contains('open'))await loadFriendNotifications()};
+document.addEventListener('click',e=>{if(!e.target.closest('#account-area')){['friend-notify-popup','friends-menu-popup','user-dropdown'].forEach(id=>{$(id).classList.remove('open');$(id).setAttribute('aria-hidden','true')})}});$('account-modal').onclick=e=>{if(e.target===$('account-modal'))closeModal()};$('tab-login').onclick=()=>showModal('login');$('tab-register').onclick=()=>showModal('register');$('m-show-reset').onclick=()=>showModal('reset');$('m-back-login').onclick=()=>showModal('login');
+$('m-reg-btn').onclick=async()=>{const nickname=$('m-reg-nickname').value.trim(),email=$('m-reg-email').value.trim(),password=$('m-reg-password').value,password2=$('m-reg-password2').value,status=$('m-reg-status');if(!nickname||!email||!password){status.textContent='Լրացրեք բոլոր դաշտերը։';return}if(password.length<6){status.textContent='Գաղտնաբառը պետք է լինի առնվազն 6 նիշ։';return}if(password!==password2){status.textContent='Գաղտնաբառերը չեն համընկնում։';return}status.textContent='Գրանցում...';const {data,error}=await sb.auth.signUp({email,password,options:{data:{nickname},emailRedirectTo:siteUrl}});if(error){status.textContent=error.message;return}if(data.user&&!data.session)status.textContent='Հաստատման նամակը ուղարկվեց email-ին։ 📧';else{closeModal();await refreshUser()}};
+$('m-login-btn').onclick=async()=>{const email=$('m-login-email').value.trim(),password=$('m-login-password').value,status=$('m-login-status');status.textContent='Մուտք...';const {data,error}=await sb.auth.signInWithPassword({email,password});if(error){status.textContent=error.message;return}if(!data.user?.email_confirmed_at){await sb.auth.signOut();status.textContent='Խնդրում ենք նախ հաստատել ձեր email-ը։';return}closeModal();await refreshUser()};
+$('google-login-btn').onclick=async()=>{const status=$('m-login-status');status.textContent='Google մուտք...';const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:siteUrl}});if(error)status.textContent=error.message};
+$('m-reset-btn').onclick=async()=>{const email=$('m-reset-email').value.trim(),status=$('m-reset-status');if(!email){status.textContent='Գրեք email-ը։';return}const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:siteUrl});status.textContent=error?error.message:'Վերականգնման հղումը ուղարկվեց email-ին։ ✅'};
+async function saveSettings(){
+ if(!currentUser)return;
+ const status=$('settings-status');
+ const nickname=$('settings-nickname').value.trim();
+ const email=$('settings-email').value.trim();
+ const currentPassword=$('settings-current-password').value;
+ const newPassword=$('settings-new-password').value;
+ status.className='auth-status';
+ if(!nickname||nickname.length<2){status.textContent='Nickname-ը պետք է լինի առնվազն 2 նիշ։';status.classList.add('settings-error');return}
+ if(newPassword&&newPassword.length<6){status.textContent='Նոր գաղտնաբառը պետք է լինի առնվազն 6 նիշ։';status.classList.add('settings-error');return}
+ if(newPassword&&!currentPassword){status.textContent='Գաղտնաբառը փոխելու համար գրեք ընթացիկ գաղտնաբառը։';status.classList.add('settings-error');return}
+ status.textContent='Պահպանվում է...';
+ if(nickname!==(currentUser.user_metadata?.nickname||'')){
+   const {data:exists}=await sb.from('profiles').select('id').eq('nickname',nickname).neq('id',currentUser.id).maybeSingle();
+   if(exists){status.textContent='Այս Nickname-ը արդեն զբաղված է։';status.classList.add('settings-error');return}
+ }
+ // Nickname is stored both in Auth metadata and public profile.
+ if(nickname!==(currentUser.user_metadata?.nickname||'')){
+   const {error}=await sb.auth.updateUser({data:{...(currentUser.user_metadata||{}),nickname}});
+   if(error){status.textContent='Nickname-ը չփոխվեց։ '+error.message;status.classList.add('settings-error');return}
+   const {error:pe}=await sb.from('profiles').update({nickname}).eq('id',currentUser.id);
+   if(pe){status.textContent='Nickname-ը Auth-ում փոխվեց, բայց պրոֆիլը չթարմացավ։ '+pe.message;status.classList.add('settings-error');return}
+ }
+ // Email can require confirmation from Supabase.
+ if(email&&email!==currentUser.email){
+   const {error}=await sb.auth.updateUser({email});
+   if(error){status.textContent='Email-ը չփոխվեց։ '+error.message;status.classList.add('settings-error');return}
+ }
+ // Re-authenticate with the current password, then change password.
+ if(newPassword){
+   const {error:loginError}=await sb.auth.signInWithPassword({email:currentUser.email,password:currentPassword});
+   if(loginError){status.textContent='Ընթացիկ գաղտնաբառը սխալ է։';status.classList.add('settings-error');return}
+   const {error:pwError}=await sb.auth.updateUser({password:newPassword});
+   if(pwError){status.textContent='Նոր գաղտնաբառը չպահպանվեց։ '+pwError.message;status.classList.add('settings-error');return}
+ }
+ status.textContent=email&&email!==currentUser.email?'Փոփոխությունները պահպանվեցին։ Նոր email-ը հաստատեք նամակից։ 📧':'Փոփոխությունները պահպանվեցին։ ✅';
+ status.classList.add('settings-success');
+ $('settings-current-password').value='';$('settings-new-password').value='';
+ await refreshUser();
+}
+$('settings-save-btn').onclick=saveSettings;
+async function doLogout(){
+  const {error}=await sb.auth.signOut();
+  if(error){console.error('Logout failed:',error);return;}
+  currentUser=null;
+  mySiteRole=null;
+  if($('admin-online-users'))$('admin-online-users').style.display='none';
+  closeModal();
+  if(typeof closeAdminPanel==='function') closeAdminPanel();
+  $('user-dropdown').classList.remove('open','show');
+  $('user-dropdown').setAttribute('aria-hidden','true');
+  $('header-logout-btn').style.display='none';
+  $('admin-menu-btn').style.setProperty('display','none','important');
+  $('account-open-btn').textContent='ՄՈՒՏՔ / ԳՐԱՆՑՈՒՄ';
+  $('account-open-btn').classList.remove('user-logo');
+  $('modal-nickname').textContent='';
+  $('settings-nickname').value='';
+  $('settings-email').value='';
+  try{await loadPlayers();}catch(e){}
+  try{await loadVotes();}catch(e){}
+  try{await loadComments();}catch(e){}
+  try{await loadFriends();}catch(e){}
+  try{await loadFriendNotifications();}catch(e){}
+  try{await loadPresence();}catch(e){}
+}
+$('m-logout-btn').onclick=doLogout;
+$('header-logout-btn').onclick=doLogout;
+async function loadPlayers(){
+  // «Խաղացողներ» բաժինը քվեարկության նիկերի միակ աղբյուրն է։
+  // Այստեղ այլևս players աղյուսակից nickname/id չենք պահանջում։
+  const rosterNicknames=[...document.querySelectorAll('#players h3')]
+    .map(el=>el.textContent.trim())
+    .filter(Boolean);
+
+  playersCache=rosterNicknames.map((nickname,index)=>({
+    id:`roster-${index}`,
+    nickname
+  }));
+
+  $('player-options').innerHTML=playersCache.length
+    ?playersCache.map((p,index)=>`
+      <label class="player-option">
+        <input type="radio" name="vote-player" value="${index}">
+        <span>${esc(p.nickname)}</span>
+      </label>`).join('')
+    :'<div class="loading-text">Խաղացողներ դեռ չկան։</div>';
+
+  document.querySelectorAll('input[name="vote-player"]').forEach(i=>i.onchange=()=>{
+    selectedPlayerId=i.value;
+    document.querySelectorAll('.player-option').forEach(x=>x.classList.remove('selected'));
+    i.closest('.player-option').classList.add('selected');
+    $('vote-btn').disabled=!currentUser||!selectedPlayerId;
+  });
+}
+
+async function loadVotes(){
+  const {data,error}=await sb.from('votes').select('player_id');
+  if(error){
+    $('vote-total').textContent='Քվեարկության տվյալները հասանելի չեն';
+    return;
+  }
+
+  const counts={};
+  (data||[]).forEach(v=>{
+    const key=String(v.player_id);
+    counts[key]=(counts[key]||0)+1;
+  });
+
+  const entries=Object.entries(counts)
+    .map(([id,c])=>{
+      const index=Number(id);
+      const player=Number.isInteger(index)?playersCache[index]:null;
+      return [player?.nickname||'Խաղացող',c];
+    })
+    .sort((a,b)=>b[1]-a[1]);
+
+  $('vote-total').textContent=`Ընդհանուր՝ ${data?.length||0} հոգի`;
+  $('vote-list').innerHTML=entries.length
+    ?entries.map(x=>`<div class="vote-row"><span>${esc(x[0])}</span><span>${x[1]} քվե</span></div>`).join('')
+    :'<div class="loading-text">Դեռ ոչ ոք չի քվեարկել։</div>';
+
+  if(currentUser){
+    const {data:mine}=await sb.from('votes').select('id').eq('user_id',currentUser.id).limit(1).maybeSingle();
+    if(mine){
+      $('vote-btn').disabled=true;
+      $('vote-status').textContent='Դուք արդեն քվեարկել եք։';
+    }else{
+      $('vote-btn').disabled=!selectedPlayerId;
+    }
+  }else{
+    $('vote-btn').disabled=true;
+  }
+}
+
+async function loadComments(){
+  await loadGalleryImages();
+  for(const box of document.querySelectorAll('.media-comments')){
+    const slotId=box.dataset.mediaId;
+    const list=box.querySelector('.comments-list'),input=box.querySelector('.comment-input'),btn=box.querySelector('.comment-btn');
+    const {data:img}=await sb.from('gallery_images').select('id').eq('slot_id',slotId).maybeSingle();
+    if(!img){ list.innerHTML='<div class="muted">Դեռ նկար չկա։</div>'; input.disabled=true; btn.disabled=true; continue; }
+    const {data,error}=await sb.from('gallery_comments').select('id,image_id,user_id,nickname,comment,parent_id,created_at').eq('image_id',img.id).order('created_at',{ascending:true});
+    if(error){list.innerHTML='<div class="muted">Մեկնաբանությունները չբեռնվեցին։</div>';continue;}
+    renderGalleryComments(list,data||[]);
+    input.disabled=!currentUser; btn.disabled=!currentUser;
+    btn.onclick=async()=>{
+      if(!currentUser)return;
+      const comment=input.value.trim(); if(!comment)return;
+      const nickname=currentUser.user_metadata?.nickname||currentUser.email?.split('@')[0]||'Օգտատեր';
+      const {error:insertError}=await sb.from('gallery_comments').insert({image_id:img.id,user_id:currentUser.id,nickname,comment,parent_id:null});
+      if(insertError){alert('Չհաջողվեց ավելացնել մեկնաբանությունը։');return;}
+      input.value=''; await loadComments();
+    };
+  }
+}
+
+function renderGalleryComments(list,comments){
+  const admin=(mySiteRole==='owner'||mySiteRole==='admin');
+  const byParent={};
+  comments.forEach(c=>{(byParent[c.parent_id||'root'] ||= []).push(c);});
+  const render=(c,depth=0)=>{
+    const mine=currentUser?.id===c.user_id;
+    let html=`<div class="comment-row" data-comment-id="${esc(c.id)}" style="margin-left:${Math.min(depth,2)*10}px"><strong>${esc(c.nickname||'Օգտատեր')}</strong>: ${esc(c.comment)}`;
+    if(admin && depth===0) html+=`<div class="gallery-comment-actions"><button class="gallery-reply-btn" type="button" data-reply="${esc(c.id)}">↩️ Պատասխանել</button></div><div class="gallery-reply-box" data-reply-box="${esc(c.id)}"><input maxlength="500" placeholder="Պատասխան..." data-reply-input="${esc(c.id)}"><button type="button" data-reply-send="${esc(c.id)}">➤</button></div>`;
+    html+='</div>';
+    const children=byParent[c.id]||[];
+    if(children.length) html+=children.map(x=>`<div class="gallery-reply"><strong>${esc(x.nickname||'Օգտատեր')}</strong>: ${esc(x.comment)}</div>`).join('');
+    return html;
+  };
+  list.innerHTML=(byParent.root||[]).map(c=>render(c)).join('')||'<div class="muted">Դեռ մեկնաբանություն չկա։</div>';
+  if(admin){
+    list.querySelectorAll('[data-reply]').forEach(b=>b.onclick=()=>{const box=list.querySelector(`[data-reply-box="${CSS.escape(b.dataset.reply)}"]`);if(box)box.classList.toggle('open');});
+    list.querySelectorAll('[data-reply-send]').forEach(b=>b.onclick=async()=>{
+      const id=b.dataset.replySend; const inp=list.querySelector(`[data-reply-input="${CSS.escape(id)}"]`); const text=(inp?.value||'').trim(); if(!text)return;
+      const parent=comments.find(c=>c.id===id); if(!parent)return;
+      const nickname=currentUser?.user_metadata?.nickname||currentUser?.email?.split('@')[0]||'AIMRELAX ADMIN';
+      const {error}=await sb.from('gallery_comments').insert({image_id:parent.image_id,user_id:currentUser.id,nickname,comment:text,parent_id:id});
+      if(error){alert('Չհաջողվեց ուղարկել պատասխանը։');return;}
+      inp.value=''; await loadComments();
+    });
+  }
+}
+
+async function loadGalleryImages(){
+  const {data,error}=await sb.from('gallery_images').select('slot_id,storage_path,caption').order('slot_id');
+  if(error){console.warn('Gallery images load failed:',error);return;}
+  const map=Object.fromEntries((data||[]).map(x=>[x.slot_id,x]));
+  const admin=(mySiteRole==='owner'||mySiteRole==='admin');
+
+  document.querySelectorAll('.gallery-item[data-gallery-slot]').forEach(item=>{
+    const slot=item.dataset.gallerySlot;
+    const visual=item.querySelector('.media-visual');
+    const record=map[slot];
+    if(!visual)return;
+
+    visual.classList.remove('gallery-image-loading','gallery-image-error');
+    visual.innerHTML='';
+
+    if(record?.storage_path){
+      const placeholder=document.createElement('div');
+      placeholder.className='gallery-placeholder';
+      placeholder.textContent='Բեռնվում է...';
+      visual.appendChild(placeholder);
+      visual.classList.add('gallery-image-loading');
+
+      const img=document.createElement('img');
+      img.className='gallery-image';
+      img.alt=record.caption||'AIMRELAX-PUBG';
+      img.loading='eager';
+      img.decoding='async';
+      img.draggable=false;
+
+      const {data:u}=sb.storage.from('gallery-images').getPublicUrl(record.storage_path);
+      const publicUrl=u?.publicUrl||'';
+      let triedSigned=false;
+
+      const showImage=(url)=>{
+        img.src=url;
+        placeholder.remove();
+        visual.classList.remove('gallery-image-loading','gallery-image-error');
+      };
+
+      img.onload=()=>{
+        placeholder.remove();
+        visual.classList.remove('gallery-image-loading','gallery-image-error');
+      };
+
+      img.onerror=async()=>{
+        if(!triedSigned){
+          triedSigned=true;
+          const signed=await sb.storage.from('gallery-images').createSignedUrl(record.storage_path,3600);
+          if(!signed.error && signed.data?.signedUrl){showImage(signed.data.signedUrl);return;}
+        }
+        visual.classList.remove('gallery-image-loading');
+        visual.classList.add('gallery-image-error');
+        placeholder.textContent='Նկարը հասանելի չէ';
+        if(!placeholder.isConnected)visual.appendChild(placeholder);
+      };
+
+      visual.appendChild(img);
+      if(publicUrl)showImage(publicUrl);
+      else img.dispatchEvent(new Event('error'));
+    }else{
+      visual.innerHTML='<div class="gallery-placeholder">ՆԿԱՐ</div>';
+    }
+
+    const tools=item.querySelector('.gallery-admin-tools');
+    if(tools){
+      tools.hidden=!admin;
+      tools.dataset.imageId=record?.slot_id||'';
+      const status=tools.querySelector('.gallery-admin-status');
+      if(status)status.textContent='';
+    }
+    const file=item.querySelector('.gallery-file-input'),up=item.querySelector('.gallery-upload-btn'),del=item.querySelector('.gallery-delete-btn');
+    if(file&&up&&del){
+      file.onchange=()=>{const f=file.files?.[0];if(f)up.textContent='⬆️ '+f.name;};
+      up.onclick=()=>uploadGalleryImage(slot,file,up,del,tools);
+      del.onclick=()=>deleteGalleryImage(slot,del,tools);
+    }
+  });
+}
+
+async function uploadGalleryImage(slot,fileInput,btn,delBtn,tools){
+  if(!(mySiteRole==='owner'||mySiteRole==='admin'))return;
+  const file=fileInput.files?.[0]; if(!file){alert('Նախ ընտրեք նկար։');return;}
+  if(!file.type.startsWith('image/')){alert('Միայն նկար է թույլատրվում։');return;}
+  if(file.size>10*1024*1024){alert('Նկարի չափը պետք է լինի մինչև 10MB։');return;}
+  btn.disabled=true; delBtn.disabled=true; if(tools)tools.querySelector('.gallery-admin-status').textContent='Բեռնվում է...';
+  try{
+    const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');
+    const path=`${slot}-${Date.now()}.${ext}`;
+    const {error:upErr}=await sb.storage.from('gallery-images').upload(path,file,{upsert:false,contentType:file.type});
+    if(upErr)throw upErr;
+    const {data:old}=await sb.from('gallery_images').select('storage_path').eq('slot_id',slot).maybeSingle();
+    const {error:dbErr}=await sb.from('gallery_images').upsert({slot_id:slot,storage_path:path,caption:'',created_by:currentUser.id,updated_at:new Date().toISOString()},{onConflict:'slot_id'});
+    if(dbErr){await sb.storage.from('gallery-images').remove([path]);throw dbErr;}
+    if(old?.storage_path)await sb.storage.from('gallery-images').remove([old.storage_path]);
+    fileInput.value=''; await loadComments();
+  }catch(e){console.error(e);alert('Նկարը չավելացվեց։ '+(e.message||''));}
+  finally{btn.disabled=false;delBtn.disabled=false;btn.textContent='⬆️ Ավելացնել';if(tools)tools.querySelector('.gallery-admin-status').textContent='';}
+}
+
+async function deleteGalleryImage(slot,btn,tools){
+  if(!(mySiteRole==='owner'||mySiteRole==='admin'))return;
+  if(!confirm('Ջնջե՞լ այս նկարը։'))return;
+  btn.disabled=true; if(tools)tools.querySelector('.gallery-admin-status').textContent='Ջնջվում է...';
+  try{
+    const {data:row,error}=await sb.from('gallery_images').select('id,storage_path').eq('slot_id',slot).maybeSingle(); if(error)throw error;
+    if(!row)return;
+    const {error:dbErr}=await sb.from('gallery_images').delete().eq('id',row.id); if(dbErr)throw dbErr;
+    if(row.storage_path)await sb.storage.from('gallery-images').remove([row.storage_path]);
+    await loadComments();
+  }catch(e){alert('Նկարը չջնջվեց։ '+(e.message||''));}
+  finally{btn.disabled=false;if(tools)tools.querySelector('.gallery-admin-status').textContent='';}
+}
+let selectedFriendId=null,privateChatChannel=null,onlineChannel=null,onlineIds=new Set(),privateNicknames={};
+async function loadPresence(){
+  if(onlineChannel){try{await sb.removeChannel(onlineChannel)}catch(e){} onlineChannel=null}
+  onlineIds=new Set();
+  if(!currentUser)return;
+  const channel=sb.channel('aimrelax-online',{config:{presence:{key:currentUser.id}}});
+  onlineChannel=channel;
+  const rebuild=()=>{
+    const state=channel.presenceState();
+    const ids=new Set();
+    const users=[];
+    Object.values(state).flat().forEach(x=>{
+      if(x?.user_id){ids.add(x.user_id); if(!users.some(u=>u.user_id===x.user_id)) users.push(x);}
+    });
+    onlineIds=ids;
+    renderAdminOnlineUsers(users);
+    if(typeof loadPrivateChatFriends==='function') loadPrivateChatFriends();
+    if(typeof selectedFriendId!=='undefined' && selectedFriendId){
+      const nick=privateNicknames[selectedFriendId]||'Ընկեր';
+      const title=$('private-chat-title');
+      if(title) title.innerHTML='💬 '+esc(nick)+' '+(onlineIds.has(selectedFriendId)?'<span class="online-dot">🟢</span>':'<span class="offline-dot">⚪</span>');
+    }
+  };
+  channel.on('presence',{event:'sync'},rebuild);
+  channel.on('presence',{event:'join'},rebuild);
+  channel.on('presence',{event:'leave'},rebuild);
+  await channel.subscribe(async status=>{
+    if(status==='SUBSCRIBED'){
+      await channel.track({user_id:currentUser.id,nickname:currentUser.user_metadata?.nickname||currentUser.email?.split('@')[0]||'Օգտատեր',online_at:new Date().toISOString()});
+    }
+  });
+  startLastSeenHeartbeat();
+}
+
+function renderAdminOnlineUsers(users){
+  const box=$('admin-online-users');
+  const list=$('admin-online-list');
+  const count=$('admin-online-count');
+  if(!box||!list||!count)return;
+  const allowed=(mySiteRole==='owner'||mySiteRole==='admin');
+  box.style.display=allowed?'block':'none';
+  if(!allowed)return;
+  users.sort((a,b)=>String(a.nickname||'').localeCompare(String(b.nickname||''),'hy'));
+  count.textContent=users.length;
+  list.innerHTML=users.length
+    ?users.map(u=>`<div style="padding:7px 0;border-bottom:1px solid #202020;">🟢 <strong>${esc(u.nickname||'Օգտատեր')}</strong></div>`).join('')
+    :'<div class="loading-text">Այս պահին ոչ ոք օնլայն չէ։';
+}
+
+async function loadFriendNotifications(){
+ if(!currentUser){$('friend-badge').classList.remove('show');$('friend-notify-list').innerHTML='<div class="loading-text">Մուտք գործեք՝ հայտերը տեսնելու համար։</div>';return}
+ const {data,error}=await sb.from('friend_requests').select('id,requester_id,status,profiles!friend_requests_requester_id_fkey(nickname)').eq('addressee_id',currentUser.id).eq('status','pending').order('created_at',{ascending:false});
+ if(error){$('friend-notify-list').innerHTML='<div class="loading-text">Չհաջողվեց բեռնել հայտերը։</div>';return}
+ const count=(data||[]).length;
+ $('friend-badge').textContent=count;
+ $('friend-badge').classList.toggle('show',count>0);
+ $('friend-notify-list').innerHTML=count?(data||[]).map(r=>`<div class="friend-notify-row"><button class="profile-open-btn" onclick="openProfile('${r.requester_id}')">${esc(r.profiles?.nickname||'Օգտատեր')}</button><span class="friend-notify-actions"><button class="friend-accept" onclick="friendActionFromNotify('${r.id}','accepted')">Ընդունել</button><button class="friend-reject" onclick="friendActionFromNotify('${r.id}','rejected')">Մերժել</button></span></div>`).join(''):'<div class="loading-text">Նոր ընկերության հայտ չկա։</div>'
+}
+window.friendActionFromNotify=async(id,status)=>{const {error}=await sb.from('friend_requests').update({status}).eq('id',id).eq('addressee_id',currentUser.id);if(error){alert('Չհաջողվեց փոխել հայտի կարգավիճակը։');return}await loadFriendNotifications();await loadFriends()};
+async function loadFriends(){
+ const req=$('friend-requests'),list=$('friends-list');
+ if(!currentUser){req.innerHTML='<div class="loading-text">Մուտք գործեք՝ ընկերության հայտերը տեսնելու համար։</div>';list.innerHTML='';return}
+ const {data:incoming}=await sb.from('friend_requests').select('id,requester_id,status,profiles!friend_requests_requester_id_fkey(nickname)').eq('addressee_id',currentUser.id).eq('status','pending');
+ req.innerHTML=(incoming||[]).map(r=>`<div class="friend-row"><button class="profile-open-btn" onclick="openProfile('${r.requester_id}')">${esc(r.profiles?.nickname||'Օգտատեր')}</button><span class="friend-actions"><button onclick="friendAction('${r.id}','accepted')">Ընդունել</button><button class="danger" onclick="friendAction('${r.id}','rejected')">Մերժել</button></span></div>`).join('')||'<div class="muted">Նոր հայտ չկա։</div>';
+ const {data:outgoing}=await sb.from('friend_requests').select('id,addressee_id,status,profiles!friend_requests_addressee_id_fkey(nickname)').eq('requester_id',currentUser.id).eq('status','pending');
+ if(outgoing?.length)req.innerHTML+=(outgoing||[]).map(r=>`<div class="friend-row"><button class="profile-open-btn" onclick="openProfile('${r.addressee_id}')">${esc(r.profiles?.nickname||'Օգտատեր')}</button><span class="muted">Ուղարկված է</span></div>`).join('');
+ renderFriends();
+}
+async function renderFriends(){
+ if(!currentUser)return;
+ const {data:friends}=await sb.from('friend_requests').select('id,requester_id,addressee_id,requester:profiles!friend_requests_requester_id_fkey(nickname,last_seen),addressee:profiles!friend_requests_addressee_id_fkey(nickname,last_seen)').eq('status','accepted').or(`requester_id.eq.${currentUser.id},addressee_id.eq.${currentUser.id}`);
+ $('friends-list').innerHTML=(friends||[]).map(r=>{const otherId=r.requester_id===currentUser.id?r.addressee_id:r.requester_id;const other=r.requester_id===currentUser.id?r.addressee:r.requester;const online=onlineIds.has(otherId);const status=online?'🟢 Օնլայն':`⚪ Օֆլայն · ${formatLastSeen(other?.last_seen)}`;return `<div class="friend-row"><button class="profile-open-btn" onclick="openProfile('${otherId}')">${esc(other?.nickname||'Ընկեր')}</button><span class="chat-friend-status">${status}</span><span class="friend-actions"><button onclick="openPrivateChat('${otherId}','${esc(other?.nickname||'Ընկեր')}')">CHAT</button><button class="danger" onclick="removeFriend('${r.id}')">Հեռացնել</button></span></div>`}).join('')||'<div class="muted">Դեռ ընկերներ չունեք։</div>';
+}
+window.friendAction=async(id,status)=>{const {error}=await sb.from('friend_requests').update({status}).eq('id',id);if(!error)loadFriends()};
+window.removeFriend=async(id)=>{if(!confirm('Հեռացնե՞լ այս ընկերոջը։'))return;const {error}=await sb.from('friend_requests').delete().eq('id',id);if(!error){closePrivateChat();loadFriends()}else alert('Չհաջողվեց հեռացնել ընկերոջը։')};
+let friendTimer;function searchFriends(){clearTimeout(friendTimer);friendTimer=setTimeout(async()=>{if(!currentUser){$('friend-search-results').innerHTML='<div class="loading-text">Նախ մուտք գործեք։</div>';return}const q=$('friend-search').value.trim();if(q.length<2){$('friend-search-results').innerHTML='';return}const {data}=await sb.from('profiles').select('id,nickname').ilike('nickname',`%${q}%`).neq('id',currentUser.id).limit(10);$('friend-search-results').innerHTML=(data||[]).map(p=>`<div class="friend-row"><button class="profile-open-btn" onclick="openProfile('${p.id}')">${esc(p.nickname)}</button><button onclick="sendFriend('${p.id}')">+ Ընկեր</button></div>`).join('')||'<div class="muted">Չգտնվեց։</div>'},250)}$('friend-search').addEventListener('input',searchFriends);
+window.sendFriend=async(id)=>{if(!currentUser)return;const {data:existing}=await sb.from('friend_requests').select('id,status,requester_id,addressee_id').or(`and(requester_id.eq.${currentUser.id},addressee_id.eq.${id}),and(requester_id.eq.${id},addressee_id.eq.${currentUser.id})`).limit(1).maybeSingle();if(existing&&existing.status==='accepted'){ $('friend-search-results').innerHTML='<div class="muted">Դուք արդեն ընկերներ եք։</div>';return }if(existing&&existing.status==='pending'){ $('friend-search-results').innerHTML='<div class="muted">Հայտն արդեն ուղարկված է կամ սպասում է։</div>';return }const {error}=await sb.from('friend_requests').insert({requester_id:currentUser.id,addressee_id:id,status:'pending'});$('friend-search-results').innerHTML=error?(error.code==='23505'?'<div class="muted">Հայտն արդեն գոյություն ունի։</div>':`<div class="muted">${esc(error.message)}</div>`):'<div class="muted">Ընկերության հայտը ուղարկվեց ✅</div>';loadFriends()};
+window.openProfile=async(id)=>{const {data:p}=await sb.from('profiles').select('id,nickname').eq('id',id).maybeSingle();if(!p)return;$('profile-name').textContent=p.nickname;$('profile-status').innerHTML=onlineIds.has(id)?'<span class="online-dot">🟢 online</span>':'<span class="offline-dot">⚪ offline</span>';const isSelf=currentUser&&id===currentUser.id;$('profile-actions').innerHTML=isSelf?'<div class="muted">Սա ձեր պրոֆիլն է։</div>':`<button onclick="sendFriend('${id}')">+ Ընկեր</button>`;$('profile-modal').classList.add('open');$('profile-modal').setAttribute('aria-hidden','false')};
+function closeProfile(){$('profile-modal').classList.remove('open');$('profile-modal').setAttribute('aria-hidden','true')}$('profile-close').onclick=closeProfile;$('profile-modal').onclick=e=>{if(e.target===$('profile-modal'))closeProfile()};
+let typingChannel=null,typingTimer=null,isTyping=false,typingRemoteTimer=null;
+const CHAT_EMOJIS=['😀','😂','🤣','😊','😍','😘','🥰','😎','😭','😡','🤔','🙏','👍','👏','🔥','🎉','💯','❤️','🧡','💛','💚','💙','💜','😴','😮','😢','😇','🤩','😜','🙌','👌','💪'];
+function formatLastSeen(value){
+  if(!value)return 'վերջին անգամ՝ անհայտ';
+  const d=new Date(value); if(Number.isNaN(d.getTime()))return 'վերջին անգամ՝ անհայտ';
+  return 'վերջին անգամ՝ '+d.toLocaleString('hy-AM',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
+function renderEmojiPanel(){
+  const panel=$('emoji-panel'); if(!panel||panel.dataset.ready)return;
+  panel.innerHTML=CHAT_EMOJIS.map(e=>`<button class="emoji-btn" type="button">${e}</button>`).join('');
+  panel.querySelectorAll('.emoji-btn').forEach(btn=>btn.onclick=()=>{const input=$('private-input');input.value+=btn.textContent;input.focus();emitTyping(true)});
+  panel.dataset.ready='1';
+}
+renderEmojiPanel();
+$('emoji-toggle-btn').onclick=()=>{renderEmojiPanel();$('emoji-panel').classList.toggle('open');$('emoji-panel').setAttribute('aria-hidden',String(!$('emoji-panel').classList.contains('open')))};
+
+async function updateLastSeen(){
+  if(!currentUser)return;
+  try{await sb.from('profiles').update({last_seen:new Date().toISOString()}).eq('id',currentUser.id);}catch(e){}
+}
+let lastSeenTimer=null;
+function startLastSeenHeartbeat(){
+  clearInterval(lastSeenTimer); updateLastSeen(); lastSeenTimer=setInterval(updateLastSeen,20000);
+}
+
+async function loadPrivateChatFriends(){
+  if(!currentUser){$('private-friend-picker').innerHTML='<div class="loading-text">Մուտք գործեք՝ անձնական Chat-ից օգտվելու համար։</div>';return}
+  const {data:friends,error}=await sb.from('friend_requests').select('requester_id,addressee_id,requester:profiles!friend_requests_requester_id_fkey(nickname,last_seen),addressee:profiles!friend_requests_addressee_id_fkey(nickname,last_seen)').eq('status','accepted').or(`requester_id.eq.${currentUser.id},addressee_id.eq.${currentUser.id}`);
+  if(error){$('private-friend-picker').innerHTML='<div class="loading-text">Չհաջողվեց բեռնել ընկերներին։ '+esc(error.message)+'</div>';return}
+  privateNicknames={};
+  const rows=(friends||[]).map(r=>{
+    const id=r.requester_id===currentUser.id?r.addressee_id:r.requester_id;
+    const p=r.requester_id===currentUser.id?r.addressee:r.requester;
+    const nickname=p?.nickname||'Ընկեր'; privateNicknames[id]=nickname;
+    const online=onlineIds.has(id);
+    const status=online?'🟢 Օնլայն':`⚪ Օֆլայն · ${formatLastSeen(p?.last_seen)}`;
+    return `<div class="friend-row"><button class="profile-open-btn" onclick="openPrivateChat('${id}','${esc(nickname)}')">${esc(nickname)}</button><span class="muted chat-friend-status">${status}</span></div>`;
+  }).join('');
+  $('private-friend-picker').innerHTML=rows||'<div class="loading-text">Անձնական Chat-ի համար նախ ավելացրեք ընկեր։</div>';
+}
+async function openPrivateChat(id,nickname){
+  if(!currentUser){openModal();return}
+  selectedFriendId=id; privateNicknames[id]=nickname;
+  const profile=await sb.from('profiles').select('nickname,last_seen').eq('id',id).maybeSingle();
+  if(profile.data?.nickname){nickname=profile.data.nickname;privateNicknames[id]=nickname;}
+  $('private-chat-title').innerHTML='💬 '+esc(nickname)+' '+(onlineIds.has(id)?'<span class="online-dot">🟢</span>':'<span class="offline-dot">⚪</span>');
+  $('private-chat-popup').classList.add('open');$('private-chat-popup').setAttribute('aria-hidden','false');$('private-friend-picker').style.display='none';
+  $('private-input').disabled=false;$('private-send-btn').disabled=false;$('voice-record-btn').disabled=false;$('chat-file-btn').disabled=false;
+  await loadPrivateMessages();
+  if(privateChatChannel)await sb.removeChannel(privateChatChannel);
+  if(typingChannel)await sb.removeChannel(typingChannel);
+  privateChatChannel=sb.channel('private-chat-'+[currentUser.id,id].sort().join('-'))
+    .on('postgres_changes',{event:'*',schema:'public',table:'private_messages'},async p=>{
+      if((p.new?.sender_id===currentUser.id&&p.new?.receiver_id===id)||(p.new?.sender_id===id&&p.new?.receiver_id===currentUser.id)){
+        await loadPrivateMessages();
+      }
+    }).subscribe();
+  typingChannel=sb.channel('private-typing-'+[currentUser.id,id].sort().join('-'))
+    .on('broadcast',{event:'typing'},p=>{
+      if(p.payload?.user_id!==currentUser.id){showTyping(!!p.payload?.typing);}
+    }).subscribe();
+}
+function showTyping(show){
+  const el=$('typing-indicator'); if(!el)return; el.classList.toggle('show',show);
+  clearTimeout(typingRemoteTimer); if(show)typingRemoteTimer=setTimeout(()=>el.classList.remove('show'),2500);
+}
+async function emitTyping(force=false){
+  if(!typingChannel||!selectedFriendId)return;
+  if(!force && isTyping)return;
+  isTyping=true;
+  try{await typingChannel.send({type:'broadcast',event:'typing',payload:{user_id:currentUser.id,typing:true}});}catch(e){}
+  clearTimeout(typingTimer);typingTimer=setTimeout(async()=>{isTyping=false;try{await typingChannel.send({type:'broadcast',event:'typing',payload:{user_id:currentUser.id,typing:false}})}catch(e){}},1200);
+}
+async function markChatRead(){
+  if(!currentUser||!selectedFriendId)return;
+  try{await sb.from('private_messages').update({read_at:new Date().toISOString()}).eq('sender_id',selectedFriendId).eq('receiver_id',currentUser.id).is('read_at',null);}catch(e){}
+}
+async function loadPrivateMessages(){
+  if(!selectedFriendId)return;
+  const {data,error}=await sb.from('private_messages').select('id,sender_id,receiver_id,message,message_type,audio_path,created_at,deleted_at,delivered_at,read_at,attachment_path,attachment_name,attachment_mime,attachment_size').or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${selectedFriendId}),and(sender_id.eq.${selectedFriendId},receiver_id.eq.${currentUser.id})`).order('created_at',{ascending:true}).limit(200);
+  $('private-messages').innerHTML='';
+  if(error){$('private-messages').innerHTML='<div class="loading-text">Չհաջողվեց բեռնել Chat-ը։ '+esc(error.message)+'</div>';return}
+  for(const m of (data||[]))await addPrivateMessage(m);
+  await markChatRead();
+}
+async function deletePrivateMessage(id){
+  if(!currentUser)return;
+  const {data:msg}=await sb.from('private_messages').select('id,sender_id,audio_path,attachment_path').eq('id',id).eq('sender_id',currentUser.id).maybeSingle();
+  if(!msg){$('private-status').textContent='Միայն ուղարկողը կարող է ջնջել այս հաղորդագրությունը։';return;}
+  if(!confirm('Ջնջե՞լ հաղորդագրությունը երկուսիդ մոտ։'))return;
+  if(msg.audio_path)await sb.storage.from('chat-audio').remove([msg.audio_path]);
+  if(msg.attachment_path)await sb.storage.from('chat-files').remove([msg.attachment_path]);
+  const {error}=await sb.from('private_messages').update({deleted_at:new Date().toISOString(),audio_path:null,attachment_path:null,attachment_name:null,attachment_mime:null,attachment_size:null}).eq('id',id).eq('sender_id',currentUser.id);
+  $('private-status').textContent=error?'Չհաջողվեց ջնջել։ '+error.message:'Ջնջվեց երկուսիդ մոտ ✅';
+  if(!error)await loadPrivateMessages();
+}
+window.deletePrivateMessage=deletePrivateMessage;
+async function addPrivateMessage(m){
+  const d=document.createElement('div'); d.className='private-message'; d.dataset.messageId=m.id;
+  const mine=m.sender_id===currentUser?.id;
+  let body='';
+  if(m.deleted_at){body='<p class="message-deleted">🗑️ Հաղորդագրությունը ջնջվել է</p>'}
+  else if(m.message_type==='audio'&&m.audio_path){const {data,error}=await sb.storage.from('chat-audio').createSignedUrl(m.audio_path,3600);body=error?'<span class="muted">🔊 Ձայնը հասանելի չէ</span>':`<audio class="voice-audio" controls preload="metadata" src="${esc(data?.signedUrl||'')}"></audio>`}
+  else if(m.attachment_path){const {data,error}=await sb.storage.from('chat-files').createSignedUrl(m.attachment_path,3600);if(error)body='<span class="muted">📎 Ֆայլը հասանելի չէ</span>';else if((m.attachment_mime||'').startsWith('image/'))body=`<img class="chat-image" src="${esc(data.signedUrl)}" alt="Նկար">`;else if((m.attachment_mime||'').startsWith('video/'))body=`<video class="chat-video" controls preload="metadata" src="${esc(data.signedUrl)}"></video>`;else body=`<a class="chat-file" href="${esc(data.signedUrl)}" target="_blank" rel="noopener">📎 ${esc(m.attachment_name||'Ֆայլ')}</a>`}
+  else body=`<p>${esc(m.message||'')}</p>`;
+  let checks=''; if(mine&&!m.deleted_at){checks=m.read_at?'✓✓':'✓';}
+  const deleteBtn=mine&&!m.deleted_at?`<div class="message-actions"><button class="message-delete-btn" type="button">🗑️ Ջնջել</button></div>`:'';
+  const senderNick=mine?'Դուք':(privateNicknames[m.sender_id]||'Ընկեր');
+  d.innerHTML=`<strong>${esc(senderNick)}</strong><small class="muted"> ${new Date(m.created_at).toLocaleString('hy-AM')}</small>${body}<span class="message-meta">${mine?`<span class="read-check">${checks}</span>`:''}</span>${deleteBtn}`;
+  d.onclick=(e)=>{if(e.target.closest('.message-delete-btn'))return;document.querySelectorAll('.private-message.selected').forEach(x=>x.classList.remove('selected'));d.classList.add('selected');};
+  d.querySelector('.message-delete-btn')?.addEventListener('click',()=>deletePrivateMessage(m.id));
+  $('private-messages').appendChild(d); $('private-messages').scrollTop=$('private-messages').scrollHeight;
+}
+let voiceRecorder=null,voiceChunks=[],voiceStream=null,voiceStartedAt=0;
+const CHAT_MAX_FILE_SIZE=50*1024*1024;
+
+async function uploadPrivateAttachment(file){
+  if(!currentUser||!selectedFriendId||!file)return;
+  if(file.size>CHAT_MAX_FILE_SIZE){$('private-status').textContent='Ֆայլը չափազանց մեծ է։ Առավելագույնը 50 MB։';return;}
+  const safeName=(file.name||'file').replace(/[^a-zA-Z0-9._-]/g,'_').slice(0,120)||'file';
+  const path=`${currentUser.id}/${selectedFriendId}/${Date.now()}_${crypto.randomUUID()}_${safeName}`;
+  $('private-status').textContent='Ֆայլը բեռնվում է…';
+  try{
+    const up=await sb.storage.from('chat-files').upload(path,file,{contentType:file.type||'application/octet-stream',upsert:false});
+    if(up.error)throw up.error;
+    const {error}=await sb.from('private_messages').insert({sender_id:currentUser.id,receiver_id:selectedFriendId,message:(file.name||'Ֆայլ').slice(0,1000),message_type:(file.type||'').startsWith('image/')?'image':((file.type||'').startsWith('video/')?'video':'file'),audio_path:null,attachment_path:path,attachment_name:file.name||'Ֆայլ',attachment_mime:file.type||'application/octet-stream',attachment_size:file.size,delivered_at:new Date().toISOString()});
+    if(error){await sb.storage.from('chat-files').remove([path]);throw error;}
+    $('private-status').textContent='';await loadPrivateMessages();
+  }catch(e){$('private-status').textContent='Չհաջողվեց ուղարկել ֆայլը։ '+(e.message||e);}
+}
+async function handleChatFiles(files){for(const file of Array.from(files||[]))await uploadPrivateAttachment(file);$('chat-file-input').value='';}
+
+let voiceTimer=null;
+let voiceSeconds=0;
+function resetVoiceTimer(){clearInterval(voiceTimer);voiceTimer=null;voiceSeconds=0;const el=$('voice-recording-time');if(el)el.textContent='0:00';}
+async function startVoiceRecording(){
+  if(!currentUser||!selectedFriendId)return;
+  if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){$('private-status').textContent='Այս browser-ը ձայնագրություն չի աջակցում։';return;}
+  try{
+    voiceStream=await navigator.mediaDevices.getUserMedia({audio:true});
+    const preferred=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus'];
+    const mime=preferred.find(x=>MediaRecorder.isTypeSupported?.(x))||'';
+    voiceRecorder=new MediaRecorder(voiceStream,mime?{mimeType:mime}:undefined);
+    voiceChunks=[];voiceStartedAt=Date.now();
+    voiceRecorder.ondataavailable=e=>{if(e.data?.size)voiceChunks.push(e.data);};
+    voiceRecorder.onstop=async()=>{
+      const duration=Date.now()-voiceStartedAt;resetVoiceTimer();const type=voiceRecorder?.mimeType||mime||'audio/webm';
+      const blob=new Blob(voiceChunks,{type});voiceStream?.getTracks().forEach(t=>t.stop());voiceStream=null;voiceRecorder=null;
+      $('voice-record-btn').classList.remove('recording');$('voice-record-btn').textContent='🎙️';$('voice-cancel-btn').style.display='none';$('voice-recording-status').style.display='none';
+      if(duration<500||blob.size<1000){$('private-status').textContent='Ձայնագրությունը շատ կարճ է։';return;}
+      await sendVoiceBlob(blob,type);
+    };
+    voiceRecorder.start(250);voiceSeconds=0;$('voice-recording-time').textContent='0:00';$('voice-record-btn').classList.add('recording');$('voice-record-btn').textContent='⏺️';$('voice-cancel-btn').style.display='inline-block';$('voice-recording-status').style.display='block';$('private-status').textContent='Ձայնագրումը սկսված է…';clearInterval(voiceTimer);voiceTimer=setInterval(()=>{voiceSeconds++;const m=Math.floor(voiceSeconds/60);const sec=String(voiceSeconds%60).padStart(2,'0');$('voice-recording-time').textContent=m+':'+sec;},1000);
+  }catch(e){resetVoiceTimer();voiceStream?.getTracks().forEach(t=>t.stop());voiceStream=null;voiceRecorder=null;$('private-status').textContent='Չհաջողվեց միացնել խոսափողը։ '+(e.message||e);}
+}
+function stopVoiceRecording(cancel=false){
+  if(!voiceRecorder)return;
+  if(cancel){const r=voiceRecorder;voiceRecorder=null;r.onstop=null;try{r.stop()}catch(e){}resetVoiceTimer();voiceStream?.getTracks().forEach(t=>t.stop());voiceStream=null;voiceChunks=[];$('voice-record-btn').classList.remove('recording');$('voice-record-btn').textContent='🎙️';$('voice-cancel-btn').style.display='none';$('voice-recording-status').style.display='none';$('private-status').textContent='';return;}
+  try{voiceRecorder.stop()}catch(e){}
+}
+async function sendVoiceBlob(blob,mime){
+  const ext=mime.includes('mp4')?'m4a':mime.includes('ogg')?'ogg':'webm';const path=`${currentUser.id}/${selectedFriendId}/${Date.now()}_${crypto.randomUUID()}.${ext}`;
+  $('private-status').textContent='Ձայնը բեռնվում է…';$('voice-record-btn').disabled=true;
+  try{const up=await sb.storage.from('chat-audio').upload(path,blob,{contentType:mime,upsert:false});if(up.error)throw up.error;const {error}=await sb.from('private_messages').insert({sender_id:currentUser.id,receiver_id:selectedFriendId,message:'🎤 Ձայնային հաղորդագրություն',message_type:'audio',audio_path:path,delivered_at:new Date().toISOString()});if(error){await sb.storage.from('chat-audio').remove([path]);throw error;}$('private-status').textContent='';await loadPrivateMessages();}catch(e){$('private-status').textContent='Չհաջողվեց ուղարկել ձայնը։ '+(e.message||e);}finally{$('voice-record-btn').disabled=false;}
+}
+
+async function sendPrivate(){
+  if(!currentUser||!selectedFriendId)return;
+  const input=$('private-input'),message=input.value.trim(); if(!message)return;
+  const {data,error}=await sb.from('private_messages').insert({sender_id:currentUser.id,receiver_id:selectedFriendId,message,message_type:'text',audio_path:null,delivered_at:new Date().toISOString()}).select('id,sender_id,receiver_id,message,message_type,audio_path,created_at,deleted_at,delivered_at,read_at').single();
+  $('private-status').textContent=error?'Չհաջողվեց ուղարկել։ '+error.message:'';
+  if(!error){input.value='';isTyping=false;clearTimeout(typingTimer);try{await typingChannel?.send({type:'broadcast',event:'typing',payload:{user_id:currentUser.id,typing:false}})}catch(e){} await loadPrivateMessages();}
+}
+function closePrivateChat(){
+  if(typeof voiceRecorder !== 'undefined' && voiceRecorder) stopVoiceRecording(true); clearTimeout(typingTimer);clearTimeout(typingRemoteTimer);isTyping=false;
+  selectedFriendId=null;showTyping(false);
+  $('private-chat-popup').classList.remove('open');$('private-chat-popup').setAttribute('aria-hidden','true');$('private-chat-title').textContent='💬 Անձնական Chat';$('private-friend-picker').style.display='block';$('private-input').disabled=true;$('private-send-btn').disabled=true;$('voice-record-btn').disabled=true;$('chat-file-btn').disabled=true;$('voice-cancel-btn').style.display='none';$('private-messages').innerHTML='<div class="loading-text">Բացեք ընկերոջ CHAT-ը՝ զրույցը սկսելու համար։</div>';$('emoji-panel').classList.remove('open');
+  if(privateChatChannel){sb.removeChannel(privateChatChannel);privateChatChannel=null} if(typingChannel){sb.removeChannel(typingChannel);typingChannel=null}
+}
+$('private-chat-fab').onclick=async()=>{if(!currentUser){openModal();return}const open=$('private-chat-popup').classList.toggle('open');$('private-chat-popup').setAttribute('aria-hidden',String(!open));if(open){closePrivateChat();$('private-chat-popup').classList.add('open');$('private-chat-popup').setAttribute('aria-hidden','false');await loadPrivateChatFriends()}};
+$('private-chat-close').onclick=closePrivateChat;$('private-send-btn').onclick=sendPrivate;
+$('chat-file-btn').onclick=()=>$('chat-file-input').click();
+$('chat-file-input').addEventListener('change',e=>handleChatFiles(e.target.files));
+$('voice-record-btn').onclick=()=>voiceRecorder?stopVoiceRecording(false):startVoiceRecording();
+$('voice-cancel-btn').onclick=()=>stopVoiceRecording(true);
+$('private-input').addEventListener('input',()=>{emitTyping();});
+$('private-input').addEventListener('focus',markChatRead);
+$('private-input').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();sendPrivate()}});
+
+
+async function refreshUser(){
+  try{
+    const {data:{user},error}=await sb.auth.getUser();
+    if(error) throw error;
+    currentUser=user||null;
+    const nick=user?(user.user_metadata?.nickname||user.email?.split('@')[0]||'Օգտատեր'):'';
+    $('account-open-btn').textContent=user?'👤 '+nick:'ՄՈՒՏՔ / ԳՐԱՆՑՈՒՄ';
+    $('account-open-btn').classList.toggle('user-logo',!!user);
+    $('header-logout-btn').style.display=user?'inline-block':'none';
+    const adminBtn=$('admin-menu-btn');
+    const isOwner=!!(user && user.id==='5f1c951f-1e76-4f82-9849-46becf038b55');
+    if(adminBtn) { adminBtn.dataset.owner = isOwner ? '1' : '0'; adminBtn.style.setProperty('display',(isOwner?'block':'none'),'important'); }
+    if(!user){$('user-dropdown').classList.remove('open','show');$('user-dropdown').setAttribute('aria-hidden','true');}
+    if(user){$('modal-nickname').textContent=nick;$('settings-nickname').value=nick;$('settings-email').value=user.email||'';}
+    const jobs=[loadPlayers,loadVotes,loadComments,loadFriends,loadFriendNotifications,loadPresence];
+    for(const job of jobs){try{await job();}catch(e){console.warn('AIMRELAX optional load failed:',e);}}
+    try{await loadMySiteRole();}catch(e){console.warn('AIMRELAX role load failed:',e);}
+    // Re-apply owner visibility after async role lookup so RPC cannot hide the Owner button.
+    if(adminBtn) { adminBtn.dataset.owner = isOwner ? '1' : '0'; adminBtn.style.setProperty('display',(isOwner?'block':'none'),'important'); }
+  }catch(e){ console.error('AIMRELAX refreshUser failed:',e); }
+}
+sb.auth.onAuthStateChange((event,session)=>{
+  if(event==='SIGNED_OUT'){
+    currentUser=null;
+    mySiteRole=null;
+    $('header-logout-btn').style.display='none';
+    $('admin-menu-btn').style.setProperty('display','none','important');
+    $('account-open-btn').textContent='ՄՈՒՏՔ / ԳՐԱՆՑՈՒՄ';
+    $('account-open-btn').classList.remove('user-logo');
+    $('user-dropdown').classList.remove('open','show');
+    $('user-dropdown').setAttribute('aria-hidden','true');
+  }
+  if(event==='SIGNED_IN'||event==='SIGNED_OUT') setTimeout(refreshUser,0);
+  if(event==='SIGNED_IN') setTimeout(refreshPushStatus,1000);
+});
+async function openChatFromNotification(){
+  const params=new URLSearchParams(location.search);
+  const chatId=params.get('chat');
+  if(!chatId) return;
+  try{
+    if(!currentUser){
+      await new Promise(resolve=>{let done=false;const finish=()=>{if(!done){done=true;resolve();}};setTimeout(finish,2500);const check=setInterval(()=>{if(currentUser){clearInterval(check);finish();}},50);});
+    }
+    if(!currentUser) return;
+    await openPrivateChat(chatId,'Ընկեր');
+    history.replaceState({},'',location.pathname+location.hash);
+  }catch(e){console.error('Notification chat open failed:',e);}
+  finally{
+    document.documentElement.classList.remove('notification-route');
+  }
+}
+
+/* Notification click while the site is already open: stay on the current page. */
+navigator.serviceWorker?.addEventListener('message',async event=>{
+  const data=event.data||{};
+  if(data.type!=='OPEN_PRIVATE_CHAT'||!data.chatId)return;
+  try{
+    if(!currentUser) await refreshUser();
+    if(!currentUser)return;
+    await openPrivateChat(data.chatId,privateNicknames?.[data.chatId]||'Ընկեր');
+  }catch(e){
+    console.error('Notification chat message failed:',e);
+  }
+});
+
+refreshUser().then(()=>openChatFromNotification()).catch(()=>{
+  document.documentElement.classList.remove('notification-route');
+});
+
+(function(){
+  const wrap=document.getElementById('account-logo-wrap');
+  const btn=document.getElementById('account-btn');
+  const menu=document.getElementById('account-logo-menu');
+  const settings=document.getElementById('logo-settings-menu-btn');
+  if(!wrap||!btn||!menu||!settings)return;
+  btn.addEventListener('click',function(e){
+    e.preventDefault(); e.stopPropagation();
+    if(typeof currentUser !== 'undefined' && currentUser){
+      menu.classList.toggle('show');
+      menu.setAttribute('aria-hidden',menu.classList.contains('show')?'false':'true');
+    } else if(typeof showPanel==='function'){
+      showPanel('auth-panel');
+    }
+  });
+  settings.addEventListener('click',function(e){
+    e.preventDefault(); e.stopPropagation();
+    menu.classList.remove('show');
+    if(typeof openAccountSettings==='function'){openAccountSettings();}
+    else if(typeof showPanel==='function'){showPanel('account-settings-panel');}
+  });
+  document.addEventListener('click',function(e){if(!wrap.contains(e.target))menu.classList.remove('show');});
+})();
+</script>
+
+
+
+<div style="margin-top:14px;padding:12px;border:1px solid #2a2a2a;border-radius:12px;background:#0d0d0d">
+  <div style="font-weight:700;margin-bottom:6px">🔔 Ծանուցումներ</div>
+  <div id="push-status" class="muted" style="margin-bottom:8px">Ծանուցումները անջատված են։</div>
+  <button id="push-enable-btn" onclick="enablePushNotifications()">🔔 Միացնել ծանուցումները</button>
+</div>
+
+<script>
+/* AIMRELAX ADMIN PANEL */
+let mySiteRole = null;
+let adminUsersCache = [];
+async function loadMySiteRole(){
+  const btn=$('admin-menu-btn');
+  if(!currentUser){
+    mySiteRole=null;
+    if(btn) btn.style.setProperty('display','none','important');
+    return;
+  }
+  const isOwner = currentUser.id === '5f1c951f-1e76-4f82-9849-46becf038b55';
+  let role = null;
+  try{
+    const {data,error}=await sb.rpc('get_my_site_role');
+    if(!error && data) role=String(data).toLowerCase();
+  }catch(e){ console.warn('role rpc failed',e); }
+  if(isOwner) role='owner';
+  mySiteRole=role;
+  try{await loadGalleryImages();}catch(e){}
+  const allowed = role==='owner' || role==='admin';
+  if(btn){
+    btn.dataset.owner=isOwner?'1':'0';
+    btn.style.setProperty('display',allowed?'block':'none','important');
+    btn.style.setProperty('visibility',allowed?'visible':'hidden','important');
+    btn.style.setProperty('opacity',allowed?'1':'0','important');
+  }
+}
+async function openAdminPanel(){
+  if(mySiteRole!=='owner' && mySiteRole!=='admin'){return;}
+  $('admin-modal').classList.add('open');$('admin-modal').setAttribute('aria-hidden','false');
+  await loadAdminUsers();
+}
+function closeAdminPanel(){$('admin-modal').classList.remove('open');$('admin-modal').setAttribute('aria-hidden','true');}
+async function loadAdminUsers(){
+  const status=$('admin-status');status.textContent='';
+  const {data,error}=await sb.rpc('list_site_users');
+  if(error){$('admin-user-list').innerHTML='<div class="loading-text">Չհաջողվեց բեռնել օգտատերերին։</div>';status.textContent=error.message;return;}
+  adminUsersCache=data||[];renderAdminUsers();
+}
+function renderAdminUsers(){
+  const q=($('admin-user-search').value||'').trim().toLowerCase();
+  const rows=adminUsersCache.filter(u=>!q || String(u.nickname||'').toLowerCase().includes(q)||String(u.email||'').toLowerCase().includes(q));
+  $('admin-user-list').innerHTML=rows.map(u=>{
+    const isMe=u.id===currentUser?.id;
+    const canManage=mySiteRole==='owner' && !isMe;
+    const role=u.role||'user';
+    const btn=canManage ? (role==='admin' ? `<button class="danger" onclick="changeSiteRole('${u.id}','user')">Հանել ադմինից</button>` : `<button onclick="changeSiteRole('${u.id}','admin')">Դարձնել ադմին</button>`) : '';
+    return `<div class="admin-user-row"><div class="admin-user-info"><strong>${esc(u.nickname||'Օգտատեր')}${isMe?' (Դուք)':''}</strong><small>${esc(u.email||'')}</small><div class="admin-role">Դեր՝ ${role==='owner'?'👑 Owner':role==='admin'?'🛡️ Admin':'👤 User'}</div></div><div class="admin-user-actions">${btn}</div></div>`;
+  }).join('') || '<div class="loading-text">Օգտատեր չի գտնվել։</div>';
+}
+async function changeSiteRole(id,role){
+  if(mySiteRole!=='owner'){return;}
+  const status=$('admin-status');status.textContent='Փոփոխվում է...';
+  const {data,error}=await sb.rpc('set_site_user_role',{target_user_id:id,new_role:role});
+  if(error){status.textContent=error.message;return;}
+  status.textContent=data||'Պահպանվեց։';
+  await loadAdminUsers();
+}
+$('admin-menu-btn').addEventListener('click',()=>{ $('user-dropdown').classList.remove('open','show'); $('user-dropdown').setAttribute('aria-hidden','true'); openAdminPanel(); });
+$('admin-close').addEventListener('click',closeAdminPanel);
+$('admin-modal').addEventListener('click',e=>{if(e.target.id==='admin-modal')closeAdminPanel();});
+$('admin-user-search').addEventListener('input',renderAdminUsers);
+setTimeout(loadMySiteRole,0);
+</script>
+
+
+<script>
+/* AIMRELAX WEB PUSH NOTIFICATIONS */
+const AIMRELAX_VAPID_PUBLIC_KEY = "BFCAx5lhGgeX0YmipGrAEoioAJtVtSVGVw5tb7FpADGMtiPsTzFScshxsV1UHXGP_y5QByzPOovx1kQVLazgnKs";
+
+function urlBase64ToUint8Array(base64String){
+  const padding='='.repeat((4-base64String.length%4)%4);
+  const base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+  const raw=atob(base64);
+  return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));
+}
+
+async function registerAIMRELAXServiceWorker(){
+  if(!('serviceWorker' in navigator)) throw new Error('Այս browser-ը Service Worker չի աջակցում։');
+  return await navigator.serviceWorker.register('./sw.js', {scope:'./'});
+}
+
+async function enablePushNotifications(){
+  const status=document.getElementById('push-status');
+  const btn=document.getElementById('push-enable-btn');
+  if(!currentUser){ status.textContent='Նախ մուտք գործեք։'; return; }
+
+  try{
+    if(!('Notification' in window) || !('PushManager' in window)){
+      status.textContent='Այս browser-ը Web Push չի աջակցում։';
+      return;
+    }
+
+    const permission=await Notification.requestPermission();
+    if(permission!=='granted'){
+      status.textContent='Ծանուցումների թույլտվությունը չտրվեց։';
+      return;
+    }
+
+    const reg=await registerAIMRELAXServiceWorker();
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub){
+      sub=await reg.pushManager.subscribe({
+        userVisibleOnly:true,
+        applicationServerKey:urlBase64ToUint8Array(AIMRELAX_VAPID_PUBLIC_KEY)
+      });
+    }
+
+    const payload={
+      user_id:currentUser.id,
+      endpoint:sub.endpoint,
+      p256dh:sub.toJSON().keys?.p256dh || null,
+      auth:sub.toJSON().keys?.auth || null,
+      user_agent:navigator.userAgent
+    };
+
+    const {error}=await sb.from('push_subscriptions').upsert(payload,{onConflict:'user_id,endpoint'});
+    if(error) throw error;
+
+    status.textContent='Ծանուցումները միացված են ✅';
+    btn.textContent='🔔 Ծանուցումները միացված են';
+    btn.disabled=true;
+  }catch(e){
+    console.error('Push setup error',e);
+    status.textContent='Չհաջողվեց միացնել՝ '+(e.message||e);
+  }
+}
+
+async function refreshPushStatus(){
+  const status=document.getElementById('push-status');
+  const btn=document.getElementById('push-enable-btn');
+  if(!status||!btn) return;
+  if(!currentUser){
+    status.textContent='Մուտք գործեք՝ ծանուցումները միացնելու համար։';
+    btn.disabled=false;
+    return;
+  }
+  try{
+    const reg=await registerAIMRELAXServiceWorker();
+    const sub=await reg.pushManager.getSubscription();
+    if(sub && Notification.permission==='granted'){
+      status.textContent='Ծանուցումները միացված են ✅';
+      btn.textContent='🔔 Ծանուցումները միացված են';
+      btn.disabled=true;
+    }else{
+      status.textContent='Ծանուցումները անջատված են։';
+      btn.textContent='🔔 Միացնել ծանուցումները';
+      btn.disabled=false;
+    }
+  }catch(e){}
+}
+
+setTimeout(refreshPushStatus,1500);
+</script>
+
+</body>
+</html>
+  
