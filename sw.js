@@ -79,7 +79,10 @@ self.addEventListener('fetch', event => {
 ========================= */
 
 self.addEventListener('push', event => {
-
+console.log(
+  '[AIMRELAX PUSH RECEIVED]',
+  new Date().toISOString()
+);
   event.waitUntil(
     (async () => {
 
