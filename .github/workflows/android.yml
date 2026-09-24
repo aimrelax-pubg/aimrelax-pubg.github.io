@@ -29,13 +29,13 @@ jobs:
         run: |
           npm install @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
 
-      - name: Clean ALL Capacitor configs
+      - name: Clean Capacitor configs
         run: |
-          rm -f ./capacitor.config.ts
-          rm -f ./capacitor.config.js
-          rm -f ./capacitor.config.mjs
-          rm -f ./capacitor.config.cjs
-          rm -f ./capacitor.config.json
+          rm -f capacitor.config.ts
+          rm -f capacitor.config.js
+          rm -f capacitor.config.mjs
+          rm -f capacitor.config.cjs
+          rm -f capacitor.config.json
 
       - name: Prepare website
         run: |
@@ -50,9 +50,9 @@ jobs:
             --exclude='capacitor.config.*' \
             ./ www/
 
-      - name: Create JSON config
+      - name: Create Capacitor config
         run: |
-          cat > ./capacitor.config.json <<'EOF'
+          cat > capacitor.config.json <<'EOF'
           {
             "appId": "com.aimrelax.pubg",
             "appName": "AIMRELAX PUBG",
@@ -60,26 +60,12 @@ jobs:
           }
           EOF
 
-      - name: Verify config BEFORE Capacitor
-             - name: Verify config BEFORE Capacitor
+      - name: Verify config
         run: |
           echo "=== CONFIG FILES ==="
           find . -maxdepth 1 -type f -name 'capacitor.config*' -print
-
           echo "=== JSON CONFIG ==="
-          if [ -f ./capacitor.config.json ]; then
-            cat ./capacitor.config.json
-          else
-            echo "capacitor.config.json NOT FOUND"
-          fi
-
-          echo "=== TYPESCRIPT CONFIG ==="
-          if [ -f ./capacitor.config.ts ]; then
-            echo "capacitor.config.ts FOUND"
-            cat ./capacitor.config.ts
-          else
-            echo "capacitor.config.ts NOT FOUND"
-          fi
+          cat capacitor.config.json
 
       - name: Add Android
         run: npx cap add android
