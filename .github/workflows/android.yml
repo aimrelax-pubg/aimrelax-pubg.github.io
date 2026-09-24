@@ -22,32 +22,30 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Create npm project
-        run: |
-          npm init -y
-
-      - name: Install TypeScript runtime
-        run: |
-          npm install typescript tsx
+      - name: Initialize npm
+        run: npm init -y
 
       - name: Install Capacitor
         run: |
-          npm install @capacitor/core@7
-          npm install @capacitor/cli@7
-          npm install @capacitor/android@7
+          npm install @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
 
-      - name: Clean old Capacitor files
+      - name: Clean ALL Capacitor configs
         run: |
-          rm -rf android
+          echo "Before cleanup:"
+          find . -maxdepth 1 -type f -name 'capacitor.config*' -print || true
+
+          rm -f ./capacitor.config.ts
+          rm -f ./capacitor.config.js
+          rm -f ./capacitor.config.mjs
+          rm -f ./capacitor.config.cjs
+          rm -f ./capacitor.config.json
+
+          echo "After cleanup:"
+          find . -maxdepth 1 -type f -name 'capacitor.config*' -print || true
+
+      - name: Prepare website
+        run: |
           rm -rf www
-          rm -f capacitor.config.ts
-          rm -f capacitor.config.js
-          rm -f capacitor.config.mjs
-          rm -f capacitor.config.cjs
-          rm -f capacitor.config.json
-
-      - name: Copy website
-        run: |
           mkdir -p www
 
           rsync -av \
@@ -59,47 +57,41 @@ jobs:
             --exclude='capacitor.config.*' \
             ./ www/
 
-      - name: Create TypeScript Capacitor config
+      - name: Create JSON config
         run: |
-          cat > capacitor.config.ts <<'EOF'
-          import type { CapacitorConfig } from '@capacitor/cli';
-
-          const config: CapacitorConfig = {
-            appId: 'com.aimrelax.pubg',
-            appName: 'AIMRELAX PUBG',
-            webDir: 'www'
-          };
-
-          export default config;
+          cat > ./capacitor.config.json <<'EOF'
+          {
+            "appId": "com.aimrelax.pubg",
+            "appName": "AIMRELAX PUBG",
+            "webDir": "www"
+          }
           EOF
 
-      - name: Verify environment
+      - name: Verify config BEFORE Capacitor
         run: |
-          echo "===== Node ====="
-          node --version
+          echo "================================"
+          echo "CONFIG FILES IN PROJECT ROOT"
+          echo "================================"
 
-          echo "===== npm ====="
-          npm --version
+          find . -maxdepth 1 -type f -name 'capacitor.config*' -print
 
-          echo "===== TypeScript ====="
-          ./node_modules/.bin/tsc --version
+          echo "================================"
+          echo "JSON CONFIG"
+          echo "================================"
 
-          echo "===== tsx ====="
-          ./node_modules/.bin/tsx --version
+          cat ./capacitor.config.json
 
-          echo "===== Capacitor ====="
-          npx cap --version
+          echo "================================"
+          echo "PACKAGE"
+          echo "================================"
 
-          echo "===== Config ====="
-          cat capacitor.config.ts
+          cat package.json
 
       - name: Add Android
-        run: |
-          npx cap add android
+        run: npx cap add android
 
       - name: Sync Capacitor
-        run: |
-          npx cap sync android
+        run: npx cap sync android
 
       - name: Build APK
         working-directory: android
