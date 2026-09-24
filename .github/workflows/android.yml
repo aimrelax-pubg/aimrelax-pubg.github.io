@@ -25,22 +25,24 @@ jobs:
       - name: Initialize npm
         run: npm init -y
 
-      - name: Install Capacitor
+      - name: Install TypeScript and Capacitor
         run: |
+          npm install --save-dev typescript
           npm install @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
 
-      - name: Clean Capacitor configs
+      - name: Remove old Capacitor configs
         run: |
-          rm -f capacitor.config.ts
           rm -f capacitor.config.js
           rm -f capacitor.config.mjs
           rm -f capacitor.config.cjs
           rm -f capacitor.config.json
+          rm -f capacitor.config.ts
 
       - name: Prepare website
         run: |
           rm -rf www
           mkdir -p www
+
           rsync -av \
             --exclude='.git' \
             --exclude='.github' \
@@ -52,13 +54,26 @@ jobs:
 
       - name: Create Capacitor config
         run: |
-          cat > capacitor.config.json <<'EOF'
-          {
-            "appId": "com.aimrelax.pubg",
-            "appName": "AIMRELAX PUBG",
-            "webDir": "www"
-          }
+          cat > capacitor.config.ts <<'EOF'
+          import type { CapacitorConfig } from '@capacitor/cli';
+
+          const config: CapacitorConfig = {
+            appId: 'com.aimrelax.pubg',
+            appName: 'AIMRELAX PUBG',
+            webDir: 'www'
+          };
+
+          export default config;
           EOF
+
+      - name: Check Capacitor config
+        run: |
+          echo "=== Capacitor config ==="
+          cat capacitor.config.ts
+          echo "=== TypeScript ==="
+          npx tsc --version
+          echo "=== Capacitor ==="
+          npx cap --version
 
       - name: Add Android
         run: npx cap add android
