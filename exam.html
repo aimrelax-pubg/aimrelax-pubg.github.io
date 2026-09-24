@@ -12,6 +12,53 @@
 * {
   box-sizing: border-box;
 }
+  .home-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    padding: 14px 20px;
+    margin-top: 12px;
+
+    background: linear-gradient(135deg, #1b1f24, #292f36);
+    color: #ffffff;
+
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+
+    text-decoration: none;
+
+    box-shadow:
+        0 6px 20px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.home-btn:hover {
+    background: linear-gradient(135deg, #252b32, #343b44);
+
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 10px 28px rgba(0, 0, 0, 0.45),
+        0 0 18px rgba(255, 176, 0, 0.12);
+}
+
+.home-btn:active {
+    transform: translateY(0);
+
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.35);
+}
 
 body {
   margin: 0;
@@ -387,8 +434,7 @@ button:disabled {
     <button id="startBtn">
       🚀 Սկսել քննությունը
     </button>
-    <a href="index.html" id="startBtn">
-  🏠 Գլխավոր էջ
+    <a href="index.html" class="home-btn">🏠 Գլխավոր էջ</a>
 </a>
 
   </div>
