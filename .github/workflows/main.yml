@@ -39,9 +39,9 @@ jobs:
 
       - name: Remove old Capacitor configs
         run: |
-          for f in capacitor.config.*; do
-            [ -e "$f" ] && rm -f "$f"
-          done
+          rm -f capacitor.config.json
+          rm -f capacitor.config.js
+          true
 
       - name: Create Capacitor config
         run: |
