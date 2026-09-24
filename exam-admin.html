@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>AIMRELAX PUBG — Admin Exam Results</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  color: #fff;
+  background:
+    radial-gradient(circle at top, #202020 0%, #090909 45%, #000 100%);
+}
+
+.container {
+  width: min(1000px, 94%);
+  margin: auto;
+  padding: 25px 0 50px;
+}
+
+.logo {
+  text-align: center;
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #ffb000;
+  margin: 15px 0 5px;
+  text-shadow: 0 0 18px rgba(255,176,0,.35);
+}
+
+.subtitle {
+  text-align: center;
+  color: #aaa;
+  margin-bottom: 25px;
+}
+
+.card {
+  background: rgba(20,20,20,.95);
+  border: 1px solid #303030;
+  border-radius: 18px;
+  padding: 22px;
+  margin-bottom: 20px;
+  box-shadow: 0 15px 45px rgba(0,0,0,.55);
+}
+
+.login-box {
+  max-width: 500px;
+  margin: 30px auto;
+}
+
+input {
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  border: 1px solid #333;
+  background: #111;
+  color: #fff;
+  outline: none;
+}
+
+input:focus {
+  border-color: #ffb000;
+}
+
+button {
+  width: 100%;
+  border: 0;
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #000;
+  background: #ffb000;
+  transition: .2s;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+
+.hidden {
+  display: none !important;
+}
+
+.error {
+  color: #ff7070;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.success {
+  color: #69ff9a;
+}
+
+.admin-header {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.admin-header h2 {
+  margin: 0;
+}
+
+.small-btn {
+  width: auto;
+  padding: 10px 15px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.stat {
+  background: #111;
+  border: 1px solid #292929;
+  border-radius: 13px;
+  padding: 16px;
+  text-align: center;
+}
+
+.stat-number {
+  display: block;
+  color: #ffb000;
+  font-size: 25px;
+  font-weight: 900;
+}
+
+.stat-label {
+  color: #999;
+  font-size: 13px;
+  margin-top: 5px;
+}
+
+.search {
+  margin: 20px 0;
+}
+
+.result-card {
+  background: #111;
+  border: 1px solid #292929;
+  border-radius: 16px;
+  margin-bottom: 18px;
+  overflow: hidden;
+}
+
+.result-header {
+  padding: 18px;
+  border-bottom: 1px solid #292929;
+  background: #151515;
+}
+
+.email {
+  font-size: 17px;
+  font-weight: bold;
+  color: #fff;
+  word-break: break-word;
+}
+
+.result-info {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.badge {
+  background: #222;
+  border: 1px solid #333;
+  border-radius: 20px;
+  padding: 7px 11px;
+  font-size: 13px;
+  color: #ddd;
+}
+
+.badge.gold {
+  color: #ffb000;
+  border-color: #6d5000;
+}
+
+.questions {
+  padding: 15px;
+}
+
+.question {
+  background: #181818;
+  border: 1px solid #2c2c2c;
+  border-radius: 13px;
+  padding: 15px;
+  margin-bottom: 12px;
+}
+
+.question:last-child {
+  margin-bottom: 0;
+}
+
+.question-title {
+  font-weight: bold;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.answer {
+  padding: 10px 12px;
+  border-radius: 9px;
+  margin-top: 7px;
+  line-height: 1.45;
+}
+
+.user-answer {
+  background: rgba(255,255,255,.05);
+  border: 1px solid #333;
+}
+
+.user-answer.correct {
+  background: rgba(40,180,90,.12);
+  border-color: #287d48;
+}
+
+.user-answer.wrong {
+  background: rgba(220,60,60,.12);
+  border-color: #8d3030;
+}
+
+.correct-answer {
+  background: rgba(40,180,90,.08);
+  border: 1px solid #287d48;
+}
+
+.label {
+  font-size: 12px;
+  color: #999;
+  display: block;
+  margin-bottom: 3px;
+}
+
+.correct-text {
+  color: #69ff9a;
+  font-weight: bold;
+}
+
+.wrong-text {
+  color: #ff7777;
+  font-weight: bold;
+}
+
+.loading {
+  text-align: center;
+  color: #aaa;
+  padding: 30px;
+}
+
+.empty {
+  text-align: center;
+  color: #aaa;
+  padding: 30px;
+}
+
+.logout {
+  background: #222;
+  color: #fff;
+  border: 1px solid #444;
+}
+
+@media (max-width: 600px) {
+  .container {
+    width: 94%;
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-header {
+    align-items: stretch;
+  }
+
+  .small-btn {
+    width: 100%;
+  }
+
+  .card {
+    padding: 15px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="logo">
+    AIMRELAX PUBG
+  </div>
+
+  <div class="subtitle">
+    ADMIN — Գիտելիքի քննության արդյունքներ
+  </div>
+
+  <!-- LOGIN -->
+  <div id="loginScreen" class="card login-box">
+
+    <h2 style="text-align:center;">
+      🔐 Admin մուտք
+    </h2>
+
+    <p style="text-align:center;color:#aaa;">
+      Մուտք գործիր քո admin Supabase account-ով։
+    </p>
+
+    <input
+      type="email"
+      id="email"
+      placeholder="Email"
+      autocomplete="email"
+    >
+
+    <input
+      type="password"
+      id="password"
+      placeholder="Գաղտնաբառ"
+      autocomplete="current-password"
+    >
+
+    <button onclick="login()">
+      Մուտք գործել
+    </button>
+
+    <div id="loginError" class="error" style="margin-top:15px;"></div>
+
+  </div>
+
+
+  <!-- ADMIN -->
+  <div id="adminScreen" class="hidden">
+
+    <div class="card">
+
+      <div class="admin-header">
+
+        <div>
+          <h2>📊 Քննության արդյունքներ</h2>
+          <div id="adminEmail"
+               style="color:#999;margin-top:5px;">
+          </div>
+        </div>
+
+        <button
+          class="small-btn"
+          onclick="loadResults()">
+          🔄 Թարմացնել
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <div class="stats">
+
+      <div class="stat">
+        <span
+          id="totalUsers"
+          class="stat-number">
+          0
+        </span>
+
+        <span class="stat-label">
+          Մասնակիցներ
+        </span>
+      </div>
+
+      <div class="stat">
+        <span
+          id="averageScore"
+          class="stat-number">
+          0%
+        </span>
+
+        <span class="stat-label">
+          Միջին տոկոս
+        </span>
+      </div>
+
+      <div class="stat">
+        <span
+          id="perfectScores"
+          class="stat-number">
+          0
+        </span>
+
+        <span class="stat-label">
+          20/20
+        </span>
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <input
+        id="searchInput"
+        class="search"
+        type="text"
+        placeholder="🔎 Փնտրել ըստ email-ի..."
+        oninput="renderResults()"
+      >
+
+    </div>
+
+
+    <div id="resultsContainer">
+
+      <div class="loading">
+        ⏳ Բեռնվում է...
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <button
+        class="logout"
+        onclick="logout()">
+        🚪 Դուրս գալ
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   SUPABASE
+========================================================= */
+
+const SUPABASE_URL =
+  "https://hvhlrbfjloiahbqmnrly.supabase.co";
+
+const SUPABASE_ANON_KEY =
+  "sb_publishable_EcZUkLdUCVv3qWDD7jlvhg_OjTYu1jA";
+
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
+
+
+/* =========================================================
+   QUESTIONS
+========================================================= */
+
+const questions = [
+
+  {
+    q: "Ո՞ր զենքն է օգտագործում 7.62 մմ փամփուշտ։",
+    options: [
+      "AKM",
+      "M416",
+      "UMP45",
+      "Vector"
+    ],
+    correct: 0
+  },
+
+  {
+    q: "Ո՞ր փամփուշտն է օգտագործում M416-ը։",
+    options: [
+      "5.56 մմ",
+      "7.62 մմ",
+      "9 մմ",
+      ".45 ACP"
+    ],
+    correct: 0
+  },
+
+  {
+    q: "Ո՞ր աքսեսուարն է հիմնականում նվազեցնում զենքի recoil-ը։",
+    options: [
+      "Compensator",
+      "Suppressor",
+      "Laser Sight",
+      "Red Dot"
+    ],
+    correct: 0
+  },
+
+  {
+    q: "Level 3 helmet-ը հիմնականում ինչի՞ համար է։",
+    options: [
+      "Գլխի ավելի բարձր պաշտպանություն տալու",
+      "Ավելի արագ վազելու",
+      "Ավելի արագ կրակելու",
+      "Ավելի արագ reload անելու"
+    ],
+    correct: 0
+  },
+
+  {
+    q: "Med Kit-ը սովորաբար առողջությունը հասցնում է առավելագույնի՝ մինչև։",
+    options: [
+      "100 HP",
+      "75 HP",
+      "50 HP",
+      "150 HP"
+    ],
+    correct: 0
+  },
+
+  {
+    q: "Adrenaline Syringe-ը հիմնականում ի՞նչ է տալիս։",
+    options: [
+      "Boost-ի էֆեկտ",
+      "Զրահ",
+      "Լրացուցիչ փամփուշտներ",
+      "Ավելի ուժեղ զենք"
+    ],
+    correct: 0
+  },
+
+  {
+    q: "Ո՞ր օպտիկան ունի ամենամեծ խոշորացումը։",
+    options: [
+      "2x",
+      "3x",
+      "6x",
+      "8x"
+    ],
+    correct: 3
+  },
+
+  {
+    q: "Smoke Grenade-ի հիմնական նպատակը ո՞րն է։",
+    options: [
+      "Թշնամուն վնասել",
+      "Տեսանելիությունը փակել և ծածկույթ ստեղծել",
+      "Տունը պայթեցնել",
+      "Թշնամուն այրել"
+    ],
+    correct: 1
+  },
+
+  {
+    q: "Frag Grenade-ը հիմնականում ինչպիսի՞ վնաս է հասցնում։",
+    options: [
+      "Պայթյունային",
+      "Կրակային",
+      "Էլեկտրական",
+      "Poison"
+    ],
+    correct: 0
+  },
+
+  {
+    q: "Molotov Cocktail-ը հիմնականում ի՞նչ է առաջացնում։",
+    options: [
+      "Կրակ և վնաս",
+      "Smoke",
+      "Boost",
+      "Armor"
+    ],
+    correct: 0
+  },
+
+  {
+    q: "Ի՞նչ է տեղի ունենում Blue Zone-ում։",
+    options: [
+      "Առողջությունը նվազում է",
+      "Զենքը ավտոմատ reload է լինում",
+      "Խաղացողը բուժվում է",
+      "Ավելի արագ է վազում"
+    ],
+    correct: 0
+  },
+
+  {
+    q: "Red Zone-ի հիմնական վտանգը ո՞րն է։",
+    options: [
+      "Պայթյունները",
+      "Ցուրտը",
+      "Ջուրը",
+      "Smoke"
+    ],
+    correct: 0
+  },
+
+  {
+    q: "Եթե squad-ի անդամը knock է եղել, ի՞նչ պետք է անի մյուս խաղացողը։",
+    options: [
+      "Revive անել, եթե հնարավոր է",
+      "Թողնել թիմակցին",
+      "Նետել նռնակ",
+      "Փոխել զենքը"
+    ],
+    correct: 0
+  },
+
+  {
+    q: "Extended Magazine-ը հիմնականում ի՞նչ է անում։",
+    options: [
+      "Մեծացնում է պահունակի տարողությունը",
+      "Նվազեցնում է recoil-ը",
+      "Անտեսանելի է դարձնում կրակոցը",
+      "Մեծացնում է zoom-ը"
+    ],
+    correct: 0
+  },
+
+  {
+    q: "Suppressor-ը հիմնականում ինչի՞ համար է։",
+    options: [
+      "Նվազեցնում է կրակոցի ձայնը և muzzle flash-ը",
+      "Մեծացնում է պահունակը",
+      "Բուժում է խաղացողին",
+      "Ավելացնում է armor"
+    ],
+    correct: 0
+  },
+
+  {
+    q: "Ո՞րն է SMG զենքի օրինակ։",
+    options: [
+      "UMP45",
+      "Kar98k",
+      "M24",
+      "AWM"
+    ],
+    correct: 0
+  },
+
+  {
+    q: "Kar98k-ը ինչպիսի՞ զենք է։",
+    options: [
+      "Bolt-action sniper rifle",
+      "SMG",
+      "Shotgun",
+      "Assault rifle"
+    ],
+    correct: 0
+  },
+
+  {
+    q: "Pan-ը կարող է օգտագործվել որպես melee զենք և որոշ դեպքերում պաշտպանել մեջքի հատվածը։",
+    options: [
+      "Ճիշտ",
+      "Սխալ",
+      "Միայն squad-ում",
+      "Միայն Training-ում"
+    ],
+    correct: 0
+  },
+
+  {
+    q: "Ի՞նչ է նշանակում «Winner Winner Chicken Dinner»։",
+    options: [
+      "Դու հաղթել ես խաղը",
+      "Դու կորցրել ես խաղը",
+      "Դու ստացել ես նոր զենք",
+      "Դու մտել ես Training"
+    ],
+    correct: 0
+  },
+
+  {
+    q: "Եթե squad-ից միայն մեկ խաղացող է մնացել և նա հաղթում է, թիմը կարո՞ղ է ստանալ հաղթանակ։",
+    options: [
+      "Այո",
+      "Ոչ",
+      "Միայն Duo-ում",
+      "Միայն Training-ում"
+    ],
+    correct: 0
+  }
+
+];
+
+
+/* =========================================================
+   DATA
+========================================================= */
+
+let allResults = [];
+
+
+/* =========================================================
+   RANK
+========================================================= */
+
+function getRank(score) {
+
+  if (score <= 5)
+    return "🤖 ԲՈՏ";
+
+  if (score <= 10)
+    return "🎮 ՍԿՍՆԱԿ";
+
+  if (score <= 14)
+    return "🔥 ՄԱՐՏԻԿ";
+
+  if (score <= 17)
+    return "💀 ՍՊԱՆԻՉ";
+
+  if (score <= 19)
+    return "👑 ԷԼԻՏԱ";
+
+  return "☠️ AIMRELAX ԱՍՏՎԱԾ";
+}
+
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHtml(value) {
+
+  if (value === null ||
+      value === undefined) {
+
+    return "";
+  }
+
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+async function login() {
+
+  const email =
+    document.getElementById("email").value.trim();
+
+  const password =
+    document.getElementById("password").value;
+
+  const errorBox =
+    document.getElementById("loginError");
+
+  errorBox.textContent = "";
+
+  if (!email || !password) {
+
+    errorBox.textContent =
+      "Լրացրու email-ը և գաղտնաբառը։";
+
+    return;
+  }
+
+  const {
+    error
+  } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+
+    errorBox.textContent =
+      error.message;
+
+    return;
+  }
+
+  await checkAdmin();
+}
+
+
+/* =========================================================
+   CHECK ADMIN
+========================================================= */
+
+async function checkAdmin() {
+
+  const {
+    data: {
+      user
+    }
+  } = await supabaseClient.auth.getUser();
+
+  if (!user) {
+
+    showLogin();
+    return;
+  }
+
+  /*
+    RLS-ը Supabase-ում պետք է թույլ տա
+    միայն քո admin email-ին կարդալ
+    բոլոր արդյունքները։
+  */
+
+  document.getElementById("adminEmail")
+    .textContent =
+    "Մուտք՝ " + (user.email || "");
+
+  document.getElementById("loginScreen")
+    .classList.add("hidden");
+
+  document.getElementById("adminScreen")
+    .classList.remove("hidden");
+
+  await loadResults();
+}
+
+
+/* =========================================================
+   LOAD RESULTS
+========================================================= */
+
+async function loadResults() {
+
+  const container =
+    document.getElementById("resultsContainer");
+
+  container.innerHTML = `
+    <div class="loading">
+      ⏳ Բեռնվում է...
+    </div>
+  `;
+
+  const {
+    data,
+    error
+  } = await supabaseClient
+    .from("pubg_exam_results")
+    .select("*")
+    .order("completed_at", {
+      ascending: false
+    });
+
+  if (error) {
+
+    container.innerHTML = `
+      <div class="card error">
+        ❌ Չհաջողվեց կարդալ արդյունքները։
+        <br><br>
+        ${escapeHtml(error.message)}
+      </div>
+    `;
+
+    return;
+  }
+
+  allResults = data || [];
+
+  updateStats();
+
+  renderResults();
+}
+
+
+/* =========================================================
+   STATS
+========================================================= */
+
+function updateStats() {
+
+  const total =
+    allResults.length;
+
+  const average =
+    total
+      ? Math.round(
+          allResults.reduce(
+            (sum, item) =>
+              sum + Number(item.percentage || 0),
+            0
+          ) / total
+        )
+      : 0;
+
+  const perfect =
+    allResults.filter(
+      item =>
+        Number(item.correct_answers) === 20
+    ).length;
+
+  document.getElementById("totalUsers")
+    .textContent = total;
+
+  document.getElementById("averageScore")
+    .textContent = average + "%";
+
+  document.getElementById("perfectScores")
+    .textContent = perfect;
+}
+
+
+/* =========================================================
+   RENDER
+========================================================= */
+
+function renderResults() {
+
+  const container =
+    document.getElementById("resultsContainer");
+
+  const search =
+    document.getElementById("searchInput")
+      .value
+      .trim()
+      .toLowerCase();
+
+  const filtered =
+    allResults.filter(item => {
+
+      const email =
+        String(item.user_email || "")
+          .toLowerCase();
+
+      return email.includes(search);
+    });
+
+  if (!filtered.length) {
+
+    container.innerHTML = `
+      <div class="card empty">
+        📭 Արդյունքներ չեն գտնվել։
+      </div>
+    `;
+
+    return;
+  }
+
+  container.innerHTML =
+    filtered
+      .map(renderResultCard)
+      .join("");
+}
+
+
+/* =========================================================
+   RESULT CARD
+========================================================= */
+
+function renderResultCard(result) {
+
+  const score =
+    Number(result.correct_answers || 0);
+
+  const total =
+    Number(result.total_questions || 20);
+
+  const percentage =
+    Number(result.percentage || 0);
+
+  const rank =
+    getRank(score);
+
+  const email =
+    result.user_email ||
+    "Email-ը պահպանված չէ";
+
+  const date =
+    result.completed_at
+      ? new Date(result.completed_at)
+          .toLocaleString("hy-AM")
+      : "—";
+
+  let answers = [];
+
+  /*
+    answers-ը կարող է գալ JSON array
+    կամ string տեսքով։
+  */
+
+  if (Array.isArray(result.answers)) {
+
+    answers = result.answers;
+
+  } else if (typeof result.answers === "string") {
+
+    try {
+      answers =
+        JSON.parse(result.answers);
+    } catch (e) {
+      answers = [];
+    }
+
+  }
+
+  return `
+    <div class="result-card">
+
+      <div class="result-header">
+
+        <div class="email">
+          👤 ${escapeHtml(email)}
+        </div>
+
+        <div class="result-info">
+
+          <span class="badge gold">
+            🏆 ${score}/${total}
+          </span>
+
+          <span class="badge">
+            📊 ${percentage}%
+          </span>
+
+          <span class="badge">
+            ${escapeHtml(rank)}
+          </span>
+
+          <span class="badge">
+            🕒 ${escapeHtml(date)}
+          </span>
+
+        </div>
+
+      </div>
+
+      <div class="questions">
+
+        ${renderQuestions(answers)}
+
+      </div>
+
+    </div>
+  `;
+}
+
+
+/* =========================================================
+   RENDER QUESTIONS
+========================================================= */
+
+function renderQuestions(answers) {
+
+  return questions
+    .map((question, index) => {
+
+      const selected =
+        Number.isInteger(
+          Number(answers[index])
+        )
+          ? Number(answers[index])
+          : -1;
+
+      const correct =
+        question.correct;
+
+      const selectedText =
+        selected >= 0 &&
+        selected < question.options.length
+          ? question.options[selected]
+          : "Պատասխան չկա";
+
+      const correctText =
+        question.options[correct];
+
+      const isCorrect =
+        selected === correct;
+
+      return `
+        <div class="question">
+
+          <div class="question-title">
+            ${index + 1}. ${escapeHtml(question.q)}
+          </div>
+
+          <div class="
+            answer
+            user-answer
+            ${isCorrect ? "correct" : "wrong"}
+          ">
+
+            <span class="label">
+              👤 Մասնակցի պատասխանը
+            </span>
+
+            <span class="${
+              isCorrect
+                ? "correct-text"
+                : "wrong-text"
+            }">
+
+              ${isCorrect ? "✅" : "❌"}
+              ${escapeHtml(selectedText)}
+
+            </span>
+
+          </div>
+
+          <div class="answer correct-answer">
+
+            <span class="label">
+              🟢 Ճիշտ պատասխանը
+            </span>
+
+            <span class="correct-text">
+              ${escapeHtml(correctText)}
+            </span>
+
+          </div>
+
+        </div>
+      `;
+
+    })
+    .join("");
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+async function logout() {
+
+  await supabaseClient.auth.signOut();
+
+  showLogin();
+}
+
+
+function showLogin() {
+
+  document.getElementById("adminScreen")
+    .classList.add("hidden");
+
+  document.getElementById("loginScreen")
+    .classList.remove("hidden");
+
+  document.getElementById("loginError")
+    .textContent = "";
+}
+
+
+/* =========================================================
+   AUTH STATE
+========================================================= */
+
+supabaseClient.auth.onAuthStateChange(
+  async (event, session) => {
+
+    if (session) {
+
+      setTimeout(() => {
+        checkAdmin();
+      }, 0);
+
+    } else {
+
+      showLogin();
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   INITIAL
+========================================================= */
+
+(async function () {
+
+  const {
+    data: {
+      session
+    }
+  } = await supabaseClient.auth.getSession();
+
+  if (session) {
+
+    await checkAdmin();
+
+  } else {
+
+    showLogin();
+
+  }
+
+})();
+
+</script>
+
+</body>
+</html>
