@@ -802,35 +802,93 @@ async function login() {
    CHECK ADMIN
 ========================================================= */
 
+ 
 async function checkAdmin() {
 
   const {
     data: {
       user
-    }
+    },
+    error: userError
   } = await supabaseClient.auth.getUser();
 
-  if (!user) {
-
+  if (userError || !user) {
     showLogin();
     return;
   }
 
   /*
-    RLS-ը Supabase-ում պետք է թույլ տա
-    միայն քո admin email-ին կարդալ
-    բոլոր արդյունքները։
+    Ստուգում ենք քո արդեն գործող Admin համակարգը։
+
+    site_roles
+        ↓
+    get_my_site_role()
+        ↓
+    owner / admin
+  */
+
+  const {
+    data: role,
+    error: roleError
+  } = await supabaseClient.rpc("get_my_site_role");
+
+  if (roleError) {
+
+    console.error("Admin role check error:", roleError);
+
+    alert(
+      "Չհաջողվեց ստուգել Admin իրավունքը։"
+    );
+
+    showLogin();
+
+    return;
+  }
+
+  const siteRole =
+    String(role || "").toLowerCase().trim();
+
+
+  /*
+    Միայն Owner-ը և Admin-ը կարող են
+    մուտք գործել քննության Admin էջ։
+  */
+
+  if (
+    siteRole !== "owner" &&
+    siteRole !== "admin"
+  ) {
+
+    alert(
+      "⛔ Այս էջը հասանելի է միայն Owner/Admin օգտատերերին։"
+    );
+
+    await supabaseClient.auth.signOut();
+
+    showLogin();
+
+    return;
+  }
+
+
+  /*
+    Admin մուտքը հաստատված է
   */
 
   document.getElementById("adminEmail")
     .textContent =
-    "Մուտք՝ " + (user.email || "");
+    "Մուտք՝ " +
+    (user.email || "") +
+    " • " +
+    siteRole.toUpperCase();
+
 
   document.getElementById("loginScreen")
     .classList.add("hidden");
 
   document.getElementById("adminScreen")
     .classList.remove("hidden");
+
 
   await loadResults();
 }
