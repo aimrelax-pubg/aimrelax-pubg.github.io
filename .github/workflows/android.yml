@@ -22,18 +22,29 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Setup npm project
+      - name: Initialize npm
         run: |
           npm init -y
-          npm install @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
 
-      - name: Remove old Capacitor config
+      - name: Install TypeScript
         run: |
-          rm -f capacitor.config.ts
+          npm install --save-dev typescript
+          npx tsc --version
+
+      - name: Install Capacitor
+        run: |
+          npm install @capacitor/core@7
+          npm install @capacitor/cli@7
+          npm install @capacitor/android@7
+          npx cap --version
+
+      - name: Remove old Capacitor configs
+        run: |
           rm -f capacitor.config.js
           rm -f capacitor.config.mjs
           rm -f capacitor.config.cjs
           rm -f capacitor.config.json
+          rm -f capacitor.config.ts
 
       - name: Prepare web files
         run: |
@@ -50,20 +61,26 @@ jobs:
 
       - name: Create Capacitor config
         run: |
-          cat > capacitor.config.json <<'EOF'
-          {
-            "appId": "com.aimrelax.pubg",
-            "appName": "AIMRELAX PUBG",
-            "webDir": "www"
-          }
+          cat > capacitor.config.ts <<'EOF'
+          import type { CapacitorConfig } from '@capacitor/cli';
+
+          const config: CapacitorConfig = {
+            appId: 'com.aimrelax.pubg',
+            appName: 'AIMRELAX PUBG',
+            webDir: 'www'
+          };
+
+          export default config;
           EOF
 
-      - name: Verify Capacitor config
+      - name: Verify TypeScript and Capacitor config
         run: |
-          echo "=== Capacitor config ==="
-          cat capacitor.config.json
-          echo "=== Config files ==="
-          ls -la capacitor.config.* 2>/dev/null || true
+          echo "=== TypeScript ==="
+          npx tsc --version
+          echo "=== Capacitor ==="
+          npx cap --version
+          echo "=== Config ==="
+          cat capacitor.config.ts
 
       - name: Add Android
         run: npx cap add android
