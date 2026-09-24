@@ -1,0 +1,86 @@
+```yaml
+name: Build AIMRELAX Android APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    name: Build AIMRELAX APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install Capacitor
+        run: |
+          npm install @capacitor/core@7
+          npm install -D @capacitor/cli@7
+          npm install @capacitor/android@7
+
+      - name: Prepare web files
+        run: |
+          rm -rf www
+          mkdir -p www
+
+          cp index.html www/
+
+          if [ -f sw.js ]; then
+            cp sw.js www/
+          fi
+
+          if [ -f manifest.json ]; then
+            cp manifest.json www/
+          fi
+
+          if [ -d assets ]; then
+            cp -r assets www/
+          fi
+
+      - name: Create Capacitor config
+        run: |
+          cat > capacitor.config.ts <<'EOF'
+          import type { CapacitorConfig } from '@capacitor/cli';
+
+          const config: CapacitorConfig = {
+            appId: 'com.aimrelax.pubg',
+            appName: 'AIMRELAX PUBG',
+            webDir: 'www',
+            server: {
+              androidScheme: 'https'
+            }
+          };
+
+          export default config;
+          EOF
+
+      - name: Add Android platform
+        run: npx cap add android
+
+      - name: Sync web files
+        run: npx cap sync android
+
+      - name: Build Debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: AIMRELAX-PUBG-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+```
