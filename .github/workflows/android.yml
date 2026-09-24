@@ -27,6 +27,7 @@ jobs:
           npm install @capacitor/core@7
           npm install @capacitor/cli@7
           npm install @capacitor/android@7
+          npm install -D typescript
 
       - name: Prepare web files
         run: |
