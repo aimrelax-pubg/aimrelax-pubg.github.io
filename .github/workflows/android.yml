@@ -22,29 +22,23 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Initialize npm
+      - name: Initialize npm project
         run: |
           npm init -y
-
-      - name: Install TypeScript
-        run: |
-          npm install --save-dev typescript
-          npx tsc --version
 
       - name: Install Capacitor
         run: |
           npm install @capacitor/core@7
           npm install @capacitor/cli@7
           npm install @capacitor/android@7
-          npx cap --version
 
-      - name: Remove old Capacitor configs
+      - name: Remove old Capacitor config files
         run: |
+          rm -f capacitor.config.ts
           rm -f capacitor.config.js
           rm -f capacitor.config.mjs
           rm -f capacitor.config.cjs
           rm -f capacitor.config.json
-          rm -f capacitor.config.ts
 
       - name: Prepare web files
         run: |
@@ -59,28 +53,22 @@ jobs:
             --exclude='android' \
             ./ www/
 
-      - name: Create Capacitor config
+      - name: Create Capacitor JSON config
         run: |
-          cat > capacitor.config.ts <<'EOF'
-          import type { CapacitorConfig } from '@capacitor/cli';
+          printf '%s\n' \
+            '{' \
+            '  "appId": "com.aimrelax.pubg",' \
+            '  "appName": "AIMRELAX PUBG",' \
+            '  "webDir": "www"' \
+            '}' > capacitor.config.json
 
-          const config: CapacitorConfig = {
-            appId: 'com.aimrelax.pubg',
-            appName: 'AIMRELAX PUBG',
-            webDir: 'www'
-          };
-
-          export default config;
-          EOF
-
-      - name: Verify TypeScript and Capacitor config
+      - name: Verify Capacitor config
         run: |
-          echo "=== TypeScript ==="
-          npx tsc --version
-          echo "=== Capacitor ==="
-          npx cap --version
-          echo "=== Config ==="
-          cat capacitor.config.ts
+          echo "=== Capacitor config ==="
+          cat capacitor.config.json
+
+          echo "=== Existing config files ==="
+          ls -la capacitor.config.* 2>/dev/null || true
 
       - name: Add Android
         run: npx cap add android
