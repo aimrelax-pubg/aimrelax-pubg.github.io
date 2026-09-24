@@ -14,7 +14,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -30,6 +30,7 @@ jobs:
 
       - name: Prepare web files
         run: |
+          rm -rf www
           mkdir -p www
           cp index.html www/
           cp sw.js www/ 2>/dev/null || true
