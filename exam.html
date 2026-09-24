@@ -1231,12 +1231,8 @@ async function submitExam(
       տարբերակների համարները։
     */
 
-    const {
-      data,
-      error
-    } =
-      await supabaseClient.functions.invoke(
-        "pubg-exam",
+    const { data, error } = await supabaseClient.functions.invoke(
+  "hyper-endpoint",
         {
           body: {
             answers:
