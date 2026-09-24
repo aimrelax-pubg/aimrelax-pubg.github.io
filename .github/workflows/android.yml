@@ -22,24 +22,29 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Install Capacitor
+      - name: Setup npm project
         run: |
+          npm init -y
           npm install @capacitor/core@7
           npm install @capacitor/cli@7
           npm install @capacitor/android@7
-          npm install -D typescript
 
       - name: Prepare web files
         run: |
           rm -rf www
           mkdir -p www
-          cp index.html www/
-          cp sw.js www/ 2>/dev/null || true
-          cp manifest.json www/ 2>/dev/null || true
+
+          rsync -av \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='node_modules' \
+            --exclude='www' \
+            --exclude='android' \
+            ./ www/
 
       - name: Create Capacitor config
         run: |
-          cat > capacitor.config.ts <<'EOF'
+          cat > capacitor.config.json <<'EOF'
           {
             "appId": "com.aimrelax.pubg",
             "appName": "AIMRELAX PUBG",
@@ -50,7 +55,7 @@ jobs:
       - name: Add Android
         run: npx cap add android
 
-      - name: Sync
+      - name: Sync Capacitor
         run: npx cap sync android
 
       - name: Build APK
