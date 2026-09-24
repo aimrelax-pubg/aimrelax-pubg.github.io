@@ -23,7 +23,7 @@ body {
 
 .container {
   width: min(700px, 94%);
-  margin: 0 auto;
+  margin: auto;
   padding: 25px 0 45px;
 }
 
@@ -53,10 +53,6 @@ body {
 
 .hidden {
   display: none !important;
-}
-
-h1, h2, h3 {
-  margin-top: 0;
 }
 
 .start-title {
@@ -104,7 +100,8 @@ button:disabled {
   transform: none;
 }
 
-.login {
+.login,
+.error {
   text-align: center;
   color: #ff7070;
   line-height: 1.6;
@@ -122,7 +119,6 @@ button:disabled {
   border-radius: 14px;
   padding: 13px 16px;
   margin-bottom: 18px;
-  backdrop-filter: blur(10px);
 }
 
 .timer-label {
@@ -263,6 +259,7 @@ button:disabled {
     box-shadow: 0 0 8px rgba(255,176,0,.08);
     transform: scale(1);
   }
+
   50% {
     opacity: 1;
     box-shadow: 0 0 28px rgba(255,176,0,.25);
@@ -288,12 +285,6 @@ button:disabled {
   text-align: center;
   color: #aaa;
   padding: 30px 0;
-}
-
-.error {
-  color: #ff6565;
-  text-align: center;
-  line-height: 1.6;
 }
 
 @media (max-width: 600px) {
@@ -334,12 +325,18 @@ button:disabled {
 
   <!-- LOGIN -->
   <div id="loginScreen" class="card hidden">
+
     <div class="lock">🔐</div>
-    <h2 class="start-title">Մուտքը պարտադիր է</h2>
+
+    <h2 class="start-title">
+      Մուտքը պարտադիր է
+    </h2>
 
     <div class="login">
-      Քննությանը մասնակցելու համար պետք է մուտք գործած լինես AIMRELAX հաշիվով։
+      Քննությանը մասնակցելու համար պետք է
+      մուտք գործած լինես AIMRELAX հաշիվով։
     </div>
+
   </div>
 
   <!-- START -->
@@ -358,9 +355,7 @@ button:disabled {
     </div>
 
     <div class="info">
-      <span class="warning">
-        ⚠️ Ուշադրություն
-      </span><br>
+      <span class="warning">⚠️ Ուշադրություն</span><br>
       Քննությունը սկսելուց հետո ժամանակը չի դադարեցվի։
       Ավարտելուց հետո կրկին հանձնել հնարավոր չէ։
     </div>
@@ -392,6 +387,7 @@ button:disabled {
       <div id="options"></div>
 
       <div class="navigation">
+
         <button id="prevBtn" class="secondary">
           ← Նախորդ
         </button>
@@ -399,9 +395,11 @@ button:disabled {
         <button id="nextBtn">
           Հաջորդ →
         </button>
+
       </div>
 
     </div>
+
   </div>
 
   <!-- RESULT -->
@@ -409,7 +407,9 @@ button:disabled {
 
     <h2>🏆 ՔՆՆՈՒԹՅՈՒՆՆ ԱՎԱՐՏՎԵՑ</h2>
 
-    <div id="score" class="score">0/20</div>
+    <div id="score" class="score">
+      0/20
+    </div>
 
     <div id="percentage" class="percent">
       0%
@@ -430,7 +430,9 @@ button:disabled {
 
     <div class="lock">🔒</div>
 
-    <h2>Դու արդեն հանձնել ես AIMRELAX PUBG քննությունը։</h2>
+    <h2>
+      Դու արդեն հանձնել ես AIMRELAX PUBG քննությունը։
+    </h2>
 
     <div class="result-line">
       Քո արդյունքը՝
@@ -451,31 +453,40 @@ button:disabled {
 
   <!-- ERROR -->
   <div id="errorScreen" class="card error hidden">
+
     <h2>❌ Սխալ</h2>
+
     <p id="errorText"></p>
+
   </div>
 
 </div>
 
 <script>
-const SUPABASE_URL = "https://hvhlrbfjloiahbqmnrly.supabase.co";
 
-/*
-  Այստեղ պետք է դնես քո արդեն օգտագործած Supabase ANON/PUBLISHABLE KEY-ը։
-  Service role key այստեղ ՉԴՆԵՍ։
-*/
-const SUPABASE_ANON_KEY = "sb_publishable_EcZUkLdUCVv3qWDD7jlvhg_OjTYu1jA";
+/* ================================
+   SUPABASE
+================================ */
 
-const supabaseClient = supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
-);
+const SUPABASE_URL =
+  "https://hvhlrbfjloiahbqmnrly.supabase.co";
 
-/*
-  Ուշադրություն.
-  Այստեղ ՉԿԱՆ ճիշտ պատասխանները։
-  Միայն հարցերն ու տարբերակներն են։
-*/
+const SUPABASE_ANON_KEY =
+  "sb_publishable_EcZUkLdUCVv3qWDD7jlvhg_OjTYu1jA";
+
+const supabaseClient =
+  supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
+
+
+/* ================================
+   QUESTIONS
+   IMPORTANT:
+   NO CORRECT ANSWERS HERE
+================================ */
+
 const questions = [
 
   {
@@ -680,23 +691,57 @@ const questions = [
 
 ];
 
+
+/* ================================
+   VARIABLES
+================================ */
+
 let currentQuestion = 0;
-let answers = new Array(questions.length).fill(null);
+
+let answers =
+  new Array(questions.length).fill(null);
 
 let timeLeft = 5 * 60;
+
 let timerInterval = null;
+
 let submitting = false;
+
 let examStarted = false;
 
-const loadingScreen = document.getElementById("loadingScreen");
-const loginScreen = document.getElementById("loginScreen");
-const startScreen = document.getElementById("startScreen");
-const examScreen = document.getElementById("examScreen");
-const resultScreen = document.getElementById("resultScreen");
-const alreadyScreen = document.getElementById("alreadyScreen");
-const errorScreen = document.getElementById("errorScreen");
+
+/* ================================
+   ELEMENTS
+================================ */
+
+const loadingScreen =
+  document.getElementById("loadingScreen");
+
+const loginScreen =
+  document.getElementById("loginScreen");
+
+const startScreen =
+  document.getElementById("startScreen");
+
+const examScreen =
+  document.getElementById("examScreen");
+
+const resultScreen =
+  document.getElementById("resultScreen");
+
+const alreadyScreen =
+  document.getElementById("alreadyScreen");
+
+const errorScreen =
+  document.getElementById("errorScreen");
+
+
+/* ================================
+   SCREEN
+================================ */
 
 function showOnly(screen) {
+
   [
     loadingScreen,
     loginScreen,
@@ -705,108 +750,207 @@ function showOnly(screen) {
     resultScreen,
     alreadyScreen,
     errorScreen
-  ].forEach(el => el.classList.add("hidden"));
+  ].forEach(el =>
+    el.classList.add("hidden")
+  );
 
   screen.classList.remove("hidden");
 }
 
+
+/* ================================
+   ERROR
+================================ */
+
 function showError(message) {
-  document.getElementById("errorText").textContent = message;
+
+  document.getElementById(
+    "errorText"
+  ).textContent = message;
+
   showOnly(errorScreen);
 }
 
+
+/* ================================
+   USER
+================================ */
+
 async function getUser() {
+
   const {
-    data: { user },
+    data,
     error
-  } = await supabaseClient.auth.getUser();
+  } =
+    await supabaseClient.auth.getUser();
 
   if (error) {
-    console.error(error);
+
+    console.error(
+      "getUser error:",
+      error
+    );
+
     return null;
   }
 
-  return user;
+  return data.user;
 }
 
+
+/* ================================
+   CHECK RESULT
+================================ */
+
 async function checkExistingResult() {
-  const user = await getUser();
+
+  const user =
+    await getUser();
 
   if (!user) {
+
     showOnly(loginScreen);
+
     return;
   }
 
   const {
     data,
     error
-  } = await supabaseClient
-    .from("pubg_exam_results")
-    .select("correct_answers,total_questions,percentage")
-    .eq("user_id", user.id)
-    .maybeSingle();
+  } =
+    await supabaseClient
+      .from("pubg_exam_results")
+      .select(
+        "correct_answers,total_questions,percentage"
+      )
+      .eq("user_id", user.id)
+      .maybeSingle();
 
   if (error) {
-    console.error(error);
-    showError("Չհաջողվեց ստուգել քննության տվյալները։");
+
+    console.error(
+      "Result check error:",
+      error
+    );
+
+    showError(
+      "Չհաջողվեց ստուգել քննության տվյալները։"
+    );
+
     return;
   }
 
   if (data) {
+
     showAlready(data);
+
     return;
   }
 
   showOnly(startScreen);
 }
 
+
+/* ================================
+   ALREADY
+================================ */
+
 function showAlready(data) {
-  document.getElementById("alreadyScore").textContent =
+
+  document.getElementById(
+    "alreadyScore"
+  ).textContent =
     `${data.correct_answers}/${data.total_questions}`;
 
-  document.getElementById("alreadyPercentage").textContent =
+  document.getElementById(
+    "alreadyPercentage"
+  ).textContent =
     `${data.percentage}%`;
 
-  document.getElementById("alreadyRank").textContent =
+  document.getElementById(
+    "alreadyRank"
+  ).textContent =
     getRank(data.correct_answers);
 
   showOnly(alreadyScreen);
 }
 
+
+/* ================================
+   RANK
+================================ */
+
 function getRank(score) {
-  if (score === 20) return "☠️ AIMRELAX ԱՍՏՎԱԾ";
-  if (score >= 18) return "👑 ԷԼԻՏԱ";
-  if (score >= 15) return "💀 ՍՊԱՆԻՉ";
-  if (score >= 11) return "🔥 ՄԱՐՏԻԿ";
-  if (score >= 6) return "🎮 ՍԿՍՆԱԿ";
+
+  if (score === 20)
+    return "☠️ AIMRELAX ԱՍՏՎԱԾ";
+
+  if (score >= 18)
+    return "👑 ԷԼԻՏԱ";
+
+  if (score >= 15)
+    return "💀 ՍՊԱՆԻՉ";
+
+  if (score >= 11)
+    return "🔥 ՄԱՐՏԻԿ";
+
+  if (score >= 6)
+    return "🎮 ՍԿՍՆԱԿ";
+
   return "🤖 ԲՈՏ";
 }
 
-document.getElementById("startBtn").addEventListener("click", () => {
 
-  if (examStarted) return;
+/* ================================
+   START
+================================ */
 
-  examStarted = true;
+document
+  .getElementById("startBtn")
+  .addEventListener(
+    "click",
+    () => {
 
-  currentQuestion = 0;
-  answers = new Array(questions.length).fill(null);
+      if (examStarted)
+        return;
 
-  timeLeft = 5 * 60;
+      examStarted = true;
 
-  showOnly(examScreen);
+      currentQuestion = 0;
 
-  renderQuestion();
-  startTimer();
-});
+      answers =
+        new Array(
+          questions.length
+        ).fill(null);
+
+      timeLeft = 5 * 60;
+
+      showOnly(examScreen);
+
+      renderQuestion();
+
+      startTimer();
+    }
+  );
+
+
+/* ================================
+   RENDER QUESTION
+================================ */
 
 function renderQuestion() {
 
-  const q = questions[currentQuestion];
+  const q =
+    questions[currentQuestion];
 
-  document.getElementById("questionNumber").textContent =
+  document.getElementById(
+    "questionNumber"
+  ).textContent =
     `ՀԱՐՑ ${currentQuestion + 1} / ${questions.length}`;
 
-  document.getElementById("questionText").textContent =
+  document.getElementById(
+    "questionText"
+  ).textContent =
     q.question;
 
   const optionsContainer =
@@ -814,103 +958,193 @@ function renderQuestion() {
 
   optionsContainer.innerHTML = "";
 
-  q.options.forEach((option, index) => {
+  q.options.forEach(
+    (option, index) => {
 
-    const wrapper = document.createElement("div");
-    wrapper.className = "option";
+      const wrapper =
+        document.createElement("div");
 
-    const input = document.createElement("input");
+      wrapper.className =
+        "option";
 
-    input.type = "radio";
-    input.name = "answer";
-    input.id = `option-${index}`;
-    input.value = index;
+      const input =
+        document.createElement("input");
 
-    if (answers[currentQuestion] === index) {
-      input.checked = true;
+      input.type = "radio";
+
+      input.name = "answer";
+
+      input.id =
+        `option-${index}`;
+
+      input.value = index;
+
+      if (
+        answers[currentQuestion] ===
+        index
+      ) {
+        input.checked = true;
+      }
+
+      input.addEventListener(
+        "change",
+        () => {
+
+          answers[currentQuestion] =
+            index;
+
+        }
+      );
+
+      const label =
+        document.createElement("label");
+
+      label.htmlFor =
+        `option-${index}`;
+
+      label.textContent =
+        option;
+
+      wrapper.appendChild(input);
+
+      wrapper.appendChild(label);
+
+      optionsContainer.appendChild(
+        wrapper
+      );
     }
+  );
 
-    input.addEventListener("change", () => {
-      answers[currentQuestion] = index;
-    });
-
-    const label = document.createElement("label");
-
-    label.htmlFor = `option-${index}`;
-    label.textContent = option;
-
-    wrapper.appendChild(input);
-    wrapper.appendChild(label);
-
-    optionsContainer.appendChild(wrapper);
-  });
-
-  document.getElementById("prevBtn").disabled =
+  document.getElementById(
+    "prevBtn"
+  ).disabled =
     currentQuestion === 0;
 
-  document.getElementById("nextBtn").textContent =
-    currentQuestion === questions.length - 1
+  document.getElementById(
+    "nextBtn"
+  ).textContent =
+    currentQuestion ===
+    questions.length - 1
       ? "ԱՎԱՐՏԵԼ ՔՆՆՈՒԹՅՈՒՆԸ"
       : "Հաջորդ →";
 
   const progress =
-    ((currentQuestion + 1) / questions.length) * 100;
+    ((currentQuestion + 1) /
+      questions.length) *
+    100;
 
-  document.getElementById("progressBar").style.width =
+  document.getElementById(
+    "progressBar"
+  ).style.width =
     progress + "%";
 }
 
-document.getElementById("prevBtn").addEventListener("click", () => {
 
-  if (currentQuestion > 0) {
-    currentQuestion--;
-    renderQuestion();
-  }
+/* ================================
+   PREVIOUS
+================================ */
 
-});
+document
+  .getElementById("prevBtn")
+  .addEventListener(
+    "click",
+    () => {
 
-document.getElementById("nextBtn").addEventListener("click", () => {
+      if (currentQuestion > 0) {
 
-  if (answers[currentQuestion] === null) {
-    alert("Ընտրիր պատասխանը։");
-    return;
-  }
+        currentQuestion--;
 
-  if (currentQuestion < questions.length - 1) {
-    currentQuestion++;
-    renderQuestion();
-  } else {
-    submitExam();
-  }
+        renderQuestion();
+      }
+    }
+  );
 
-});
+
+/* ================================
+   NEXT
+================================ */
+
+document
+  .getElementById("nextBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      if (
+        answers[currentQuestion] ===
+        null
+      ) {
+
+        alert(
+          "Ընտրիր պատասխանը։"
+        );
+
+        return;
+      }
+
+      if (
+        currentQuestion <
+        questions.length - 1
+      ) {
+
+        currentQuestion++;
+
+        renderQuestion();
+
+      } else {
+
+        submitExam(false);
+      }
+    }
+  );
+
+
+/* ================================
+   TIMER
+================================ */
 
 function startTimer() {
 
   updateTimer();
 
-  clearInterval(timerInterval);
+  clearInterval(
+    timerInterval
+  );
 
-  timerInterval = setInterval(() => {
+  timerInterval =
+    setInterval(
+      () => {
 
-    timeLeft--;
+        timeLeft--;
 
-    updateTimer();
+        updateTimer();
 
-    if (timeLeft <= 0) {
-      clearInterval(timerInterval);
-      submitExam(true);
-    }
+        if (timeLeft <= 0) {
 
-  }, 1000);
+          clearInterval(
+            timerInterval
+          );
+
+          submitExam(true);
+        }
+
+      },
+      1000
+    );
 }
+
 
 function updateTimer() {
 
-  const timer = document.getElementById("timer");
+  const timer =
+    document.getElementById(
+      "timer"
+    );
 
   const minutes =
-    Math.floor(timeLeft / 60)
+    Math.floor(
+      timeLeft / 60
+    )
       .toString()
       .padStart(2, "0");
 
@@ -919,91 +1153,176 @@ function updateTimer() {
       .toString()
       .padStart(2, "0");
 
-  timer.textContent = `${minutes}:${seconds}`;
+  timer.textContent =
+    `${minutes}:${seconds}`;
 
   if (timeLeft <= 30) {
-    timer.classList.add("danger");
+
+    timer.classList.add(
+      "danger"
+    );
+
   } else {
-    timer.classList.remove("danger");
+
+    timer.classList.remove(
+      "danger"
+    );
   }
 }
 
-async function submitExam(timeExpired = false) {
 
-  if (submitting) return;
+/* ================================
+   SUBMIT EXAM
+================================ */
+
+async function submitExam(
+  timeExpired = false
+) {
+
+  if (submitting)
+    return;
 
   submitting = true;
 
-  clearInterval(timerInterval);
+  clearInterval(
+    timerInterval
+  );
 
-  showOnly(loadingScreen);
+  loadingScreen.innerHTML =
+    timeExpired
+      ? "⏱️ Ժամանակը լրացավ։ Հաշվում ենք արդյունքը..."
+      : "🧠 Հաշվում ենք քո արդյունքը...";
 
-  loadingScreen.innerHTML = timeExpired
-    ? "⏱️ Ժամանակը լրացավ։ Հաշվում ենք արդյունքը..."
-    : "🧠 Հաշվում ենք քո արդյունքը...";
+  showOnly(
+    loadingScreen
+  );
 
   try {
 
-    const user = await getUser();
-
-    if (!user) {
-      showError("Քո մուտքի սեսիան ավարտվել է։");
-      return;
-    }
+    /*
+      Ստանում ենք ընթացիկ session-ը։
+      Supabase functions.invoke()-ը
+      օգտագործում է այս session-ը։
+    */
 
     const {
       data: sessionData,
       error: sessionError
-    } = await supabaseClient.auth.getSession();
+    } =
+      await supabaseClient.auth.getSession();
 
-    if (sessionError || !sessionData.session) {
-      showError("Մուտքի սեսիան չի գտնվել։");
-      return;
-    }
+    if (
+      sessionError ||
+      !sessionData.session
+    ) {
 
-    const response = await fetch(
-      `${SUPABASE_URL}/functions/v1/pubg-exam`,
-      {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization":
-            `Bearer ${sessionData.session.access_token}`,
-          "apikey":
-            SUPABASE_ANON_KEY
-        },
-
-        body: JSON.stringify({
-          answers: answers.map(answer =>
-            answer === null ? -1 : Number(answer)
-          )
-        })
-      }
-    );
-
-    const data = await response.json();
-
-    if (response.status === 409 && data.alreadyCompleted) {
-      showAlready({
-        correct_answers: data.score,
-        total_questions: data.total,
-        percentage: data.percentage
-      });
-      return;
-    }
-
-    if (!response.ok || !data.success) {
       throw new Error(
-        data.error || "Չհաջողվեց ուղարկել արդյունքը։"
+        "Մուտքի սեսիան չի գտնվել։"
       );
     }
+
+
+    /*
+      Կանչում ենք Edge Function-ը։
+
+      ՈՒՇԱԴՐՈՒԹՅՈՒՆ:
+      Այստեղ ճիշտ պատասխաններ չեն ուղարկվում։
+      Ուղարկվում են միայն օգտատիրոջ ընտրած
+      տարբերակների համարները։
+    */
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient.functions.invoke(
+        "pubg-exam",
+        {
+          body: {
+            answers:
+              answers.map(
+                answer =>
+                  answer === null
+                    ? -1
+                    : Number(answer)
+              )
+          }
+        }
+      );
+
+
+    /*
+      Եթե Edge Function-ը error է վերադարձրել
+    */
+
+    if (error) {
+
+      console.error(
+        "Edge Function error:",
+        error
+      );
+
+      throw new Error(
+        error.message ||
+        "Edge Function-ի կապի սխալ։"
+      );
+    }
+
+
+    /*
+      Արդեն հանձնել էր
+    */
+
+    if (
+      data &&
+      data.alreadyCompleted
+    ) {
+
+      showAlready({
+
+        correct_answers:
+          data.score,
+
+        total_questions:
+          data.total,
+
+        percentage:
+          data.percentage
+
+      });
+
+      return;
+    }
+
+
+    /*
+      Function-ի սովորական error
+    */
+
+    if (
+      !data ||
+      !data.success
+    ) {
+
+      throw new Error(
+        data?.error ||
+        "Չհաջողվեց ուղարկել արդյունքը։"
+      );
+    }
+
+
+    /*
+      Ցուցադրում ենք արդյունքը
+    */
 
     showResult(data);
 
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      "Submit error:",
+      error
+    );
 
     showError(
       error.message ||
@@ -1011,26 +1330,65 @@ async function submitExam(timeExpired = false) {
     );
 
   } finally {
+
     submitting = false;
   }
 }
 
+
+/* ================================
+   RESULT
+================================ */
+
 function showResult(data) {
 
-  document.getElementById("score").textContent =
+  document.getElementById(
+    "score"
+  ).textContent =
     `${data.score}/${data.total}`;
 
-  document.getElementById("percentage").textContent =
+  document.getElementById(
+    "percentage"
+  ).textContent =
     `${data.percentage}%`;
 
-  document.getElementById("rank").textContent =
+  document.getElementById(
+    "rank"
+  ).textContent =
     data.rank;
 
-  showOnly(resultScreen);
+  showOnly(
+    resultScreen
+  );
 }
 
-// Սկզբում ստուգում ենք Supabase login-ը և նախկին արդյունքը
+
+/* ================================
+   AUTH STATE
+================================ */
+
+supabaseClient.auth.onAuthStateChange(
+  (event, session) => {
+
+    if (
+      event === "SIGNED_OUT"
+    ) {
+
+      showOnly(
+        loginScreen
+      );
+    }
+
+  }
+);
+
+
+/* ================================
+   INITIAL CHECK
+================================ */
+
 checkExistingResult();
+
 </script>
 
 </body>
