@@ -31,23 +31,16 @@ jobs:
 
       - name: Clean ALL Capacitor configs
         run: |
-          echo "Before cleanup:"
-          find . -maxdepth 1 -type f -name 'capacitor.config*' -print || true
-
           rm -f ./capacitor.config.ts
           rm -f ./capacitor.config.js
           rm -f ./capacitor.config.mjs
           rm -f ./capacitor.config.cjs
           rm -f ./capacitor.config.json
 
-          echo "After cleanup:"
-          find . -maxdepth 1 -type f -name 'capacitor.config*' -print || true
-
       - name: Prepare website
         run: |
           rm -rf www
           mkdir -p www
-
           rsync -av \
             --exclude='.git' \
             --exclude='.github' \
@@ -69,22 +62,13 @@ jobs:
 
       - name: Verify config BEFORE Capacitor
         run: |
-          echo "================================"
-          echo "CONFIG FILES IN PROJECT ROOT"
-          echo "================================"
-
+          echo "=== CONFIG FILES ==="
           find . -maxdepth 1 -type f -name 'capacitor.config*' -print
 
-          echo "================================"
-          echo "JSON CONFIG"
-          echo "================================"
-
+          echo "=== JSON CONFIG ==="
           cat ./capacitor.config.json
 
-          echo "================================"
-          echo "PACKAGE"
-          echo "================================"
-
+          echo "=== PACKAGE ==="
           cat package.json
 
       - name: Add Android
