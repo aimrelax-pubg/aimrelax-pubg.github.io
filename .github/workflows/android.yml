@@ -31,14 +31,6 @@ jobs:
           npm install @capacitor/cli@7
           npm install @capacitor/android@7
 
-      - name: Remove old Capacitor configs
-        run: |
-          find . -type f -name 'capacitor.config.ts' -delete
-          find . -type f -name 'capacitor.config.js' -delete
-          find . -type f -name 'capacitor.config.mjs' -delete
-          find . -type f -name 'capacitor.config.cjs' -delete
-          find . -type f -name 'capacitor.config.json' -delete
-
       - name: Prepare web files
         run: |
           rm -rf www
@@ -57,17 +49,10 @@ jobs:
           }
           EOF
 
-      - name: Verify config
-        run: |
-          echo "=== CONFIG FILES ==="
-          find . -maxdepth 1 -type f -name 'capacitor.config*' -print
-          echo "=== CONFIG ==="
-          cat capacitor.config.json
-
       - name: Add Android
         run: npx cap add android
 
-      - name: Sync
+      - name: Sync Capacitor
         run: npx cap sync android
 
       - name: Build APK
