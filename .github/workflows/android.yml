@@ -6,7 +6,7 @@ on:
 jobs:
   build-apk:
     name: Build AIMRELAX APK
-    runs-on: ubuntu-latest
+    runs-onինչ է indentation? ubuntu-latest
 
     steps:
       - name: Checkout repository
@@ -16,7 +16,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -45,10 +44,6 @@ jobs:
             cp manifest.json www/
           fi
 
-          if [ -d assets ]; then
-            cp -r assets www/
-          fi
-
       - name: Create Capacitor config
         run: |
           cat > capacitor.config.ts <<'EOF'
@@ -69,10 +64,10 @@ jobs:
       - name: Add Android platform
         run: npx cap add android
 
-      - name: Sync web files
+      - name: Sync Android
         run: npx cap sync android
 
-      - name: Build Debug APK
+      - name: Build APK
         working-directory: android
         run: ./gradlew assembleDebug
 
@@ -81,5 +76,4 @@ jobs:
         with:
           name: AIMRELAX-PUBG-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
 ```
