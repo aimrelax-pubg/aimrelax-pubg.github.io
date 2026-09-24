@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="hy">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>AIMRELAX PUBG — Admin Exam Results</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  color: #fff;
+  background:
+    radial-gradient(circle at top, #202020 0%, #090909 45%, #000 100%);
+}
+
+.container {
+  width: min(1000px, 94%);
+  margin: auto;
+  padding: 25px 0 50px;
+}
+
+.logo {
+  text-align: center;
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #ffb000;
+  margin: 15px 0 5px;
+  text-shadow: 0 0 18px rgba(255,176,0,.35);
+}
+
+.subtitle {
+  text-align: center;
+  color: #aaa;
+  margin-bottom: 25px;
+}
+
+.card {
+  background: rgba(20,20,20,.95);
+  border: 1px solid #303030;
+  border-radius: 18px;
+  padding: 22px;
+  margin-bottom: 20px;
+  box-shadow: 0 15px 45px rgba(0,0,0,.55);
+}
+
+.hidden {
+  display: none !important;
+}
+
+
+/* =========================
+   ACCESS DENIED
+========================= */
+
+.denied-card {
+  max-width: 600px;
+  margin: 60px auto;
+  text-align: center;
+  padding: 40px 25px;
+}
+
+.access-icon {
+  font-size: 70px;
+  margin-bottom: 15px;
+  filter: drop-shadow(0 0 15px rgba(255,70,70,.25));
+}
+
+.denied-card h2 {
+  margin: 0 0 15px;
+  font-size: 25px;
+  color: #ff5555;
+}
+
+.denied-card p {
+  color: #aaa;
+  line-height: 1.7;
+  margin-bottom: 25px;
+}
+
+.home-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  padding: 13px 25px;
+
+  background: linear-gradient(135deg, #1b1f24, #292f36);
+  color: #fff;
+
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 12px;
+
+  font-size: 16px;
+  font-weight: 700;
+
+  text-decoration: none;
+
+  box-shadow:
+    0 6px 20px rgba(0,0,0,.35),
+    inset 0 1px 0 rgba(255,255,255,.08);
+
+  transition: .2s ease;
+}
+
+.home-btn:hover {
+  transform: translateY(-2px);
+
+  background: linear-gradient(135deg, #252b32, #343b44);
+
+  box-shadow:
+    0 10px 28px rgba(0,0,0,.45),
+    0 0 18px rgba(255,193,7,.15);
+}
+
+.home-btn:active {
+  transform: translateY(0);
+}
+
+
+/* =========================
+   ADMIN
+========================= */
+
+.admin-header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.admin-header h2 {
+  margin: 0;
+}
+
+.admin-email {
+  color: #aaa;
+  font-size: 14px;
+  margin-top: 7px;
+}
+
+.admin-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.small-btn {
+  width: auto;
+  padding: 10px 15px;
+}
+
+.home-small-btn {
+  background: linear-gradient(135deg, #1b1f24, #292f36);
+  color: #fff;
+  margin-right: 7px;
+}
+
+
+/* =========================
+   STATS
+========================= */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.stat {
+  background: #111;
+  border: 1px solid #2d2d2d;
+  border-radius: 14px;
+  padding: 18px;
+  text-align: center;
+}
+
+.stat-title {
+  color: #999;
+  font-size: 13px;
+  margin-bottom: 7px;
+}
+
+.stat-value {
+  color: #ffb000;
+  font-size: 26px;
+  font-weight: 900;
+}
+
+
+/* =========================
+   TABLE
+========================= */
+
+.table-wrap {
+  overflow-x: auto;
+  border-radius: 14px;
+  border: 1px solid #292929;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 850px;
+}
+
+thead {
+  background: #111;
+}
+
+th {
+  color: #ffb000;
+  font-size: 13px;
+  text-align: left;
+  padding: 14px;
+  border-bottom: 1px solid #303030;
+  white-space: nowrap;
+}
+
+td {
+  padding: 13px 14px;
+  border-bottom: 1px solid #252525;
+  color: #ddd;
+  font-size: 14px;
+  vertical-align: top;
+}
+
+tbody tr:hover {
+  background: rgba(255,176,0,.04);
+}
+
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.rank {
+  font-weight: 800;
+}
+
+.email-cell {
+  max-width: 240px;
+  word-break: break-word;
+}
+
+
+/* =========================
+   ANSWERS
+========================= */
+
+.answer-cell {
+  color: #aaa;
+  max-width: 330px;
+}
+
+.answer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 230px;
+  max-width: 330px;
+}
+
+.answer-item {
+  background: #111;
+  border: 1px solid #2d2d2d;
+  border-radius: 9px;
+  overflow: hidden;
+  transition: .2s ease;
+}
+
+.answer-item:hover {
+  background: #161616;
+}
+
+.answer-correct {
+  border-color: rgba(105,255,154,.30);
+}
+
+.answer-wrong {
+  border-color: rgba(255,90,90,.30);
+}
+
+.answer-summary {
+  padding: 10px 11px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  list-style: none;
+  user-select: none;
+}
+
+.answer-summary::-webkit-details-marker {
+  display: none;
+}
+
+.answer-summary::after {
+  content: "＋";
+  float: right;
+  color: #777;
+  font-size: 15px;
+}
+
+.answer-item[open] .answer-summary::after {
+  content: "−";
+}
+
+.answer-status-correct {
+  color: #69ff9a;
+}
+
+.answer-status-wrong {
+  color: #ff7070;
+}
+
+.answer-details {
+  padding: 10px 11px 12px;
+  border-top: 1px solid #292929;
+  font-size: 12px;
+  line-height: 1.65;
+  color: #bbb;
+}
+
+.answer-details .selected {
+  color: #fff;
+  margin-bottom: 5px;
+}
+
+.answer-details .correct {
+  color: #69ff9a;
+}
+
+.answer-details strong {
+  font-weight: 700;
+}
+
+
+/* =========================
+   MESSAGES
+========================= */
+
+.error {
+  color: #ff7070;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.success {
+  color: #69ff9a;
+}
+
+.loading {
+  text-align: center;
+  color: #aaa;
+  padding: 30px;
+}
+
+.empty {
+  text-align: center;
+  color: #888;
+  padding: 35px 15px;
+}
+
+.refresh-btn {
+  width: auto;
+  background: #ffb000;
+  color: #000;
+  padding: 11px 18px;
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 700px) {
+
+  .logo {
+    font-size: 24px;
+  }
+
+  .container {
+    width: 94%;
+    padding-top: 15px;
+  }
+
+  .card {
+    padding: 17px;
+    border-radius: 15px;
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-header {
+    align-items: stretch;
+  }
+
+  .admin-header > div {
+    width: 100%;
+  }
+
+  .admin-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .admin-actions a,
+  .admin-actions button {
+    width: 100%;
+    margin: 0;
+  }
+
+  .denied-card {
+    margin-top: 35px;
+    padding: 35px 20px;
+  }
+
+  .access-icon {
+    font-size: 60px;
+  }
+
+  .denied-card h2 {
+    font-size: 21px;
+  }
+
+  .answer-list {
+    min-width: 200px;
+  }
+}
+
+</style>
+</head>
+
+
+<body>
+
+<div class="container">
+
+  <div class="logo">
+    AIMRELAX PUBG
+  </div>
+
+  <div class="subtitle">
+    PUBG Exam — Admin Results
+  </div>
+
+
+  <!-- =========================
+       ACCESS DENIED
+  ========================== -->
+
+  <div
+    id="accessDenied"
+    class="card denied-card hidden"
+  >
+
+    <div class="access-icon">
+      🚫
+    </div>
+
+    <h2>
+      Դուք Չեք Կարող Այցելել Այս Էջ
+    </h2>
+
+    <p>
+      Այս էջը հասանելի է միայն Owner/Admin օգտատերերին։
+    </p>
+
+    <a
+      href="index.html"
+      class="home-btn"
+    >
+      🏠 Գլխավոր էջ
+    </a>
+
+  </div>
+
+
+  <!-- =========================
+       ADMIN SCREEN
+  ========================== -->
+
+  <div id="adminScreen" class="hidden">
+
+    <div class="card">
+
+      <div class="admin-header">
+
+        <div>
+
+          <h2>
+            📊 Քննության արդյունքներ
+          </h2>
+
+          <div
+            id="adminEmail"
+            class="admin-email"
+          ></div>
+
+        </div>
+
+
+        <div class="admin-actions">
+
+          <a
+            href="index.html"
+            class="home-btn home-small-btn"
+          >
+            🏠 Գլխավոր էջ
+          </a>
+
+          <button
+            id="refreshBtn"
+            class="small-btn refresh-btn"
+            onclick="loadResults()"
+          >
+            🔄 Թարմացնել
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- =========================
+         STATS
+    ========================== -->
+
+    <div class="stats">
+
+      <div class="stat">
+
+        <div class="stat-title">
+          Հանձնածների քանակ
+        </div>
+
+        <div
+          id="totalStudents"
+          class="stat-value"
+        >
+          0
+        </div>
+
+      </div>
+
+
+      <div class="stat">
+
+        <div class="stat-title">
+          Միջին արդյունք
+        </div>
+
+        <div
+          id="averageScore"
+          class="stat-value"
+        >
+          0%
+        </div>
+
+      </div>
+
+
+      <div class="stat">
+
+        <div class="stat-title">
+          20/20 արդյունքներ
+        </div>
+
+        <div
+          id="perfectScores"
+          class="stat-value"
+        >
+          0
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- =========================
+         RESULTS
+    ========================== -->
+
+    <div class="card">
+
+      <h2 style="margin-top:0;">
+        👥 Խաղացողների արդյունքները
+      </h2>
+
+      <div
+        id="resultsMessage"
+        class="loading"
+      >
+        Բեռնվում է...
+      </div>
+
+
+      <div
+        id="resultsTable"
+        class="table-wrap hidden"
+      >
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>#</th>
+
+              <th>Email</th>
+
+              <th>Արդյունք</th>
+
+              <th>%</th>
+
+              <th>Rank</th>
+
+              <th>Պատասխաններ</th>
+
+              <th>Ամսաթիվ</th>
+
+            </tr>
+
+          </thead>
+
+          <tbody id="resultsBody"></tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   SUPABASE
+========================================================= */
+
+const SUPABASE_URL =
+  "https://hvhlrbfjloiahbqmnrly.supabase.co";
+
+const SUPABASE_ANON_KEY =
+  "sb_publishable_EcZUkLdUCVv3qWDD7jlvhg_OjTYu1jA";
+
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
+
+
+/* =========================================================
+   CORRECT ANSWERS
+========================================================= */
+
+const correctAnswers = [
+  0,  // 1  AKM
+  0,  // 2  5.56
+  0,  // 3  Compensator
+  2,  // 4  Level 3 helmet
+  0,  // 5  100 HP
+  0,  // 6  Boost
+  3,  // 7  8x
+  1,  // 8  Smoke
+  0,  // 9  Frag
+  0,  // 10 Molotov
+  0,  // 11 Blue Zone
+  0,  // 12 Red Zone
+  0,  // 13 Revive
+  0,  // 14 Extended Magazine
+  0,  // 15 Suppressor
+  0,  // 16 UMP45
+  0,  // 17 Kar98k
+  0,  // 18 Pan - Ճիշտ
+  0,  // 19 Winner Winner
+  0   // 20 Squad
+];
+
+
+/* =========================================================
+   ANSWER TEXTS
+========================================================= */
+
+const answerLabels = [
+
+  /* 1 */
+  [
+    "AKM",
+    "M416",
+    "AWM",
+    "UMP45"
+  ],
+
+  /* 2 */
+  [
+    "5.56 մմ",
+    "7.62 մմ",
+    "9 մմ",
+    "12 Gauge"
+  ],
+
+  /* 3 */
+  [
+    "Compensator",
+    "Suppressor",
+    "Red Dot",
+    "Stock"
+  ],
+
+  /* 4 */
+  [
+    "Ավելի արագ վազելու",
+    "Ավելի շատ վնաս հասցնելու",
+    "Գլխի ավելի բարձր պաշտպանություն տալու",
+    "Ավելի արագ բուժվելու"
+  ],
+
+  /* 5 */
+  [
+    "100 HP",
+    "75 HP",
+    "50 HP",
+    "150 HP"
+  ],
+
+  /* 6 */
+  [
+    "Boost-ի էֆեկտ",
+    "Լրիվ առողջություն",
+    "Զրահ",
+    "Ավելի ուժեղ կրակոց"
+  ],
+
+  /* 7 */
+  [
+    "2x",
+    "3x",
+    "6x",
+    "8x"
+  ],
+
+  /* 8 */
+  [
+    "Վնաս հասցնել",
+    "Տեսանելիությունը փակել և ծածկույթ ստեղծել",
+    "Թշնամուն knock անել",
+    "Զենք վերանորոգել"
+  ],
+
+  /* 9 */
+  [
+    "Պայթյունային",
+    "Կրակային",
+    "Էլեկտրական",
+    "Սառցային"
+  ],
+
+  /* 10 */
+  [
+    "Կրակ և վնաս",
+    "Ծուխ",
+    "Ջուր",
+    "Զրահ"
+  ],
+
+  /* 11 */
+  [
+    "Առողջությունը նվազում է",
+    "Առողջությունը վերականգնվում է",
+    "Զենքը ուժեղանում է",
+    "Ավելի արագ ես շարժվում"
+  ],
+
+  /* 12 */
+  [
+    "Պայթյունները",
+    "Ծուխը",
+    "Ջուրը",
+    "Սառույցը"
+  ],
+
+  /* 13 */
+  [
+    "Revive անել, եթե հնարավոր է",
+    "Թողնել թիմակցին",
+    "Դուրս գալ խաղից",
+    "Զենքը գցել"
+  ],
+
+  /* 14 */
+  [
+    "Մեծացնում է պահունակի տարողությունը",
+    "Նվազեցնում է recoil-ը",
+    "Ավելացնում է վնասը",
+    "Փոխում է զենքի տեսակը"
+  ],
+
+  /* 15 */
+  [
+    "Նվազեցնում է կրակոցի ձայնը և muzzle flash-ը",
+    "Մեծացնում է վնասը",
+    "Ավելացնում է փամփուշտները",
+    "Արագացնում է reload-ը"
+  ],
+
+  /* 16 */
+  [
+    "UMP45",
+    "AKM",
+    "M416",
+    "Kar98k"
+  ],
+
+  /* 17 */
+  [
+    "Bolt-action sniper rifle",
+    "Assault rifle",
+    "SMG",
+    "Shotgun"
+  ],
+
+  /* 18 */
+  [
+    "Ճիշտ",
+    "Սխալ"
+  ],
+
+  /* 19 */
+  [
+    "Դու հաղթել ես խաղը",
+    "Դու պարտվել ես",
+    "Դու դուրս ես եկել խաղից",
+    "Դու սկսել ես նոր խաղ"
+  ],
+
+  /* 20 */
+  [
+    "Այո",
+    "Ոչ"
+  ]
+
+];
+
+
+/* =========================================================
+   RANK
+========================================================= */
+
+function getRank(score) {
+
+  score = Number(score || 0);
+
+  if (score === 20) {
+    return "☠️ AIMRELAX ԱՍՏՎԱԾ";
+  }
+
+  if (score >= 18) {
+    return "👑 ԷԼԻՏԱ";
+  }
+
+  if (score >= 15) {
+    return "💀 ՍՊԱՆԻՉ";
+  }
+
+  if (score >= 11) {
+    return "🔥 ՄԱՐՏԻԿ";
+  }
+
+  if (score >= 6) {
+    return "🎮 ՍԿՍՆԱԿ";
+  }
+
+  return "🤖 ԲՈՏ";
+}
+
+
+/* =========================================================
+   ACCESS DENIED
+========================================================= */
+
+function showAccessDenied() {
+
+  document
+    .getElementById("adminScreen")
+    .classList.add("hidden");
+
+  document
+    .getElementById("accessDenied")
+    .classList.remove("hidden");
+}
+
+
+/* =========================================================
+   SHOW ADMIN
+========================================================= */
+
+function showAdmin() {
+
+  document
+    .getElementById("accessDenied")
+    .classList.add("hidden");
+
+  document
+    .getElementById("adminScreen")
+    .classList.remove("hidden");
+}
+
+
+/* =========================================================
+   CHECK ADMIN / OWNER
+========================================================= */
+
+async function checkAdmin() {
+
+  try {
+
+    const {
+      data: {
+        user
+      },
+      error: userError
+    } =
+      await supabaseClient.auth.getUser();
+
+
+    if (userError || !user) {
+
+      showAccessDenied();
+
+      return;
+    }
+
+
+    const {
+      data: role,
+      error: roleError
+    } =
+      await supabaseClient.rpc(
+        "get_my_site_role"
+      );
+
+
+    if (roleError) {
+
+      console.error(
+        "Role check error:",
+        roleError
+      );
+
+      showAccessDenied();
+
+      return;
+    }
+
+
+    const siteRole =
+      String(role || "")
+        .toLowerCase()
+        .trim();
+
+
+    if (
+      siteRole !== "owner" &&
+      siteRole !== "admin"
+    ) {
+
+      showAccessDenied();
+
+      return;
+    }
+
+
+    showAdmin();
+
+
+    document
+      .getElementById("adminEmail")
+      .textContent =
+        "Մուտք՝ " +
+        (user.email || "") +
+        " • " +
+        siteRole.toUpperCase();
+
+
+    await loadResults();
+
+
+  } catch (error) {
+
+    console.error(
+      "Admin check error:",
+      error
+    );
+
+    showAccessDenied();
+  }
+}
+
+
+/* =========================================================
+   BUILD ANSWERS
+========================================================= */
+
+function buildAnswersHtml(answers) {
+
+  if (!Array.isArray(answers)) {
+
+    return `
+      <div>
+        Չկա պատասխան
+      </div>
+    `;
+  }
+
+
+  let html = `
+    <div class="answer-list">
+  `;
+
+
+  answers.forEach(
+    (answer, i) => {
+
+      const selected =
+        Number(answer);
+
+
+      const correct =
+        Number(correctAnswers[i]);
+
+
+      const isCorrect =
+        selected === correct;
+
+
+      const statusText =
+        isCorrect
+          ? "✅ Ճիշտ է"
+          : "❌ Սխալ է";
+
+
+      const statusClass =
+        isCorrect
+          ? "answer-status-correct"
+          : "answer-status-wrong";
+
+
+      const borderClass =
+        isCorrect
+          ? "answer-correct"
+          : "answer-wrong";
+
+
+      const selectedText =
+        answerLabels[i] &&
+        answerLabels[i][selected] !== undefined
+          ? answerLabels[i][selected]
+          : `Տարբերակ ${selected + 1}`;
+
+
+      const correctText =
+        answerLabels[i] &&
+        answerLabels[i][correct] !== undefined
+          ? answerLabels[i][correct]
+          : `Տարբերակ ${correct + 1}`;
+
+
+      html += `
+
+        <details
+          class="answer-item ${borderClass}"
+        >
+
+          <summary class="answer-summary">
+
+            ${i + 1}.
+            
+            <span class="${statusClass}">
+              ${statusText}
+            </span>
+
+          </summary>
+
+
+          <div class="answer-details">
+
+            <div class="selected">
+
+              👤 Ընտրած պատասխան՝
+
+              <strong>
+                ${escapeHtml(selectedText)}
+              </strong>
+
+            </div>
+
+
+            <div class="correct">
+
+              ✅ Ճիշտ պատասխան՝
+
+              <strong>
+                ${escapeHtml(correctText)}
+              </strong>
+
+            </div>
+
+          </div>
+
+        </details>
+
+      `;
+    }
+  );
+
+
+  html += `
+    </div>
+  `;
+
+
+  return html;
+}
+
+
+/* =========================================================
+   LOAD RESULTS
+========================================================= */
+
+async function loadResults() {
+
+  const message =
+    document.getElementById(
+      "resultsMessage"
+    );
+
+  const table =
+    document.getElementById(
+      "resultsTable"
+    );
+
+  const body =
+    document.getElementById(
+      "resultsBody"
+    );
+
+
+  message.classList.remove(
+    "hidden"
+  );
+
+  message.className =
+    "loading";
+
+  message.textContent =
+    "Բեռնվում է...";
+
+
+  table.classList.add(
+    "hidden"
+  );
+
+  body.innerHTML = "";
+
+
+  try {
+
+    /* =========================
+       ROLE CHECK
+    ========================= */
+
+    const {
+      data: role,
+      error: roleError
+    } =
+      await supabaseClient.rpc(
+        "get_my_site_role"
+      );
+
+
+    if (
+      roleError ||
+      ![
+        "owner",
+        "admin"
+      ].includes(
+        String(role || "")
+          .toLowerCase()
+          .trim()
+      )
+    ) {
+
+      showAccessDenied();
+
+      return;
+    }
+
+
+    /* =========================
+       GET RESULTS
+    ========================= */
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from(
+          "pubg_exam_results"
+        )
+        .select(`
+          id,
+          user_id,
+          user_email,
+          correct_answers,
+          total_questions,
+          percentage,
+          completed_at,
+          created_at,
+          answers
+        `)
+        .order(
+          "completed_at",
+          {
+            ascending: false
+          }
+        );
+
+
+    if (error) {
+
+      console.error(
+        "Results load error:",
+        error
+      );
+
+      message.className =
+        "error";
+
+      message.textContent =
+        "❌ Չհաջողվեց բեռնել արդյունքները։";
+
+      return;
+    }
+
+
+    const results =
+      Array.isArray(data)
+        ? data
+        : [];
+
+
+    /* =========================
+       STATS
+    ========================= */
+
+    const total =
+      results.length;
+
+
+    const average =
+      total > 0
+
+        ? Math.round(
+
+            results.reduce(
+              (sum, item) =>
+                sum +
+                Number(
+                  item.percentage || 0
+                ),
+              0
+            ) / total
+
+          )
+
+        : 0;
+
+
+    const perfect =
+      results.filter(
+        item =>
+          Number(
+            item.correct_answers || 0
+          ) === 20
+      ).length;
+
+
+    document
+      .getElementById(
+        "totalStudents"
+      )
+      .textContent = total;
+
+
+    document
+      .getElementById(
+        "averageScore"
+      )
+      .textContent =
+        average + "%";
+
+
+    document
+      .getElementById(
+        "perfectScores"
+      )
+      .textContent = perfect;
+
+
+    /* =========================
+       EMPTY
+    ========================= */
+
+    if (
+      results.length === 0
+    ) {
+
+      message.className =
+        "empty";
+
+      message.textContent =
+        "Դեռ ոչ ոք քննություն չի հանձնել։";
+
+      return;
+    }
+
+
+    /* =========================
+       TABLE
+    ========================= */
+
+    results.forEach(
+      (item, index) => {
+
+        const row =
+          document.createElement(
+            "tr"
+          );
+
+
+        const score =
+          Number(
+            item.correct_answers || 0
+          );
+
+
+        const totalQuestions =
+          Number(
+            item.total_questions || 20
+          );
+
+
+        const percentage =
+          Number(
+            item.percentage ??
+            Math.round(
+              score /
+              totalQuestions *
+              100
+            )
+          );
+
+
+        const rank =
+          getRank(score);
+
+
+        const email =
+          item.user_email ||
+          "Email-ը պահպանված չէ";
+
+
+        const answersHtml =
+          buildAnswersHtml(
+            item.answers
+          );
+
+
+        const date =
+          item.completed_at ||
+          item.created_at;
+
+
+        const formattedDate =
+          date
+
+            ? new Date(date)
+                .toLocaleString(
+                  "hy-AM",
+                  {
+                    dateStyle: "short",
+                    timeStyle: "short"
+                  }
+                )
+
+            : "—";
+
+
+        row.innerHTML = `
+
+          <td>
+            ${index + 1}
+          </td>
+
+
+          <td class="email-cell">
+            ${escapeHtml(email)}
+          </td>
+
+
+          <td>
+            <strong>
+              ${score}/${totalQuestions}
+            </strong>
+          </td>
+
+
+          <td>
+            ${percentage}%
+          </td>
+
+
+          <td class="rank">
+            ${escapeHtml(rank)}
+          </td>
+
+
+          <td class="answer-cell">
+
+            ${answersHtml}
+
+          </td>
+
+
+          <td>
+            ${escapeHtml(
+              formattedDate
+            )}
+          </td>
+
+        `;
+
+
+        body.appendChild(
+          row
+        );
+
+      }
+    );
+
+
+    message.classList.add(
+      "hidden"
+    );
+
+
+    table.classList.remove(
+      "hidden"
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Unexpected results error:",
+      error
+    );
+
+
+    message.className =
+      "error";
+
+
+    message.textContent =
+      "❌ Տեղի ունեցավ անսպասելի սխալ։";
+  }
+}
+
+
+/* =========================================================
+   HTML ESCAPE
+========================================================= */
+
+function escapeHtml(value) {
+
+  return String(value ?? "")
+
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+
+    .replace(
+      /</g,
+      "&lt;"
+    )
+
+    .replace(
+      />/g,
+      "&gt;"
+    )
+
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+}
+
+
+/* =========================================================
+   AUTH STATE
+========================================================= */
+
+supabaseClient.auth.onAuthStateChange(
+  (event, session) => {
+
+    setTimeout(
+      () => {
+
+        if (session) {
+
+          checkAdmin();
+
+        } else {
+
+          showAccessDenied();
+
+        }
+
+      },
+      0
+    );
+
+  }
+);
+
+
+/* =========================================================
+   INITIAL
+========================================================= */
+
+(async function () {
+
+  const {
+    data: {
+      session
+    }
+  } =
+    await supabaseClient.auth.getSession();
+
+
+  if (session) {
+
+    await checkAdmin();
+
+  } else {
+
+    showAccessDenied();
+
+  }
+
+})();
+
+</script>
+
+</body>
+</html>
