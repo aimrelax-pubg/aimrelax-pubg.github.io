@@ -112,18 +112,14 @@ button:disabled {
   position: sticky;
   top: 10px;
   z-index: 20;
-
   display: flex;
   justify-content: space-between;
   align-items: center;
-
   background: rgba(10,10,10,.96);
   border: 1px solid #333;
   border-radius: 14px;
-
   padding: 13px 16px;
   margin-bottom: 18px;
-
   box-shadow: 0 8px 25px rgba(0,0,0,.45);
 }
 
@@ -187,18 +183,13 @@ button:disabled {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-
   width: 100%;
   padding: 14px;
-
   margin-bottom: 10px;
-
   border: 1px solid #333;
   border-radius: 12px;
-
   background: #111;
   color: #fff;
-
   cursor: pointer;
   transition: .2s;
 }
@@ -279,19 +270,14 @@ button:disabled {
   align-items: center;
   justify-content: center;
   gap: 8px;
-
   margin-top: 25px;
   padding: 13px 22px;
-
   background: linear-gradient(135deg, #1b1f24, #292f36);
   color: #fff;
-
   border: 1px solid rgba(255,255,255,.12);
   border-radius: 12px;
-
   text-decoration: none;
   font-weight: 700;
-
   transition: .2s;
 }
 
@@ -340,10 +326,11 @@ button:disabled {
   </div>
 
   <div class="subtitle">
-    PUBG Knowledge Exam
+    PUBG գիտելիքների քննություն
   </div>
 
-  <!-- LOGIN -->
+
+  <!-- ՄՈՒՏՔ -->
   <div id="loginScreen" class="card hidden">
 
     <h2 class="start-title">
@@ -357,7 +344,7 @@ button:disabled {
   </div>
 
 
-  <!-- START -->
+  <!-- ՍԿԻԶԲ -->
   <div id="startScreen" class="card hidden">
 
     <h2 class="start-title">
@@ -375,7 +362,8 @@ button:disabled {
       <div>🔒 Քննությունը կարելի է հանձնել միայն մեկ անգամ</div>
 
       <div class="warning">
-        ⚠️ Ժամանակը լրանալուց հետո քննությունը ավտոմատ կհանձնվի։
+        ⚠️ Ժամանակը լրանալուց հետո քննությունը
+        ավտոմատ կհանձնվի։
       </div>
 
     </div>
@@ -387,7 +375,7 @@ button:disabled {
   </div>
 
 
-  <!-- EXAM -->
+  <!-- ՔՆՆՈՒԹՅՈՒՆ -->
   <div id="examScreen" class="hidden">
 
     <div class="timer-box">
@@ -434,7 +422,7 @@ button:disabled {
   </div>
 
 
-  <!-- RESULT -->
+  <!-- ԱՐԴՅՈՒՆՔ -->
   <div id="resultScreen" class="card result hidden">
 
     <div class="result-title">
@@ -449,8 +437,7 @@ button:disabled {
       0%
     </div>
 
-    <div id="rank" class="rank">
-    </div>
+    <div id="rank" class="rank"></div>
 
     <div class="result-message">
       ՇՈՒՏՈՎ ՆՈՐԻՑ ԿԼԻՆԻ ՆՄԱՆԱՏԻՊ ՔՆՆՈՒԹՅՈՒՆ ԱՅԼ ԹԵՄԱՅՈՎ
@@ -465,21 +452,18 @@ button:disabled {
   </div>
 
 
-  <!-- ALREADY COMPLETED -->
+  <!-- ԱՐԴԵՆ ՀԱՆՁՆՎԱԾ -->
   <div id="alreadyScreen" class="card result hidden">
 
     <div class="result-title">
       🔒 Դու արդեն հանձնել ես AIMRELAX PUBG քննությունը։
     </div>
 
-    <div id="alreadyScore" class="score">
-    </div>
+    <div id="alreadyScore" class="score"></div>
 
-    <div id="alreadyPercentage" class="percentage">
-    </div>
+    <div id="alreadyPercentage" class="percentage"></div>
 
-    <div id="alreadyRank" class="rank">
-    </div>
+    <div id="alreadyRank" class="rank"></div>
 
     <div class="result-message">
       ՇՈՒՏՈՎ ՆՈՐԻՑ ԿԼԻՆԻ ՆՄԱՆԱՏԻՊ ՔՆՆՈՒԹՅՈՒՆ ԱՅԼ ԹԵՄԱՅՈՎ
@@ -516,7 +500,7 @@ const supabaseClient =
 
 
 /* =========================================================
-   QUESTIONS
+   ՀԱՐՑԵՐ
 ========================================================= */
 
 const questions = [
@@ -544,29 +528,29 @@ const questions = [
   },
 
   {
-    q: "Ո՞ր աքսեսուարն է հիմնականում նվազեցնում զենքի recoil-ը։",
+    q: "Ո՞ր աքսեսուարն է հիմնականում նվազեցնում զենքի հետհարվածը։",
     options: [
-      "Compensator",
-      "Suppressor",
-      "Red Dot",
-      "Extended Magazine"
+      "Հետհարվածը նվազեցնող սարք (Compensator)",
+      "Ձայնամեկուսիչ (Suppressor)",
+      "Կարմիր կետ նշանոց (Red Dot)",
+      "Մեծացված պահունակ (Extended Magazine)"
     ],
     answer: 0
   },
 
   {
-    q: "Level 3 helmet-ը հիմնականում ինչի՞ համար է։",
+    q: "3-րդ մակարդակի սաղավարտը հիմնականում ինչի՞ համար է։",
     options: [
       "Ավելի արագ վազելու",
-      "Ավելի շատ ammo պահելու",
-      "Գլխի ավելի բարձր պաշտպանություն տալու",
+      "Ավելի շատ զինամթերք պահելու",
+      "Գլխին ավելի բարձր պաշտպանություն տալու",
       "Ավելի արագ բուժվելու"
     ],
     answer: 2
   },
 
   {
-    q: "Med Kit-ը սովորաբար առողջությունը հասցնում է առավելագույնի՝ մինչև։",
+    q: "Բուժման հավաքածուն (Med Kit) սովորաբար առողջությունը հասցնում է առավելագույնի՝ մինչև։",
     options: [
       "100 HP",
       "75 HP",
@@ -577,20 +561,20 @@ const questions = [
   },
 
   {
-    q: "Adrenaline Syringe-ը հիմնականում ի՞նչ է տալիս։",
+    q: "Ադրենալինի ներարկումը (Adrenaline Syringe) հիմնականում ի՞նչ է տալիս։",
     options: [
-      "Boost-ի էֆեկտ",
+      "Խթանիչ ազդեցություն (Boost)",
       "Զրահ",
-      "Ammo",
+      "Զինամթերք",
       "Ավելի ուժեղ զենք"
     ],
     answer: 0
   },
 
   {
-    q: "Ո՞ր օպտիկան ունի ամենամեծ խոշորացումը։",
+    q: "Ո՞ր նշանոցն ունի ամենամեծ խոշորացումը։",
     options: [
-      "Red Dot",
+      "Կարմիր կետ նշանոց (Red Dot)",
       "2x",
       "4x",
       "8x"
@@ -599,18 +583,18 @@ const questions = [
   },
 
   {
-    q: "Smoke Grenade-ի հիմնական նպատակը ո՞րն է։",
+    q: "Ծխային նռնակի (Smoke Grenade) հիմնական նպատակը ո՞րն է։",
     options: [
       "Թշնամուն վնասել",
       "Տեսանելիությունը փակել և ծածկույթ ստեղծել",
       "Մեքենա պայթեցնել",
-      "Թշնամուն knock անել"
+      "Թշնամուն գետնահար վիճակի հասցնել"
     ],
     answer: 1
   },
 
   {
-    q: "Frag Grenade-ը հիմնականում ինչպիսի՞ վնաս է հասցնում։",
+    q: "Բեկորային նռնակը (Frag Grenade) հիմնականում ինչպիսի՞ վնաս է հասցնում։",
     options: [
       "Պայթյունային",
       "Կրակային",
@@ -621,21 +605,21 @@ const questions = [
   },
 
   {
-    q: "Molotov Cocktail-ը հիմնականում ի՞նչ է առաջացնում։",
+    q: "Մոլոտովի կոկտեյլը (Molotov) հիմնականում ի՞նչ է առաջացնում։",
     options: [
       "Կրակ և վնաս",
-      "Smoke",
+      "Ծուխ",
       "Սառույց",
-      "Armor"
+      "Զրահ"
     ],
     answer: 0
   },
 
   {
-    q: "Ի՞նչ է տեղի ունենում Blue Zone-ում։",
+    q: "Ի՞նչ է տեղի ունենում Կապույտ գոտում (Blue Zone)։",
     options: [
       "Առողջությունը նվազում է",
-      "Ammo-ն ավելանում է",
+      "Զինամթերքն ավելանում է",
       "Զենքերը դառնում են ավելի ուժեղ",
       "Բոլորը բուժվում են"
     ],
@@ -643,20 +627,20 @@ const questions = [
   },
 
   {
-    q: "Red Zone-ի հիմնական վտանգը ո՞րն է։",
+    q: "Կարմիր գոտու (Red Zone) հիմնական վտանգը ո՞րն է։",
     options: [
       "Պայթյունները",
       "Ջուրը",
-      "Smoke-ը",
+      "Ծուխը",
       "Սառույցը"
     ],
     answer: 0
   },
 
   {
-    q: "Եթե squad-ի անդամը knock է եղել, ի՞նչ պետք է անի մյուս խաղացողը։",
+    q: "Եթե թիմակիցը գետնահար վիճակում է (Knock), ի՞նչ պետք է անի մյուս խաղացողը։",
     options: [
-      "Revive անել, եթե հնարավոր է",
+      "Վերակենդանացնել (Revive), եթե հնարավոր է",
       "Թողնել և հեռանալ",
       "Զենքը գցել",
       "Խաղը փակել"
@@ -665,29 +649,29 @@ const questions = [
   },
 
   {
-    q: "Extended Magazine-ը հիմնականում ի՞նչ է անում։",
+    q: "Մեծացված պահունակն (Extended Magazine) հիմնականում ի՞նչ է անում։",
     options: [
       "Մեծացնում է պահունակի տարողությունը",
-      "Նվազեցնում է recoil-ը",
+      "Նվազեցնում է հետհարվածը",
       "Լռեցնում է կրակոցը",
-      "Մեծացնում է zoom-ը"
+      "Մեծացնում է խոշորացումը"
     ],
     answer: 0
   },
 
   {
-    q: "Suppressor-ը հիմնականում ինչի՞ համար է։",
+    q: "Ձայնամեկուսիչը (Suppressor) հիմնականում ինչի՞ համար է։",
     options: [
-      "Նվազեցնում է կրակոցի ձայնը և muzzle flash-ը",
-      "Մեծացնում է damage-ը",
-      "Ավելացնում է ammo",
-      "Ավելացնում է recoil"
+      "Նվազեցնում է կրակոցի ձայնը և դնչափի լուսարձակումը",
+      "Մեծացնում է վնասը",
+      "Ավելացնում է զինամթերքը",
+      "Ավելացնում է հետհարվածը"
     ],
     answer: 0
   },
 
   {
-    q: "Ո՞րն է SMG զենքի օրինակ։",
+    q: "Ո՞րն է ենթագնդացրի (SMG) օրինակ։",
     options: [
       "UMP45",
       "Kar98k",
@@ -700,27 +684,27 @@ const questions = [
   {
     q: "Kar98k-ը ինչպիսի՞ զենք է։",
     options: [
-      "Bolt-action sniper rifle",
-      "SMG",
-      "Shotgun",
-      "LMG"
+      "Փականային դիպուկահար հրացան",
+      "Ենթագնդացիր",
+      "Որսորդական հրացան",
+      "Թեթև գնդացիր"
     ],
     answer: 0
   },
 
   {
-    q: "Pan-ը կարող է օգտագործվել որպես melee զենք և որոշ դեպքերում պաշտպանել մեջքի հատվածը։",
+    q: "Թավան (Pan) կարող է օգտագործվել որպես մոտամարտի զենք և որոշ դեպքերում պաշտպանել մեջքի հատվածը։",
     options: [
       "Ճիշտ",
       "Սխալ",
-      "Միայն Arena-ում",
-      "Միայն Training-ում"
+      "Միայն Արենայում",
+      "Միայն մարզման ռեժիմում"
     ],
     answer: 0
   },
 
   {
-    q: "Ի՞նչ է նշանակում «Winner Winner Chicken Dinner»։",
+    q: "Ի՞նչ է նշանակում «Winner Winner Chicken Dinner» արտահայտությունը։",
     options: [
       "Դու հաղթել ես խաղը",
       "Դու պարտվել ես",
@@ -731,12 +715,12 @@ const questions = [
   },
 
   {
-    q: "Եթե squad-ից միայն մեկ խաղացող է մնացել և նա հաղթում է, թիմը կարո՞ղ է ստանալ հաղթանակ։",
+    q: "Եթե թիմից միայն մեկ խաղացող է մնացել և նա հաղթում է, թիմը կարո՞ղ է ստանալ հաղթանակ։",
     options: [
       "Այո",
       "Ոչ",
-      "Միայն Duo-ում",
-      "Միայն Solo-ում"
+      "Միայն Duo ռեժիմում",
+      "Միայն Solo ռեժիմում"
     ],
     answer: 0
   }
@@ -745,7 +729,7 @@ const questions = [
 
 
 /* =========================================================
-   SCREENS
+   ԷԿՐԱՆՆԵՐ
 ========================================================= */
 
 const loginScreen =
@@ -773,9 +757,7 @@ function showOnly(screen) {
     resultScreen,
     alreadyScreen
   ].forEach(el => {
-
     el.classList.add("hidden");
-
   });
 
   screen.classList.remove("hidden");
@@ -783,7 +765,7 @@ function showOnly(screen) {
 
 
 /* =========================================================
-   EXAM VARIABLES
+   ՓՈՓՈԽԱԿԱՆՆԵՐ
 ========================================================= */
 
 let currentQuestion = 0;
@@ -796,9 +778,7 @@ let timerInterval = null;
 let submitting = false;
 
 
-/*
-   15 MINUTES
-*/
+/* 15 ՐՈՊԵ */
 
 const EXAM_TIME =
   15 * 60;
@@ -808,7 +788,7 @@ let timeLeft =
 
 
 /* =========================================================
-   RANK
+   ԿԱՐԳ
 ========================================================= */
 
 function getRank(score) {
@@ -833,7 +813,7 @@ function getRank(score) {
 
 
 /* =========================================================
-   RENDER QUESTION
+   ՀԱՐՑԻ ՑՈՒՑԱԴՐՈՒՄ
 ========================================================= */
 
 function renderQuestion() {
@@ -863,7 +843,9 @@ function renderQuestion() {
 
     label.className = "option";
 
-    if (answers[currentQuestion] === index) {
+    if (
+      answers[currentQuestion] === index
+    ) {
       label.classList.add("selected");
     }
 
@@ -872,7 +854,11 @@ function renderQuestion() {
         type="radio"
         name="answer"
         value="${index}"
-        ${answers[currentQuestion] === index ? "checked" : ""}
+        ${
+          answers[currentQuestion] === index
+          ? "checked"
+          : ""
+        }
       >
 
       <span>${option}</span>
@@ -902,8 +888,10 @@ function renderQuestion() {
 
 
   const progress =
-    ((currentQuestion + 1) /
-      questions.length) * 100;
+    (
+      (currentQuestion + 1) /
+      questions.length
+    ) * 100;
 
   document.getElementById(
     "progressBar"
@@ -933,7 +921,7 @@ function renderQuestion() {
 
 
 /* =========================================================
-   TIMER
+   ԺԱՄԱՆԱԿԱՉԱՓ
 ========================================================= */
 
 function updateTimer() {
@@ -950,10 +938,6 @@ function updateTimer() {
   timer.textContent =
     `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 
-
-  /*
-     Վերջին 1 րոպե
-  */
 
   if (timeLeft <= 60) {
 
@@ -1007,7 +991,7 @@ function startTimer() {
 
 
 /* =========================================================
-   START EXAM
+   ՍԿՍԵԼ
 ========================================================= */
 
 document
@@ -1034,7 +1018,7 @@ document
 
 
 /* =========================================================
-   NEXT
+   ՀԱՋՈՐԴ
 ========================================================= */
 
 document
@@ -1081,7 +1065,7 @@ document
 
 
 /* =========================================================
-   SUBMIT EXAM
+   ՀԱՆՁՆԵԼ
 ========================================================= */
 
 async function submitExam() {
@@ -1093,13 +1077,7 @@ async function submitExam() {
 
   clearInterval(timerInterval);
 
-
   try {
-
-    /*
-      Եթե ժամանակը լրացել է,
-      չպատասխանված հարցերը մնում են -1։
-    */
 
     const {
       data: {
@@ -1169,7 +1147,6 @@ async function submitExam() {
 
     showResult(data);
 
-
   } catch (error) {
 
     console.error(
@@ -1192,7 +1169,7 @@ async function submitExam() {
 
 
 /* =========================================================
-   RESULT
+   ԱՐԴՅՈՒՆՔ
 ========================================================= */
 
 function showResult(data) {
@@ -1218,7 +1195,7 @@ function showResult(data) {
 
 
 /* =========================================================
-   EXISTING RESULT
+   ԱՐԴԵՆ ՀԱՆՁՆՎԱԾ
 ========================================================= */
 
 async function checkExistingResult() {
@@ -1311,7 +1288,7 @@ async function checkExistingResult() {
 
 
 /* =========================================================
-   AUTH STATE
+   AUTH
 ========================================================= */
 
 supabaseClient.auth.onAuthStateChange(
@@ -1334,7 +1311,7 @@ supabaseClient.auth.onAuthStateChange(
 
 
 /* =========================================================
-   INITIAL
+   ՍԿԻԶԲ
 ========================================================= */
 
 checkExistingResult();
