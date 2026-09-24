@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AIMRELAX-PUBG | Կլանի հայտեր</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#070707;color:#fff;font-family:Arial,Helvetica,sans-serif}header{position:sticky;top:0;z-index:10;background:rgba(0,0,0,.94);border-bottom:1px solid #242424}.nav{max-width:1100px;margin:auto;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}.logo{color:#ff7200;text-decoration:none;font-size:22px;font-weight:900;letter-spacing:1px}.logo span{color:#fff}.back{background:#171717;color:#fff;border:1px solid #444;border-radius:7px;padding:9px 12px;font-weight:800;cursor:pointer}.container{max-width:1100px;margin:auto;padding:28px 15px 60px}.hero-title{text-align:center;margin-bottom:25px}.hero-title small{color:#ff7200;letter-spacing:3px;font-weight:800}.hero-title h1{margin:8px 0;font-size:36px}.hero-title p{color:#888}.tabs{display:flex;gap:8px;margin-bottom:18px}.tabs button{flex:1;padding:12px;border:1px solid #333;border-radius:8px;background:#111;color:#aaa;font-weight:900;cursor:pointer}.tabs button.active{background:#ff7200;color:#000;border-color:#ff7200}.status{min-height:22px;color:#ff7200;margin:8px 0 15px;text-align:center}.cards{display:flex;flex-direction:column;gap:14px}.application{background:#111;border:1px solid #292929;border-radius:12px;padding:18px}.application:hover{border-color:#ff7200}.app-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.app-head h3{margin:0;color:#ff7200}.app-date{color:#777;font-size:12px}.answers{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}.answer{background:#0b0b0b;border:1px solid #242424;border-radius:8px;padding:10px}.answer b{display:block;color:#888;font-size:11px;margin-bottom:5px}.answer span{color:#ddd;white-space:pre-wrap;word-break:break-word}.actions{display:flex;gap:8px;margin-top:15px}.actions button{flex:1;padding:11px;border:0;border-radius:7px;font-weight:900;cursor:pointer}.accept{background:#ff7200;color:#000}.reject{background:#222;color:#fff;border:1px solid #444!important}.participants{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.participant{background:#111;border:1px solid #292929;border-radius:9px;padding:13px;text-align:center;color:#ff7200;font-weight:900}.empty{background:#101010;border:1px dashed #333;border-radius:10px;padding:30px;text-align:center;color:#777}@media(max-width:650px){.answers{grid-template-columns:1fr}.participants{grid-template-columns:1fr 1fr}.hero-title h1{font-size:28px}.app-head{flex-direction:column}}
+</style>
+</head>
+<body>
+<header><div class="nav"><a class="logo" href="index.html">AIM<span>RELAX</span>-PUBG</a><button class="back" onclick="location.href='index.html'">← Վերադառնալ կայք</button></div></header>
+<main class="container">
+<div class="hero-title"><small>ADMIN PANEL</small><h1>📋 Կլանի հայտեր</h1><p>Դիտեք նոր հայտերը, ընդունեք կամ մերժեք և տեսեք ընդունված մասնակիցներին։</p></div>
+<div id="access-status" class="status">Ստուգվում է մուտքը...</div>
+<div id="admin-content" style="display:none">
+  <div class="tabs"><button id="pending-tab" class="active">📨 Նոր հայտեր</button><button id="accepted-tab">👥 Ընդունված մասնակիցներ</button></div>
+  <div id="pending-view"><div id="pending-list" class="cards"></div></div>
+  <div id="accepted-view" style="display:none"><div id="accepted-list" class="participants"></div></div>
+</div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL="https://hvhlrbfjloiahbqmnrly.supabase.co";
+const SUPABASE_ANON_KEY="sb_publishable_EcZUkLdUCVv3qWDD7jlvhg_OjTYu1jA";
+const {createClient}=supabase;const sb=createClient(SUPABASE_URL,SUPABASE_ANON_KEY);const OWNER_ID='5f1c951f-1e76-4f82-9849-46becf038b55';
+const $=id=>document.getElementById(id);const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+let role=null;
+async function boot(){
+ const {data:{user}}=await sb.auth.getUser();
+ if(!user){$('access-status').textContent='🔐 Մուտք գործեք Admin հաշիվով։';return;}
+ let r=null;try{const x=await sb.rpc('get_my_site_role');if(!x.error&&x.data)r=String(x.data).toLowerCase()}catch(e){}
+ if(user.id===OWNER_ID)r='owner';role=r;
+ if(role!=='owner'&&role!=='admin'){$('access-status').textContent='⛔ Այս բաժինը հասանելի է միայն Admin/Owner-ին։';return}
+ $('access-status').textContent='';$('admin-content').style.display='block';await loadAll();
+}
+function formatDate(v){try{return new Date(v).toLocaleString('hy-AM',{dateStyle:'medium',timeStyle:'short'})}catch(e){return v||''}}
+function answer(label,value){return `<div class="answer"><b>${esc(label)}</b><span>${esc(value||'—')}</span></div>`}
+async function loadAll(){await loadPending();await loadAccepted()}
+async function loadPending(){
+ const {data,error}=await sb.rpc('list_clan_applications',{p_status:'pending'});
+ if(error){$('pending-list').innerHTML=`<div class="empty">Չհաջողվեց բեռնել հայտերը։<br>${esc(error.message)}</div>`;return}
+ const rows=data||[];
+ $('pending-list').innerHTML=rows.length?rows.map(a=>`<div class="application"><div class="app-head"><h3>🎮 ${esc(a.q1)}</h3><div class="app-date">${formatDate(a.created_at)}</div></div><div class="answers">${labels}</div><div class="actions"><button class="accept" onclick="decide('${a.id}','accepted')">✅ ԸՆԴՈՒՆԵԼ</button><button class="reject" onclick="decide('${a.id}','rejected')">❌ ՄԵՐԺԵԼ</button></div></div>`).join(''):'<div class="empty">Նոր հայտեր չկան։</div>';
+}
+async function loadAccepted(){
+ const {data,error}=await sb.rpc('list_clan_applications',{p_status:'accepted'});
+ if(error){$('accepted-list').innerHTML=`<div class="empty">Չհաջողվեց բեռնել մասնակիցներին։</div>`;return}
+ const rows=data||[];$('accepted-list').innerHTML=rows.length?rows.map(a=>`<div class="participant">👤 ${esc(a.pubg_nickname)}</div>`).join(''):'<div class="empty">Դեռ ընդունված մասնակիցներ չկան։</div>';
+}
+async function decide(id,status){
+ const action=status==='accepted'?'ընդունել':'մերժել';if(!confirm(`Վստա՞հ եք, որ ցանկանում եք ${action} այս հայտը։`))return;
+ $('access-status').textContent='Փոփոխությունը պահպանվում է...';
+ const {data,error}=await sb.rpc('set_clan_application_status',{p_application_id:id,p_status:status});
+ if(error){$('access-status').textContent='Չհաջողվեց։ '+error.message;return}
+ $('access-status').textContent=data||'Պահպանվեց։';await loadAll();setTimeout(()=>{$('access-status').textContent='';},2500);
+}
+window.decide=decide;
+$('pending-tab').onclick=()=>{$('pending-tab').classList.add('active');$('accepted-tab').classList.remove('active');$('pending-view').style.display='block';$('accepted-view').style.display='none'};
+$('accepted-tab').onclick=()=>{$('accepted-tab').classList.add('active');$('pending-tab').classList.remove('active');$('accepted-view').style.display='block';$('pending-view').style.display='none'};
+boot();
+</script>
+</body>
+</html>
