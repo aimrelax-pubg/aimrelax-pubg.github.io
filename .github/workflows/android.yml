@@ -25,9 +25,15 @@ jobs:
       - name: Setup npm project
         run: |
           npm init -y
-          npm install @capacitor/core@7
-          npm install @capacitor/cli@7
-          npm install @capacitor/android@7
+          npm install @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
+
+      - name: Remove old Capacitor config
+        run: |
+          rm -f capacitor.config.ts
+          rm -f capacitor.config.js
+          rm -f capacitor.config.mjs
+          rm -f capacitor.config.cjs
+          rm -f capacitor.config.json
 
       - name: Prepare web files
         run: |
@@ -51,6 +57,13 @@ jobs:
             "webDir": "www"
           }
           EOF
+
+      - name: Verify Capacitor config
+        run: |
+          echo "=== Capacitor config ==="
+          cat capacitor.config.json
+          echo "=== Config files ==="
+          ls -la capacitor.config.* 2>/dev/null || true
 
       - name: Add Android
         run: npx cap add android
