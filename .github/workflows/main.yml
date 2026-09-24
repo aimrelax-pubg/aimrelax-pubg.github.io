@@ -1,4 +1,4 @@
-name: AIMRELAX Android APK
+name: AIMRELAX APK
 
 on:
   workflow_dispatch:
