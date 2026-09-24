@@ -61,15 +61,25 @@ jobs:
           EOF
 
       - name: Verify config BEFORE Capacitor
+             - name: Verify config BEFORE Capacitor
         run: |
           echo "=== CONFIG FILES ==="
           find . -maxdepth 1 -type f -name 'capacitor.config*' -print
 
           echo "=== JSON CONFIG ==="
-          cat ./capacitor.config.json
+          if [ -f ./capacitor.config.json ]; then
+            cat ./capacitor.config.json
+          else
+            echo "capacitor.config.json NOT FOUND"
+          fi
 
-          echo "=== PACKAGE ==="
-          cat package.json
+          echo "=== TYPESCRIPT CONFIG ==="
+          if [ -f ./capacitor.config.ts ]; then
+            echo "capacitor.config.ts FOUND"
+            cat ./capacitor.config.ts
+          else
+            echo "capacitor.config.ts NOT FOUND"
+          fi
 
       - name: Add Android
         run: npx cap add android
