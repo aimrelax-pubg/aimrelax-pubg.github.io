@@ -23,27 +23,19 @@ jobs:
           java-version: 21
 
       - name: Initialize npm
-        run: |
-          npm init -y
+        run: npm init -y
 
       - name: Install TypeScript
-        run: |
-          npm install --save-dev typescript
-          echo "TypeScript version:"
-          npx tsc --version
+        run: npm install --save-dev typescript
 
       - name: Install Capacitor
         run: |
           npm install @capacitor/core@7
           npm install @capacitor/cli@7
           npm install @capacitor/android@7
-          echo "Capacitor version:"
-          npx cap --version
 
-      - name: Remove old files
+      - name: Remove all Capacitor config files
         run: |
-          rm -rf android
-          rm -rf www
           rm -f capacitor.config.ts
           rm -f capacitor.config.js
           rm -f capacitor.config.mjs
@@ -52,6 +44,7 @@ jobs:
 
       - name: Prepare web files
         run: |
+          rm -rf www
           mkdir -p www
 
           rsync -av \
@@ -65,62 +58,32 @@ jobs:
 
       - name: Create Capacitor config
         run: |
-          cat > capacitor.config.ts <<'EOF'
-          import type { CapacitorConfig } from '@capacitor/cli';
+          printf '%s\n' \
+          'module.exports = {' \
+          '  appId: "com.aimrelax.pubg",' \
+          '  appName: "AIMRELAX PUBG",' \
+          '  webDir: "www"' \
+          '};' > capacitor.config.js
 
-          const config: CapacitorConfig = {
-            appId: 'com.aimrelax.pubg',
-            appName: 'AIMRELAX PUBG',
-            webDir: 'www'
-          };
-
-          export default config;
-          EOF
-
-      - name: DEBUG - Check environment
+      - name: Verify config
         run: |
-          echo "=============================="
-          echo "CURRENT DIRECTORY"
-          echo "=============================="
-          pwd
+          echo "=== CONFIG ==="
+          cat capacitor.config.js
 
-          echo "=============================="
-          echo "ROOT FILES"
-          echo "=============================="
-          ls -la
+          echo "=== CONFIG FILES ==="
+          find . -maxdepth 1 -type f -name 'capacitor.config*' -print
 
-          echo "=============================="
-          echo "CAPACITOR CONFIG FILES"
-          echo "=============================="
-          find . -maxdepth 2 -type f -name 'capacitor.config*' -print
-
-          echo "=============================="
-          echo "CAPACITOR CONFIG CONTENT"
-          echo "=============================="
-          cat capacitor.config.ts
-
-          echo "=============================="
-          echo "TYPESCRIPT"
-          echo "=============================="
+          echo "=== TYPESCRIPT ==="
           npx tsc --version
 
-          echo "=============================="
-          echo "CAPACITOR"
-          echo "=============================="
+          echo "=== CAPACITOR ==="
           npx cap --version
 
-          echo "=============================="
-          echo "PACKAGE.JSON"
-          echo "=============================="
-          cat package.json
-
       - name: Add Android
-        run: |
-          npx cap add android
+        run: npx cap add android
 
       - name: Sync Capacitor
-        run: |
-          npx cap sync android
+        run: npx cap sync android
 
       - name: Build APK
         working-directory: android
