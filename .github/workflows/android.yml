@@ -27,34 +27,28 @@ jobs:
 
       - name: Install Capacitor
         run: |
-          npm install @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
+          npm install @capacitor/core@7
+          npm install @capacitor/cli@7
+          npm install @capacitor/android@7
 
-      - name: Remove ALL old Capacitor configs
+      - name: Remove old configs
         run: |
-          find . -type f -name 'capacitor.config.ts' -delete
-          find . -type f -name 'capacitor.config.js' -delete
-          find . -type f -name 'capacitor.config.mjs' -delete
-          find . -type f -name 'capacitor.config.cjs' -delete
-          find . -type f -name 'capacitor.config.json' -delete
+          rm -f capacitor.config.ts
+          rm -f capacitor.config.js
+          rm -f capacitor.config.mjs
+          rm -f capacitor.config.cjs
+          rm -f capacitor.config.json
 
-          echo "Remaining Capacitor configs:"
-          find . -type f -name 'capacitor.config*' -print || true
-
-      - name: Prepare website
+      - name: Prepare web files
         run: |
           rm -rf www
           mkdir -p www
 
-          rsync -av \
-            --exclude='.git' \
-            --exclude='.github' \
-            --exclude='node_modules' \
-            --exclude='www' \
-            --exclude='android' \
-            --exclude='capacitor.config.*' \
-            ./ www/
+          cp index.html www/
+          cp sw.js www/ 2>/dev/null || true
+          cp manifest.json www/ 2>/dev/null || true
 
-      - name: Create JSON Capacitor config
+      - name: Create Capacitor config
         run: |
           cat > capacitor.config.json <<'EOF'
           {
@@ -64,21 +58,18 @@ jobs:
           }
           EOF
 
-      - name: Verify Capacitor config
+      - name: Verify config
         run: |
-          echo "===== CONFIG FILES ====="
-          find . -type f -name 'capacitor.config*' -print
+          echo "=== CONFIG FILES ==="
+          find . -maxdepth 1 -type f -name 'capacitor.config*' -print
 
-          echo "===== JSON CONFIG ====="
+          echo "=== CONFIG CONTENT ==="
           cat capacitor.config.json
-
-          echo "===== CAPACITOR VERSION ====="
-          npx cap --version
 
       - name: Add Android
         run: npx cap add android
 
-      - name: Sync Capacitor
+      - name: Sync
         run: npx cap sync android
 
       - name: Build APK
