@@ -1,1 +1,364 @@
-<!DOCTYPE html><html lang="hy"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#ff7a00"><title>Տեղադրել AIMRELAX</title><style>*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:#080808;color:#fff;font-family:Arial,sans-serif}.install-card{width:100%;max-width:420px;padding:35px 25px;text-align:center;background:#111;border:1px solid #292929;border-radius:22px;box-shadow:0 20px 60px rgba(0,0,0,.5)}.logo{width:90px;height:90px;margin:0 auto 20px;border-radius:22px;object-fit:cover}h1{margin:0 0 8px;font-size:30px}h1 span{color:#ff7a00}.subtitle{color:#aaa;line-height:1.6;margin-bottom:28px}.install-btn{width:100%;padding:15px 20px;border:0;border-radius:10px;background:#ff7a00;color:#fff;font-size:17px;font-weight:700;cursor:pointer}.install-btn:active{transform:scale(.98)}.status{margin-top:18px;color:#aaa;font-size:14px;line-height:1.5}.back{display:inline-block;margin-top:22px;color:#aaa;text-decoration:none}.back:hover{color:#ff7a00}</style></head><body><div class="install-card"><img class="logo" src="https://aimrelax-pubg.github.io/icon-192.png" alt="AIMRELAX"><h1>AIM<span>RELAX</span></h1><div class="subtitle">PUBG MOBILE CLAN<br>Տեղադրիր AIMRELAX-ը հեռախոսիդ վրա՝ արագ մուտք գործելու համար։</div><button id="installBtn" class="install-btn">📲 Տեղադրել AIMRELAX</button><div id="status" class="status">Սեղմիր կոճակը՝ հավելվածը տեղադրելու համար։</div><a class="back" href="/">← Վերադառնալ կայք</a></div><script>let deferredPrompt=null;const installBtn=document.getElementById('installBtn');const status=document.getElementById('status');window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();deferredPrompt=event});installBtn.addEventListener('click',async()=>{if(!deferredPrompt){status.textContent='Եթե տեղադրման պատուհանը չի բացվում, բացիր կայքը Chrome-ով և փորձիր կրկին։';return}deferredPrompt.prompt();const result=await deferredPrompt.userChoice;status.textContent=result.outcome==='accepted'?'✅ AIMRELAX-ը տեղադրվում է։':'Տեղադրումը չեղարկվեց։ Կարող ես կրկին փորձել։';deferredPrompt=null});window.addEventListener('appinstalled',()=>{status.textContent='✅ AIMRELAX-ը հաջողությամբ տեղադրվեց։';installBtn.style.display='none'});</script></body></html>
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#ff7a00">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AIMRELAX">
+
+<title>Տեղադրել AIMRELAX</title>
+
+<style>
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:#080808;
+  color:#fff;
+  font-family:Arial,sans-serif;
+}
+
+.install-card{
+  width:100%;
+  max-width:430px;
+  padding:35px 25px;
+  text-align:center;
+  background:#111;
+  border:1px solid #292929;
+  border-radius:22px;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
+}
+
+.logo{
+  width:90px;
+  height:90px;
+  margin:0 auto 20px;
+  border-radius:22px;
+  object-fit:cover;
+}
+
+h1{
+  margin:0 0 8px;
+  font-size:30px;
+}
+
+h1 span{
+  color:#ff7a00;
+}
+
+.subtitle{
+  color:#aaa;
+  line-height:1.6;
+  margin-bottom:28px;
+}
+
+.install-btn{
+  width:100%;
+  padding:15px 20px;
+  border:0;
+  border-radius:10px;
+  background:#ff7a00;
+  color:#fff;
+  font-size:17px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.install-btn:active{
+  transform:scale(.98);
+}
+
+.status{
+  margin-top:18px;
+  color:#aaa;
+  font-size:14px;
+  line-height:1.6;
+}
+
+.ios-box{
+  display:none;
+  text-align:left;
+  margin-top:20px;
+  padding:18px;
+  background:#191919;
+  border:1px solid #303030;
+  border-radius:15px;
+}
+
+.ios-box h2{
+  margin:0 0 14px;
+  text-align:center;
+  font-size:20px;
+}
+
+.step{
+  display:flex;
+  gap:12px;
+  margin:14px 0;
+  line-height:1.5;
+  color:#ddd;
+}
+
+.step-number{
+  min-width:30px;
+  height:30px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  background:#ff7a00;
+  color:#fff;
+  font-weight:bold;
+}
+
+.back{
+  display:inline-block;
+  margin-top:22px;
+  color:#aaa;
+  text-decoration:none;
+}
+
+.back:hover{
+  color:#ff7a00;
+}
+
+.hidden{
+  display:none!important;
+}
+</style>
+</head>
+
+<body>
+
+<div class="install-card">
+
+  <img
+    class="logo"
+    src="https://aimrelax-pubg.github.io/icon-192.png"
+    alt="AIMRELAX"
+  >
+
+  <h1>AIM<span>RELAX</span></h1>
+
+  <div class="subtitle">
+    PUBG MOBILE CLAN<br>
+    Տեղադրիր AIMRELAX-ը հեռախոսիդ վրա՝
+    արագ մուտք գործելու համար։
+  </div>
+
+
+  <!-- ANDROID / PWA -->
+
+  <div id="androidInstall">
+
+    <button id="installBtn" class="install-btn">
+      📲 Տեղադրել AIMRELAX
+    </button>
+
+    <div id="androidStatus" class="status">
+      Սեղմիր կոճակը՝ հավելվածը տեղադրելու համար։
+    </div>
+
+  </div>
+
+
+  <!-- iPHONE / iPAD -->
+
+  <div id="iosInstall" class="ios-box">
+
+    <h2>🍎 Տեղադրել iPhone-ում</h2>
+
+    <div class="step">
+      <div class="step-number">1</div>
+      <div>
+        Բացիր AIMRELAX-ը <b>Safari</b> բրաուզերով։
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-number">2</div>
+      <div>
+        Սեղմիր Safari-ի ներքևի
+        <b>Share ⬆️</b> կոճակը։
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-number">3</div>
+      <div>
+        Ընտրիր
+        <b>Add to Home Screen</b>
+        և հետո սեղմիր <b>Add</b>։
+      </div>
+    </div>
+
+    <div class="status">
+      ✅ Դրանից հետո AIMRELAX-ի icon-ը կհայտնվի
+      iPhone-ի Home Screen-ում և կբացվի որպես հավելված։
+    </div>
+
+  </div>
+
+
+  <!-- OTHER DEVICES -->
+
+  <div id="otherInstall" class="status hidden">
+
+    📱 Եթե օգտագործում ես այլ սարք,
+    բացիր AIMRELAX-ը Chrome/Safari-ով և
+    փնտրիր <b>Install app</b> կամ
+    <b>Add to Home Screen</b> տարբերակը։
+
+  </div>
+
+
+  <a class="back" href="/">
+    ← Վերադառնալ կայք
+  </a>
+
+</div>
+
+
+<script>
+
+let deferredPrompt = null;
+
+const installBtn =
+  document.getElementById('installBtn');
+
+const androidStatus =
+  document.getElementById('androidStatus');
+
+const androidInstall =
+  document.getElementById('androidInstall');
+
+const iosInstall =
+  document.getElementById('iosInstall');
+
+const otherInstall =
+  document.getElementById('otherInstall');
+
+
+/* Սարքի որոշում */
+
+const ua = navigator.userAgent || navigator.vendor || '';
+
+const isIOS =
+  /iPad|iPhone|iPod/.test(ua) ||
+  (navigator.platform === 'MacIntel' &&
+   navigator.maxTouchPoints > 1);
+
+const isAndroid =
+  /Android/i.test(ua);
+
+
+/* iPhone / iPad */
+
+if(isIOS){
+
+  androidInstall.classList.add('hidden');
+
+  iosInstall.style.display = 'block';
+
+}
+
+
+/* Android */
+
+else if(isAndroid){
+
+  iosInstall.style.display = 'none';
+
+}
+
+
+/* Մնացած սարքեր */
+
+else{
+
+  androidInstall.classList.add('hidden');
+
+  otherInstall.classList.remove('hidden');
+
+}
+
+
+/* Android PWA install */
+
+window.addEventListener(
+  'beforeinstallprompt',
+  event => {
+
+    event.preventDefault();
+
+    deferredPrompt = event;
+
+  }
+);
+
+
+/* Install button */
+
+installBtn.addEventListener(
+  'click',
+  async () => {
+
+    if(!deferredPrompt){
+
+      androidStatus.textContent =
+        'Եթե տեղադրման պատուհանը չի բացվում, համոզվիր, որ կայքը բացել ես Chrome-ով և փորձիր կրկին։';
+
+      return;
+
+    }
+
+    deferredPrompt.prompt();
+
+    const result =
+      await deferredPrompt.userChoice;
+
+    if(result.outcome === 'accepted'){
+
+      androidStatus.textContent =
+        '✅ AIMRELAX-ը տեղադրվում է։';
+
+    }else{
+
+      androidStatus.textContent =
+        'Տեղադրումը չեղարկվեց։ Կարող ես կրկին փորձել։';
+
+    }
+
+    deferredPrompt = null;
+
+  }
+);
+
+
+/* Հավելվածը տեղադրվեց */
+
+window.addEventListener(
+  'appinstalled',
+  () => {
+
+    androidStatus.textContent =
+      '✅ AIMRELAX-ը հաջողությամբ տեղադրվեց։';
+
+    installBtn.style.display = 'none';
+
+  }
+);
+
+</script>
+
+</body>
+</html>
