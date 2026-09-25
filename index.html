@@ -1864,6 +1864,62 @@ async function loadPrivateChatFriends(){
   }).join('');
   $('private-friend-picker').innerHTML=rows||'<div class="loading-text">Անձնական Chat-ի համար նախ ավելացրեք ընկեր։</div>';
 }
+    /* AIMRELAX - ACTIVE PRIVATE CHAT FOR PUSH */
+
+navigator.serviceWorker?.addEventListener('message', async function(event) {
+
+  const data = event.data || {};
+
+  if (data.type !== 'AIMRELAX_QUERY_ACTIVE_CHAT') {
+    return;
+  }
+
+  try {
+
+    const popup = document.getElementById('private-chat-popup');
+
+    const activeChatId =
+      (
+        currentUser &&
+        popup &&
+        popup.classList.contains('open') &&
+        selectedFriendId
+      )
+        ? String(selectedFriendId)
+        : null;
+
+    const port =
+      event.ports && event.ports[0];
+
+    if (port) {
+
+      port.postMessage({
+        type: 'AIMRELAX_ACTIVE_CHAT_STATE',
+        chatId: activeChatId
+      });
+
+      try {
+        port.close();
+      } catch (e) {}
+
+    } else if (event.source) {
+
+      event.source.postMessage({
+        type: 'AIMRELAX_ACTIVE_CHAT_STATE',
+        chatId: activeChatId
+      });
+
+    }
+
+  } catch (error) {
+
+    console.error(
+      'AIMRELAX active chat reply failed:',
+      error
+    );
+
+  }
+});
 async function openPrivateChat(id,nickname){
   if(!currentUser){openModal();return}
   selectedFriendId=id; privateNicknames[id]=nickname;
