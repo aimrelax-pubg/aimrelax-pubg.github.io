@@ -2,6 +2,7 @@
     "use strict";
 
     const STORAGE_KEY = "aimrelax_language";
+    const DEFAULT_LANGUAGE = "hy";
 
     const LANGUAGES = {
         hy: "🇦🇲 Հայերեն",
@@ -11,24 +12,26 @@
 
     /*
      * ============================================================
-     * AIMRELAX-PUBG LANGUAGE SYSTEM
-     * Safe UI-only translator
+     * AIMRELAX-PUBG
+     * GLOBAL LANGUAGE SYSTEM
+     * Armenian / Russian / English
      * ============================================================
      *
      * IMPORTANT:
-     * - Does NOT use MutationObserver
-     * - Does NOT translate user messages
-     * - Does NOT translate nicknames
-     * - Does NOT modify Supabase data
-     * - Does NOT modify notification routing
-     * - Does NOT scan/rewrite the whole document repeatedly
+     * - One file for all HTML pages
+     * - No MutationObserver
+     * - No Supabase modification
+     * - No nickname translation
+     * - No chat/comment translation
+     * - No notification routing modification
+     * - Works with dynamically rendered UI through safe re-scan
      */
 
-    const T = {
+    const translations = {
 
-        /* =========================
-           NAVIGATION
-        ========================= */
+        /* ========================================================
+           GENERAL / NAVIGATION
+        ======================================================== */
 
         "Գլխավոր": {
             ru: "Главная",
@@ -40,9 +43,19 @@
             en: "Home"
         },
 
+        "← Գլխավոր": {
+            ru: "← Главная",
+            en: "← Home"
+        },
+
         "Մեր մասին": {
             ru: "О нас",
-            en: "About us"
+            en: "About"
+        },
+
+        "Կլան": {
+            ru: "Клан",
+            en: "Clan"
         },
 
         "Խաղացողներ": {
@@ -55,24 +68,19 @@
             en: "Achievements"
         },
 
-        "Մեդիա": {
-            ru: "Медиа",
-            en: "Media"
-        },
-
         "Նկարներ": {
             ru: "Фотографии",
             en: "Photos"
         },
 
-        "Քվեարկություն": {
-            ru: "Голосование",
-            en: "Voting"
+        "Վիդեոներ": {
+            ru: "Видео",
+            en: "Videos"
         },
 
-        "Կապ": {
-            ru: "Контакты",
-            en: "Contact"
+        "Մեդիա": {
+            ru: "Медиа",
+            en: "Media"
         },
 
         "Համայնք": {
@@ -80,19 +88,34 @@
             en: "Community"
         },
 
-        "Կլան": {
-            ru: "Клан",
-            en: "Clan"
+        "Քվեարկություն": {
+            ru: "Голосование",
+            en: "Voting"
         },
 
-        "Պրոֆիլ": {
-            ru: "Профиль",
-            en: "Profile"
+        "Հետադարձ Կապ": {
+            ru: "Обратная связь",
+            en: "Contact Us"
+        },
+
+        "Հետադարձ կապ": {
+            ru: "Обратная связь",
+            en: "Contact Us"
+        },
+
+        "Կապ": {
+            ru: "Контакты",
+            en: "Contact"
         },
 
         "Կարգավորումներ": {
             ru: "Настройки",
             en: "Settings"
+        },
+
+        "⚙️ Կարգավորումներ": {
+            ru: "⚙️ Настройки",
+            en: "⚙️ Settings"
         },
 
         "Դուրս գալ": {
@@ -106,7 +129,7 @@
         },
 
         "Մուտք": {
-            ru: "Войти",
+            ru: "Вход",
             en: "Login"
         },
 
@@ -115,25 +138,35 @@
             en: "LOGIN / REGISTER"
         },
 
-        "Գրանցվել": {
+        "Մուտք / Գրանցում": {
+            ru: "Вход / Регистрация",
+            en: "Login / Register"
+        },
+
+        "Գրանցում": {
             ru: "Регистрация",
+            en: "Registration"
+        },
+
+        "Գրանցվել": {
+            ru: "Зарегистрироваться",
             en: "Register"
         },
 
         "Ադմին պանել": {
             ru: "Админ-панель",
-            en: "Admin panel"
+            en: "Admin Panel"
         },
 
         "🛡️ Ադմին պանել": {
             ru: "🛡️ Админ-панель",
-            en: "🛡️ Admin panel"
+            en: "🛡️ Admin Panel"
         },
 
 
-        /* =========================
-           HERO / MAIN PAGE
-        ========================= */
+        /* ========================================================
+           HOME
+        ======================================================== */
 
         "ՊԱՇՏՈՆԱԿԱՆ ԿԼԱՆԱՅԻՆ ԿԱՅՔ": {
             ru: "ОФИЦИАЛЬНЫЙ САЙТ КЛАНА",
@@ -150,14 +183,14 @@
             en: "PLAY • DOMINATE • WIN AGAIN"
         },
 
-        "ՄԻԱՆԱԼ AIMRELAX-ԻՆ": {
-            ru: "ПРИСОЕДИНИТЬСЯ К AIMRELAX",
-            en: "JOIN AIMRELAX"
+        "📲 ՆԵՐԲԵՌՆԵԼ ՀԱՎԵԼՎԱԾԸ": {
+            ru: "📲 СКАЧАТЬ ПРИЛОЖЕНИЕ",
+            en: "📲 DOWNLOAD APP"
         },
 
-        "ՄԻԱՆԱԼ ԿԼԱՆԻՆ": {
-            ru: "ПРИСОЕДИНИТЬСЯ К КЛАНУ",
-            en: "JOIN THE CLAN"
+        "Մեր Խաղացողները": {
+            ru: "Наши игроки",
+            en: "Our Players"
         },
 
         "Միանալ Կլանին": {
@@ -165,24 +198,44 @@
             en: "Join the Clan"
         },
 
-        "📲 ՆԵՐԲԵՌՆԵԼ ՀԱՎԵԼՎԱԾԸ": {
-            ru: "📲 СКАЧАТЬ ПРИЛОЖЕНИЕ",
-            en: "📲 DOWNLOAD APP"
+        "ՄԻԱՆԱԼ ԿԼԱՆԻՆ": {
+            ru: "ПРИСОЕДИНИТЬСЯ К КЛАНУ",
+            en: "JOIN THE CLAN"
         },
 
-        "ՄԵՐ ՍՈՑ. ԷՋԵՐԸ": {
-            ru: "НАШИ СОЦИАЛЬНЫЕ СТРАНИЦЫ",
-            en: "OUR SOCIAL PAGES"
+        "🎯 1VS1 Bottle": {
+            ru: "🎯 1VS1 Bottle",
+            en: "🎯 1VS1 Bottle"
+        },
+
+        "📋 Հարցաթերթիկ": {
+            ru: "📋 Анкета",
+            en: "📋 Questionnaire"
+        },
+
+        "🎬 Վիդեոներ և նկարներ": {
+            ru: "🎬 Видео и фотографии",
+            en: "🎬 Videos and Photos"
+        },
+
+        "🧠 PUBG ՔՆՆՈՒԹՅՈՒՆ": {
+            ru: "🧠 ЭКЗАМЕН PUBG",
+            en: "🧠 PUBG EXAM"
+        },
+
+        "🧠 PUBG ՔՆՆՈՒԹՅԱՆ ԱՐԴՅՈՒՆՔՆԵՐ": {
+            ru: "🧠 РЕЗУЛЬТАТЫ ЭКЗАМЕНА PUBG",
+            en: "🧠 PUBG EXAM RESULTS"
         },
 
 
-        /* =========================
-           SECTIONS
-        ========================= */
+        /* ========================================================
+           ABOUT
+        ======================================================== */
 
         "Ով ենք մենք": {
             ru: "Кто мы",
-            en: "Who we are"
+            en: "Who We Are"
         },
 
         "Կլանի Մասին": {
@@ -205,29 +258,9 @@
             en: "Our Journey"
         },
 
-        "Մեր Խաղացողները": {
-            ru: "Наши игроки",
-            en: "Our Players"
-        },
-
-        "Ձեռքբերումներ": {
-            ru: "Достижения",
-            en: "Achievements"
-        },
-
-        "Հաղթանակներ": {
-            ru: "Победы",
-            en: "Victories"
-        },
-
-        "ԼԱՎԱԳՈՒՅՆ ՖՐԱԳԵՐ": {
-            ru: "ЛУЧШИЕ ФРАГИ",
-            en: "BEST FRAGS"
-        },
-
-        "ՇՈՒՏՈՎ": {
-            ru: "СКОРО",
-            en: "COMING SOON"
+        "Մեր ճանապարհը": {
+            ru: "Наш путь",
+            en: "Our Journey"
         },
 
         "Հիմնադրվել է": {
@@ -250,150 +283,80 @@
             en: "Country"
         },
 
-
-        /* =========================
-           BUTTONS
-        ========================= */
-
-        "🗳 Քվեարկություն": {
-            ru: "🗳 Голосование",
-            en: "🗳 Voting"
+        "Հաղթանակներ": {
+            ru: "Победы",
+            en: "Victories"
         },
 
-        "ՔՎԵԱՐԿԵԼ": {
-            ru: "ГОЛОСОВАТЬ",
-            en: "VOTE"
+        "ԼԱՎԱԳՈՒՅՆ ՖՐԱԳԵՐ": {
+            ru: "ЛУЧШИЕ ФРАГИ",
+            en: "BEST FRAGS"
         },
 
-        "Քվեարկել": {
-            ru: "Голосовать",
-            en: "Vote"
-        },
-
-        "ԿԱՊ ՀԱՍՏԱՏԵԼ": {
-            ru: "СВЯЗАТЬСЯ С НАМИ",
-            en: "CONTACT US"
-        },
-
-        "ՈՒՂԱՐԿԵԼ ՆԱՄԱԿԸ": {
-            ru: "ОТПРАВИТЬ СООБЩЕНИЕ",
-            en: "SEND MESSAGE"
-        },
-
-        "Պահպանել": {
-            ru: "Сохранить",
-            en: "Save"
-        },
-
-        "Ջնջել": {
-            ru: "Удалить",
-            en: "Delete"
-        },
-
-        "Բացել": {
-            ru: "Открыть",
-            en: "Open"
-        },
-
-        "Փակել": {
-            ru: "Закрыть",
-            en: "Close"
-        },
-
-        "Չեղարկել": {
-            ru: "Отменить",
-            en: "Cancel"
-        },
-
-        "Հաստատել": {
-            ru: "Подтвердить",
-            en: "Confirm"
-        },
-
-        "Այո": {
-            ru: "Да",
-            en: "Yes"
-        },
-
-        "Ոչ": {
-            ru: "Нет",
-            en: "No"
-        },
-
-        "Փնտրել": {
-            ru: "Поиск",
-            en: "Search"
-        },
-
-        "Բեռնել": {
-            ru: "Загрузить",
-            en: "Load"
-        },
-
-        "Սպասեք...": {
-            ru: "Подождите...",
-            en: "Please wait..."
-        },
-
-        "Ավելացնել": {
-            ru: "Добавить",
-            en: "Add"
-        },
-
-        "⬆️ Ավելացնել": {
-            ru: "⬆️ Добавить",
-            en: "⬆️ Add"
-        },
-
-        "🗑️ Ջնջել": {
-            ru: "🗑️ Удалить",
-            en: "🗑️ Delete"
+        "ՇՈՒՏՈՎ": {
+            ru: "СКОРО",
+            en: "COMING SOON"
         },
 
 
-        /* =========================
-           MEDIA
-        ========================= */
+        /* ========================================================
+           ACCOUNT / AUTH
+        ======================================================== */
 
-        "📷 Նկար ընտրել": {
-            ru: "📷 Выбрать изображение",
-            en: "📷 Choose image"
+        "Էլ․ փոստ": {
+            ru: "Электронная почта",
+            en: "Email"
         },
 
-        "🎬 Վիդեոներ և նկարներ": {
-            ru: "🎬 Видео и фотографии",
-            en: "🎬 Videos and Photos"
+        "Էլ. փոստ": {
+            ru: "Электронная почта",
+            en: "Email"
         },
 
-        "💬 Մեկնաբանություններ": {
-            ru: "💬 Комментарии",
-            en: "💬 Comments"
+        "Ձեր E-mail": {
+            ru: "Ваш E-mail",
+            en: "Your E-mail"
         },
 
-        "Մեկնաբանություն...": {
-            ru: "Комментарий...",
-            en: "Comment..."
+        "Գաղտնաբառ": {
+            ru: "Пароль",
+            en: "Password"
         },
 
-        "Մեկնաբանել": {
-            ru: "Прокомментировать",
-            en: "Comment"
+        "Հաստատել գաղտնաբառը": {
+            ru: "Подтвердить пароль",
+            en: "Confirm password"
+        },
+
+        "Մուտք գործել": {
+            ru: "Войти",
+            en: "Login"
+        },
+
+        "Մուտք գործեք": {
+            ru: "Войдите",
+            en: "Log in"
+        },
+
+        "Վերականգնել գաղտնաբառը": {
+            ru: "Восстановить пароль",
+            en: "Reset Password"
+        },
+
+        "Նոր գաղտնաբառ": {
+            ru: "Новый пароль",
+            en: "New Password"
+        },
+
+        "Հիշել ինձ": {
+            ru: "Запомнить меня",
+            en: "Remember me"
         },
 
 
-        /* =========================
-           PLAYERS / CLAN
-        ========================= */
-
-        "Խաղացողները բեռնվում են...": {
-            ru: "Игроки загружаются...",
-            en: "Loading players..."
-        },
-
-        "Խաղացողներ բեռնվում են...": {
-            ru: "Игроки загружаются...",
-            en: "Loading players..."
-        },
+        /* ========================================================
+           FRIENDS
+        ======================================================== */
 
         "Ընկերներ": {
             ru: "Друзья",
@@ -445,90 +408,25 @@
             en: "Remove Friend"
         },
 
-
-        /* =========================
-           AUTH
-        ========================= */
-
-        "Մուտք գործեք": {
-            ru: "Войдите",
-            en: "Log in"
+        "Օնլայն": {
+            ru: "Онлайн",
+            en: "Online"
         },
 
-        "Էլ․ փոստ": {
-            ru: "Электронная почта",
-            en: "Email"
+        "Օֆլայն": {
+            ru: "Офлайн",
+            en: "Offline"
         },
 
-        "Ձեր E-mail": {
-            ru: "Ваш E-mail",
-            en: "Your E-mail"
-        },
-
-        "Գաղտնաբառ": {
-            ru: "Пароль",
-            en: "Password"
-        },
-
-        "Վերականգնել գաղտնաբառը": {
-            ru: "Восстановить пароль",
-            en: "Reset password"
-        },
-
-        "Հաստատել գաղտնաբառը": {
-            ru: "Подтвердить пароль",
-            en: "Confirm password"
-        },
-
-        "Մուտք գործել": {
-            ru: "Войти",
-            en: "Login"
-        },
-
-        "Գրանցում": {
-            ru: "Регистрация",
-            en: "Registration"
-        },
-
-        "Գրանցվել": {
-            ru: "Зарегистрироваться",
-            en: "Register"
-        },
-
-        "Դուրս գալ": {
-            ru: "Выйти",
-            en: "Logout"
+        "Վերջին այցելություն": {
+            ru: "Последний визит",
+            en: "Last seen"
         },
 
 
-        /* =========================
-           CONTACT
-        ========================= */
-
-        "Ձեր նամակը": {
-            ru: "Ваше сообщение",
-            en: "Your message"
-        },
-
-        "Ուղարկել": {
-            ru: "Отправить",
-            en: "Send"
-        },
-
-        "Հետադարձ Կապ": {
-            ru: "Обратная связь",
-            en: "Contact Us"
-        },
-
-        "Հետադարձ կապ": {
-            ru: "Обратная связь",
-            en: "Contact Us"
-        },
-
-
-        /* =========================
+        /* ========================================================
            CHAT
-        ========================= */
+        ======================================================== */
 
         "💬 Չատ": {
             ru: "💬 Чат",
@@ -550,21 +448,6 @@
             en: "Send message"
         },
 
-        "Օնլայն": {
-            ru: "Онлайн",
-            en: "Online"
-        },
-
-        "Օֆլայն": {
-            ru: "Офлайн",
-            en: "Offline"
-        },
-
-        "Վերջին այցելություն": {
-            ru: "Последний визит",
-            en: "Last seen"
-        },
-
         "Գրում է...": {
             ru: "Печатает...",
             en: "Typing..."
@@ -581,9 +464,9 @@
         },
 
 
-        /* =========================
+        /* ========================================================
            NOTIFICATIONS
-        ========================= */
+        ======================================================== */
 
         "Ծանուցումներ": {
             ru: "Уведомления",
@@ -606,9 +489,409 @@
         },
 
 
-        /* =========================
+        /* ========================================================
+           MEDIA
+        ======================================================== */
+
+        "📷 Նկար ընտրել": {
+            ru: "📷 Выбрать изображение",
+            en: "📷 Choose image"
+        },
+
+        "🎬 Վիդեոներ և նկարներ": {
+            ru: "🎬 Видео и фотографии",
+            en: "🎬 Videos and Photos"
+        },
+
+        "💬 Մեկնաբանություններ": {
+            ru: "💬 Комментарии",
+            en: "💬 Comments"
+        },
+
+        "Մեկնաբանություն...": {
+            ru: "Комментарий...",
+            en: "Comment..."
+        },
+
+        "Մեկնաբանել": {
+            ru: "Прокомментировать",
+            en: "Comment"
+        },
+
+        "Վերբեռնել": {
+            ru: "Загрузить",
+            en: "Upload"
+        },
+
+        "Ավելացնել": {
+            ru: "Добавить",
+            en: "Add"
+        },
+
+        "🗑️ Ջնջել": {
+            ru: "🗑️ Удалить",
+            en: "🗑️ Delete"
+        },
+
+        "Ջնջել": {
+            ru: "Удалить",
+            en: "Delete"
+        },
+
+
+        /* ========================================================
+           1VS1
+        ======================================================== */
+
+        "1VS1": {
+            ru: "1VS1",
+            en: "1VS1"
+        },
+
+        "ՄԱՏՉ": {
+            ru: "МАТЧ",
+            en: "MATCH"
+        },
+
+        "ՀԱՇԻՎ": {
+            ru: "СЧЁТ",
+            en: "SCORE"
+        },
+
+        "Դադարեցված": {
+            ru: "Приостановлен",
+            en: "Paused"
+        },
+
+        "⏸️ Դադարեցված": {
+            ru: "⏸️ Приостановлен",
+            en: "⏸️ Paused"
+        },
+
+        "Ավարտված": {
+            ru: "Завершён",
+            en: "Finished"
+        },
+
+        "🏁 Ավարտված": {
+            ru: "🏁 Завершён",
+            en: "🏁 Finished"
+        },
+
+        "🟢 Ակտիվ": {
+            ru: "🟢 Активен",
+            en: "🟢 Active"
+        },
+
+        "Խաղերը ժամանակավորապես դադարեցված են": {
+            ru: "Игры временно приостановлены",
+            en: "Games are temporarily paused"
+        },
+
+        "Այս փուլը ավարտված է": {
+            ru: "Этот раунд завершён",
+            en: "This round is finished"
+        },
+
+        "ՎԵՐՋՆԱԿԱՆ ՀԱՂԹՈՂ": {
+            ru: "ФИНАЛЬНЫЙ ПОБЕДИТЕЛЬ",
+            en: "FINAL WINNER"
+        },
+
+        "Վերջնական հաղթող": {
+            ru: "Финальный победитель",
+            en: "Final winner"
+        },
+
+        "Ընտրեք այս փուլի հաղթողին։ Սա չի փոխում բուտիլկայի խաղացողների ցանկը։": {
+            ru: "Выберите победителя этого раунда. Это не изменяет список игроков бутылки.",
+            en: "Choose the winner of this round. This does not change the bottle player list."
+        },
+
+        "Ընտրել նիկը…": {
+            ru: "Выбрать ник...",
+            en: "Select nickname..."
+        },
+
+        "💾 Պահպանել հաղթողին": {
+            ru: "💾 Сохранить победителя",
+            en: "💾 Save winner"
+        },
+
+        "Այս փուլում զույգեր չկան։": {
+            ru: "В этом раунде нет пар.",
+            en: "There are no pairs in this round."
+        },
+
+        "Չհաջողվեց բեռնել 1VS1 արդյունքը։": {
+            ru: "Не удалось загрузить результат 1VS1.",
+            en: "Failed to load the 1VS1 result."
+        },
+
+        "Չհաջողվեց բեռնել ցանկը։": {
+            ru: "Не удалось загрузить список.",
+            en: "Failed to load the list."
+        },
+
+        "Ցանկը դատարկ է։ Սեղմեք «Վերցնել index.html-ից»։": {
+            ru: "Список пуст. Нажмите «Получить из index.html».",
+            en: "The list is empty. Click \"Get from index.html\"."
+        },
+
+        "Մասնակցում է": {
+            ru: "Участвует",
+            en: "Participating"
+        },
+
+        "Նիկը դատարկ լինել չի կարող։": {
+            ru: "Ник не может быть пустым.",
+            en: "Nickname cannot be empty."
+        },
+
+        "Չհաջողվեց պահպանել խաղացողին։": {
+            ru: "Не удалось сохранить игрока.",
+            en: "Failed to save player."
+        },
+
+        "Խաղացողը պահպանվեց։": {
+            ru: "Игрок сохранён.",
+            en: "Player saved."
+        },
+
+
+        /* ========================================================
+           CLAN APPLICATIONS
+        ======================================================== */
+
+        "Կլանի հայտ": {
+            ru: "Заявка в клан",
+            en: "Clan Application"
+        },
+
+        "Կլանի հայտեր": {
+            ru: "Заявки в клан",
+            en: "Clan Applications"
+        },
+
+        "Դիմում": {
+            ru: "Заявка",
+            en: "Application"
+        },
+
+        "Դիմումները բեռնվում են...": {
+            ru: "Заявки загружаются...",
+            en: "Loading applications..."
+        },
+
+        "Ընդունել հայտը": {
+            ru: "Принять заявку",
+            en: "Accept application"
+        },
+
+        "Մերժել հայտը": {
+            ru: "Отклонить заявку",
+            en: "Reject application"
+        },
+
+
+        /* ========================================================
+           EXAM
+        ======================================================== */
+
+        "PUBG ՔՆՆՈՒԹՅՈՒՆ": {
+            ru: "ЭКЗАМЕН PUBG",
+            en: "PUBG EXAM"
+        },
+
+        "PUBG Քննություն": {
+            ru: "Экзамен PUBG",
+            en: "PUBG Exam"
+        },
+
+        "Քննություն": {
+            ru: "Экзамен",
+            en: "Exam"
+        },
+
+        "Սկսել քննությունը": {
+            ru: "Начать экзамен",
+            en: "Start Exam"
+        },
+
+        "Սկսել": {
+            ru: "Начать",
+            en: "Start"
+        },
+
+        "Շարունակել": {
+            ru: "Продолжить",
+            en: "Continue"
+        },
+
+        "Հաջորդ հարց →": {
+            ru: "Следующий вопрос →",
+            en: "Next question →"
+        },
+
+        "🏆 Հանձնել քննությունը": {
+            ru: "🏆 Сдать экзамен",
+            en: "🏆 Submit Exam"
+        },
+
+        "Հանձնել քննությունը": {
+            ru: "Сдать экзамен",
+            en: "Submit Exam"
+        },
+
+        "Խնդրում ենք ընտրել պատասխան։": {
+            ru: "Пожалуйста, выберите ответ.",
+            en: "Please select an answer."
+        },
+
+        "Արդյունք": {
+            ru: "Результат",
+            en: "Result"
+        },
+
+        "Արդյունքներ": {
+            ru: "Результаты",
+            en: "Results"
+        },
+
+        "Հարց": {
+            ru: "Вопрос",
+            en: "Question"
+        },
+
+        "Պատասխան": {
+            ru: "Ответ",
+            en: "Answer"
+        },
+
+        "Հաջորդ": {
+            ru: "Далее",
+            en: "Next"
+        },
+
+        "Նախորդ": {
+            ru: "Назад",
+            en: "Previous"
+        },
+
+        "Ավարտել": {
+            ru: "Завершить",
+            en: "Finish"
+        },
+
+
+        /* ========================================================
+           EXAM ADMIN
+        ======================================================== */
+
+        "Քննության արդյունքներ": {
+            ru: "Результаты экзамена",
+            en: "Exam Results"
+        },
+
+        "Ընդհանուր մասնակիցներ": {
+            ru: "Всего участников",
+            en: "Total Participants"
+        },
+
+        "Միջին արդյունք": {
+            ru: "Средний результат",
+            en: "Average Score"
+        },
+
+        "Կատարյալ արդյունքներ": {
+            ru: "Идеальные результаты",
+            en: "Perfect Scores"
+        },
+
+        "Դեռ ոչ ոք քննություն չի հանձնել։": {
+            ru: "Пока никто не сдал экзамен.",
+            en: "No one has taken the exam yet."
+        },
+
+        "❌ Չհաջողվեց բեռնել արդյունքները։": {
+            ru: "❌ Не удалось загрузить результаты.",
+            en: "❌ Failed to load results."
+        },
+
+        "Օգտատեր": {
+            ru: "Пользователь",
+            en: "User"
+        },
+
+
+        /* ========================================================
+           QUIZ
+        ======================================================== */
+
+        "QUIZ": {
+            ru: "QUIZ",
+            en: "QUIZ"
+        },
+
+        "📚 AIMRELAX Quiz": {
+            ru: "📚 AIMRELAX Quiz",
+            en: "📚 AIMRELAX Quiz"
+        },
+
+        "Որքա՞ն լավ ես ճանաչում AIMRELAX-ը։ 1–5 հարցերը գնահատվում են ավտոմատ, 6–8-ը ազատ պատասխաններ են և տեսանելի են միայն Admin/Owner-ին։": {
+            ru: "Насколько хорошо ты знаешь AIMRELAX? Вопросы 1–5 оцениваются автоматически, а 6–8 — свободные ответы, доступные только Admin/Owner.",
+            en: "How well do you know AIMRELAX? Questions 1–5 are graded automatically, while 6–8 are free-text answers visible only to Admin/Owner."
+        },
+
+        "🔒 Մուտք է անհրաժեշտ": {
+            ru: "🔒 Требуется вход",
+            en: "🔒 Login Required"
+        },
+
+        "Quiz-ը հասանելի է գրանցված անդամներին։": {
+            ru: "Quiz доступен зарегистрированным участникам.",
+            en: "The Quiz is available to registered members."
+        },
+
+        "Մուտք / Գրանցում": {
+            ru: "Вход / Регистрация",
+            en: "Login / Register"
+        },
+
+        "✅ Դուք արդեն հանձնել եք Quiz-ը": {
+            ru: "✅ Вы уже прошли Quiz",
+            en: "✅ You have already completed the Quiz"
+        },
+
+        "🎉 Արդյունք": {
+            ru: "🎉 Результат",
+            en: "🎉 Result"
+        },
+
+        "Ազատ պատասխանները պահպանված են Admin/Owner-ի համար։": {
+            ru: "Свободные ответы сохранены для Admin/Owner.",
+            en: "Free-text answers are saved for Admin/Owner."
+        },
+
+        "🛡️ Admin / Owner — պատասխաններ": {
+            ru: "🛡️ Admin / Owner — ответы",
+            en: "🛡️ Admin / Owner — Answers"
+        },
+
+        "Բեռնվում է…": {
+            ru: "Загрузка…",
+            en: "Loading…"
+        },
+
+        "Բեռնվում է...": {
+            ru: "Загрузка...",
+            en: "Loading..."
+        },
+
+
+        /* ========================================================
            WEATHER
-        ========================= */
+        ======================================================== */
 
         "🇦🇲 Հայաստան": {
             ru: "🇦🇲 Армения",
@@ -651,158 +934,78 @@
         },
 
 
-        /* =========================
-           1VS1
-        ========================= */
+        /* ========================================================
+           GENERAL STATUS / FORMS
+        ======================================================== */
 
-        "🎯 1VS1 Bottle": {
-            ru: "🎯 1VS1 Bottle",
-            en: "🎯 1VS1 Bottle"
+        "Պահպանել": {
+            ru: "Сохранить",
+            en: "Save"
         },
 
-        "1VS1": {
-            ru: "1VS1",
-            en: "1VS1"
+        "Պահպանել փոփոխությունները": {
+            ru: "Сохранить изменения",
+            en: "Save changes"
         },
 
-        "Մրցաշար": {
-            ru: "Турнир",
-            en: "Tournament"
+        "Փոփոխությունները պահպանված են": {
+            ru: "Изменения сохранены",
+            en: "Changes saved"
         },
 
-        "Մասնակիցներ": {
-            ru: "Участники",
-            en: "Participants"
+        "Փակել": {
+            ru: "Закрыть",
+            en: "Close"
         },
 
-        "Հաղթող": {
-            ru: "Победитель",
-            en: "Winner"
+        "Բացել": {
+            ru: "Открыть",
+            en: "Open"
         },
 
-        "Հաստատել մասնակցությունը": {
-            ru: "Подтвердить участие",
-            en: "Confirm participation"
+        "Չեղարկել": {
+            ru: "Отменить",
+            en: "Cancel"
         },
 
-
-        /* =========================
-           EXAM / QUIZ
-        ========================= */
-
-        "📋 Հարցաթերթիկ": {
-            ru: "📋 Анкета",
-            en: "📋 Questionnaire"
+        "Հաստատել": {
+            ru: "Подтвердить",
+            en: "Confirm"
         },
 
-        "🧠 PUBG ՔՆՆՈՒԹՅՈՒՆ": {
-            ru: "🧠 ЭКЗАМЕН PUBG",
-            en: "🧠 PUBG EXAM"
+        "Այո": {
+            ru: "Да",
+            en: "Yes"
         },
 
-        "🧠 PUBG ՔՆՆՈՒԹՅԱՆ ԱՐԴՅՈՒՆՔՆԵՐ": {
-            ru: "🧠 РЕЗУЛЬТАТЫ ЭКЗАМЕНА PUBG",
-            en: "🧠 PUBG EXAM RESULTS"
+        "Ոչ": {
+            ru: "Нет",
+            en: "No"
         },
 
-        "Քննություն": {
-            ru: "Экзамен",
-            en: "Exam"
+        "Ուղարկել": {
+            ru: "Отправить",
+            en: "Send"
         },
 
-        "Արդյունքներ": {
-            ru: "Результаты",
-            en: "Results"
+        "Փնտրել": {
+            ru: "Поиск",
+            en: "Search"
         },
 
-        "Հարց": {
-            ru: "Вопрос",
-            en: "Question"
+        "Սպասեք...": {
+            ru: "Подождите...",
+            en: "Please wait..."
         },
 
-        "Պատասխան": {
-            ru: "Ответ",
-            en: "Answer"
+        "Խնդրում ենք սպասել...": {
+            ru: "Пожалуйста, подождите...",
+            en: "Please wait..."
         },
 
-        "Հաջորդ": {
-            ru: "Далее",
-            en: "Next"
-        },
-
-        "Նախորդ": {
-            ru: "Назад",
-            en: "Previous"
-        },
-
-        "Ավարտել": {
-            ru: "Завершить",
-            en: "Finish"
-        },
-
-        "Սկսել": {
-            ru: "Начать",
-            en: "Start"
-        },
-
-
-        /* =========================
-           APPLICATIONS
-        ========================= */
-
-        "Կլանի հայտ": {
-            ru: "Заявка в клан",
-            en: "Clan Application"
-        },
-
-        "Կլանի հայտեր": {
-            ru: "Заявки в клан",
-            en: "Clan Applications"
-        },
-
-        "Դիմում": {
-            ru: "Заявка",
-            en: "Application"
-        },
-
-        "Դիմումները բեռնվում են...": {
-            ru: "Заявки загружаются...",
-            en: "Loading applications..."
-        },
-
-        "Ընդունել հայտը": {
-            ru: "Принять заявку",
-            en: "Accept application"
-        },
-
-        "Մերժել հայտը": {
-            ru: "Отклонить заявку",
-            en: "Reject application"
-        },
-
-
-        /* =========================
-           VALIDATION
-        ========================= */
-
-        "Խնդրում ենք գրել ձեր PUBG անունը": {
-            ru: "Пожалуйста, введите ваш PUBG никнейм",
-            en: "Please enter your PUBG nickname"
-        },
-
-        "Խնդրում ենք գրել ձեր էլ․ փոստը": {
-            ru: "Пожалуйста, введите ваш email",
-            en: "Please enter your email"
-        },
-
-        "Խնդրում ենք գրել ձեր հաղորդագրությունը": {
-            ru: "Пожалуйста, напишите сообщение",
-            en: "Please enter your message"
-        },
-
-        "Լրացրեք բոլոր դաշտերը": {
-            ru: "Заполните все поля",
-            en: "Fill in all fields"
+        "Բեռնվում է...": {
+            ru: "Загрузка...",
+            en: "Loading..."
         },
 
         "Սխալ": {
@@ -820,99 +1023,9 @@
             en: "Done"
         },
 
-        "Բեռնվում է...": {
-            ru: "Загрузка...",
-            en: "Loading..."
-        },
-
-        "Խնդրում ենք սպասել...": {
-            ru: "Пожалуйста, подождите...",
-            en: "Please wait..."
-        },
-
-
-        /* =========================
-           COMMUNITY
-        ========================= */
-
-        "Համայնք": {
-            ru: "Сообщество",
-            en: "Community"
-        },
-
-        "Համայնքի անդամներ": {
-            ru: "Участники сообщества",
-            en: "Community Members"
-        },
-
-        "Ընկերների ցուցակ": {
-            ru: "Список друзей",
-            en: "Friends List"
-        },
-
-        "Որոնել խաղացող": {
-            ru: "Найти игрока",
-            en: "Find player"
-        },
-
-        "Ուղարկված հայտեր": {
-            ru: "Отправленные заявки",
-            en: "Sent Requests"
-        },
-
-        "Ստացված հայտեր": {
-            ru: "Полученные заявки",
-            en: "Received Requests"
-        },
-
-
-        /* =========================
-           SETTINGS
-        ========================= */
-
-        "⚙️ Կարգավորումներ": {
-            ru: "⚙️ Настройки",
-            en: "⚙️ Settings"
-        },
-
-        "Կարգավորումներ": {
-            ru: "Настройки",
-            en: "Settings"
-        },
-
-        "Պահպանել փոփոխությունները": {
-            ru: "Сохранить изменения",
-            en: "Save changes"
-        },
-
-        "Փոփոխությունները պահպանված են": {
-            ru: "Изменения сохранены",
-            en: "Changes saved"
-        },
-
-
-        /* =========================
-           GENERAL
-        ========================= */
-
-        "Մեր նպատակը": {
-            ru: "Наша цель",
-            en: "Our Goal"
-        },
-
-        "Մեր ճանապարհը": {
-            ru: "Наш путь",
-            en: "Our Journey"
-        },
-
-        "Շնորհակալություն": {
-            ru: "Спасибо",
-            en: "Thank you"
-        },
-
-        "Բարի գալուստ": {
-            ru: "Добро пожаловать",
-            en: "Welcome"
+        "Ոչ մի արդյունք": {
+            ru: "Нет результатов",
+            en: "No results"
         },
 
         "Այստեղ դեռ ոչինչ չկա": {
@@ -920,323 +1033,454 @@
             en: "Nothing here yet"
         },
 
-        "Ոչ մի արդյունք": {
-            ru: "Нет результатов",
-            en: "No results"
+
+        /* ========================================================
+           CONTACT
+        ======================================================== */
+
+        "Ձեր նամակը": {
+            ru: "Ваше сообщение",
+            en: "Your message"
+        },
+
+        "Ձեր հաղորդագրությունը": {
+            ru: "Ваше сообщение",
+            en: "Your message"
+        },
+
+        "ՈՒՂԱՐԿԵԼ ՆԱՄԱԿԸ": {
+            ru: "ОТПРАВИТЬ СООБЩЕНИЕ",
+            en: "SEND MESSAGE"
+        },
+
+        "ԿԱՊ ՀԱՍՏԱՏԵԼ": {
+            ru: "СВЯЗАТЬСЯ С НАМИ",
+            en: "CONTACT US"
+        },
+
+
+        /* ========================================================
+           COMMON VALIDATION
+        ======================================================== */
+
+        "Լրացրեք բոլոր դաշտերը": {
+            ru: "Заполните все поля",
+            en: "Fill in all fields"
+        },
+
+        "Խնդրում ենք գրել ձեր PUBG անունը": {
+            ru: "Пожалуйста, введите ваш PUBG никнейм",
+            en: "Please enter your PUBG nickname"
+        },
+
+        "Խնդրում ենք գրել ձեր էլ․ փոստը": {
+            ru: "Пожалуйста, введите ваш email",
+            en: "Please enter your email"
+        },
+
+        "Խնդրում ենք գրել ձեր հաղորդագրությունը": {
+            ru: "Пожалуйста, напишите ваше сообщение",
+            en: "Please enter your message"
+        },
+
+
+        /* ========================================================
+           EXTRA COMMON STRINGS
+        ======================================================== */
+
+        "Բարի գալուստ": {
+            ru: "Добро пожаловать",
+            en: "Welcome"
+        },
+
+        "Շնորհակալություն": {
+            ru: "Спасибо",
+            en: "Thank you"
+        },
+
+        "Ընտրել": {
+            ru: "Выбрать",
+            en: "Select"
+        },
+
+        "Հաջորդ էջ": {
+            ru: "Следующая страница",
+            en: "Next page"
+        },
+
+        "Նախորդ էջ": {
+            ru: "Предыдущая страница",
+            en: "Previous page"
         }
     };
 
 
     /* ============================================================
-       LANGUAGE HELPERS
+       PROTECTED AREAS
        ============================================================ */
 
-    function getLanguage() {
-        const saved = localStorage.getItem(STORAGE_KEY);
+    const PROTECTED_SELECTORS = [
+        "script",
+        "style",
+        "noscript",
+        "textarea",
+        "input",
+        "[contenteditable='true']",
 
-        if (LANGUAGES[saved]) {
-            return saved;
+        ".chat-message",
+        ".private-message",
+        ".comment-row",
+
+        ".player h3",
+        ".player .nickname",
+        ".player-name",
+        ".profile-name",
+        ".friend-row .friend-name",
+
+        ".roster-name",
+        ".winner-name",
+
+        "#private-messages",
+        ".private-messages",
+
+        "[data-user-content='true']"
+    ];
+
+
+    function isProtected(element) {
+
+        if (!element) {
+            return true;
         }
 
-        return "hy";
+        try {
+            return !!element.closest(
+                PROTECTED_SELECTORS.join(",")
+            );
+        } catch (e) {
+            return false;
+        }
     }
 
 
-    function saveLanguage(lang) {
-        if (!LANGUAGES[lang]) {
-            lang = "hy";
-        }
+    /* ============================================================
+       TEXT NORMALIZATION
+       ============================================================ */
 
-        localStorage.setItem(STORAGE_KEY, lang);
-    }
+    function normalize(text) {
 
-
-    function normalizeText(text) {
         return String(text || "")
+            .replace(/\u00A0/g, " ")
             .replace(/\s+/g, " ")
             .trim();
+
     }
 
 
-    function translateText(text, lang) {
+    function getTranslation(original, lang) {
 
-        if (!text) {
-            return text;
+        const key = normalize(original);
+
+        if (!key) {
+            return original;
         }
 
-        const normalized = normalizeText(text);
+        const item = translations[key];
 
-        if (!T[normalized]) {
-            return text;
+        if (!item) {
+            return original;
         }
 
         if (lang === "hy") {
-            return T[normalized].hy || normalized;
+            return item.hy || key;
         }
 
-        return T[normalized][lang] || text;
+        return item[lang] || original;
+
     }
 
 
-    /*
-     * Save original UI text.
-     * WeakMap prevents modification of application/user data.
-     */
+    /* ============================================================
+       ORIGINAL TEXT STORAGE
+       ============================================================ */
 
-    const originalText = new WeakMap();
+    const originalTextNodes = new WeakMap();
     const originalAttributes = new WeakMap();
 
 
-    function translateElementText(element, lang) {
+    /* ============================================================
+       TEXT TRANSLATION
+       ============================================================ */
 
-        if (!element) {
+    function translateTextNode(node, lang) {
+
+        if (!node || node.nodeType !== Node.TEXT_NODE) {
             return;
         }
 
-        /*
-         * Ignore dangerous / user-content areas.
-         */
+        const parent = node.parentElement;
 
-        if (
-            element.closest(
-                "script,style,noscript,textarea," +
-                "input,[contenteditable='true']," +
-                ".chat-message," +
-                ".private-message," +
-                ".comment-row," +
-                ".friend-row," +
-                ".player," +
-                ".profile-name," +
-                ".user-box," +
-                ".vote-row"
-            )
-        ) {
+        if (!parent || isProtected(parent)) {
             return;
         }
 
+        if (!originalTextNodes.has(node)) {
+            originalTextNodes.set(
+                node,
+                node.nodeValue
+            );
+        }
 
-        /*
-         * Only direct text nodes.
-         */
+        const original =
+            originalTextNodes.get(node);
 
-        Array.from(element.childNodes).forEach(function (node) {
+        const translated =
+            getTranslation(
+                original,
+                lang
+            );
 
-            if (node.nodeType !== Node.TEXT_NODE) {
-                return;
-            }
-
-            const source =
-                originalText.has(node)
-                    ? originalText.get(node)
-                    : node.nodeValue;
-
-            if (!originalText.has(node)) {
-                originalText.set(node, node.nodeValue);
-            }
-
-            const translated =
-                translateText(source, lang);
-
-            if (translated !== source) {
-                node.nodeValue = translated;
-            } else if (lang === "hy") {
-                node.nodeValue = source;
-            }
-        });
+        if (translated !== original) {
+            node.nodeValue = translated;
+        } else if (lang === "hy") {
+            node.nodeValue = original;
+        }
     }
 
 
-    /*
-     * Translate ONLY known static UI elements.
-     * No full-document rewriting.
-     */
+    function translateElement(element, lang) {
 
-    function translateUI(lang) {
-
-        const selectors = [
-
-            "nav a",
-            "nav button",
-
-            ".btn",
-            ".buttons a",
-            ".buttons button",
-
-            ".section-title",
-            ".section-title small",
-            ".section-title h2",
-
-            ".card h3",
-            ".achievement h3",
-            ".achievement p",
-
-            ".gallery-item",
-
-            ".social",
-
-            ".account-open-btn",
-            ".account-tabs button",
-            ".account-modal-card button",
-
-            ".friends-menu-btn",
-            ".friends-menu-title",
-            ".friends-menu-popup h4",
-
-            ".private-chat-fab",
-            ".private-chat-head button",
-            ".voice-record-btn",
-            ".voice-cancel-btn",
-
-            ".auth-card h3",
-            ".auth-card button",
-            ".auth-link",
-
-            ".vote-card h3",
-            ".vote-card button",
-
-            ".community-help",
-
-            ".loading-text",
-
-            "#pwa-install-btn",
-
-            "#contact-form button",
-
-            "#private-messages",
-
-            "#voice-recording-status"
-        ];
-
-
-        document.querySelectorAll(
-            selectors.join(",")
-        ).forEach(function (element) {
-
-            translateElementText(element, lang);
-
-        });
-
+        if (!element || isProtected(element)) {
+            return;
+        }
 
         /*
-         * Specific IDs.
+         * Do not recursively scan huge user/data containers.
          */
 
-        const ids = [
+        const walker =
+            document.createTreeWalker(
+                element,
+                NodeFilter.SHOW_TEXT,
+                {
+                    acceptNode: function (node) {
 
-            "friends-menu-btn",
-            "account-open-btn",
-            "admin-menu-btn",
-            "header-logout-btn",
+                        if (!node.parentElement) {
+                            return NodeFilter.FILTER_REJECT;
+                        }
 
-            "clan",
-            "players",
-            "achievements",
-            "gallery",
-            "auth-vote",
+                        if (
+                            isProtected(
+                                node.parentElement
+                            )
+                        ) {
+                            return NodeFilter.FILTER_REJECT;
+                        }
 
-            "vote-btn",
-            "vote-total",
+                        return NodeFilter.FILTER_ACCEPT;
+                    }
+                }
+            );
 
-            "private-chat-fab",
-            "private-messages",
+        const nodes = [];
 
-            "arm-weather"
-        ];
+        let current;
 
+        while (
+            (current = walker.nextNode())
+        ) {
+            nodes.push(current);
+        }
 
-        ids.forEach(function (id) {
-
-            const element =
-                document.getElementById(id);
-
-            if (element) {
-                translateElementText(element, lang);
-            }
-
+        nodes.forEach(function (node) {
+            translateTextNode(
+                node,
+                lang
+            );
         });
     }
 
 
     /* ============================================================
-       ATTRIBUTES
+       ATTRIBUTE TRANSLATION
        ============================================================ */
+
+    const TRANSLATABLE_ATTRIBUTES = [
+        "placeholder",
+        "title",
+        "aria-label"
+    ];
+
 
     function translateAttributes(lang) {
 
-        const attributes = [
-            "placeholder",
-            "title",
-            "aria-label"
-        ];
+        const elements =
+            document.querySelectorAll(
+                "input,textarea,button,[title],[aria-label]"
+            );
 
-        document.querySelectorAll(
-            "input,textarea,button,[title],[aria-label]"
-        ).forEach(function (element) {
+        elements.forEach(function (element) {
 
-            /*
-             * Never touch user-entered input values.
-             */
-
-            if (
-                element.closest(
-                    "#aimrelax-language-selector"
-                )
-            ) {
+            if (isProtected(element)) {
                 return;
             }
 
+            TRANSLATABLE_ATTRIBUTES.forEach(
+                function (attribute) {
 
-            attributes.forEach(function (attribute) {
+                    if (
+                        !element.hasAttribute(
+                            attribute
+                        )
+                    ) {
+                        return;
+                    }
 
-                if (!element.hasAttribute(attribute)) {
-                    return;
-                }
+                    if (
+                        !originalAttributes.has(
+                            element
+                        )
+                    ) {
+                        originalAttributes.set(
+                            element,
+                            {}
+                        );
+                    }
 
-                if (!originalAttributes.has(element)) {
-                    originalAttributes.set(
-                        element,
-                        {}
+                    const saved =
+                        originalAttributes.get(
+                            element
+                        );
+
+                    if (
+                        !Object.prototype.hasOwnProperty.call(
+                            saved,
+                            attribute
+                        )
+                    ) {
+                        saved[attribute] =
+                            element.getAttribute(
+                                attribute
+                            );
+                    }
+
+                    const original =
+                        saved[attribute];
+
+                    const translated =
+                        getTranslation(
+                            original,
+                            lang
+                        );
+
+                    element.setAttribute(
+                        attribute,
+                        translated
                     );
+
                 }
-
-                const saved =
-                    originalAttributes.get(element);
-
-
-                if (
-                    !Object.prototype.hasOwnProperty.call(
-                        saved,
-                        attribute
-                    )
-                ) {
-                    saved[attribute] =
-                        element.getAttribute(attribute);
-                }
-
-
-                const original =
-                    saved[attribute];
-
-                const translated =
-                    translateText(original, lang);
-
-
-                element.setAttribute(
-                    attribute,
-                    translated
-                );
-
-            });
+            );
 
         });
+
     }
 
 
     /* ============================================================
-       SELECTOR
+       PAGE-SPECIFIC STATIC/DYNAMIC AREAS
        ============================================================ */
 
-    function createSelector() {
+    function translatePage(lang) {
+
+        /*
+         * Main visible document.
+         *
+         * We intentionally exclude:
+         * chat
+         * comments
+         * nicknames
+         * user-generated content
+         */
+
+        const roots = [
+
+            document.querySelector("header"),
+            document.querySelector("main"),
+            document.querySelector("footer"),
+
+            document.querySelector(".wrap"),
+
+            document.querySelector(".hero"),
+
+            document.querySelector("#auth-vote"),
+
+            document.querySelector("#login"),
+            document.querySelector("#already"),
+            document.querySelector("#result"),
+            document.querySelector("#admin"),
+
+            document.querySelector("#matches"),
+            document.querySelector("#roster-manager"),
+
+            document.querySelector("#examScreen"),
+            document.querySelector("#startScreen"),
+            document.querySelector("#resultScreen"),
+
+            document.querySelector(".account-modal"),
+            document.querySelector(".profile-modal"),
+
+            document.querySelector(".community-grid"),
+
+            document.querySelector(".private-chat-popup")
+
+        ];
+
+        const uniqueRoots = [];
+
+        roots.forEach(function (root) {
+
+            if (
+                root &&
+                uniqueRoots.indexOf(root) === -1
+            ) {
+                uniqueRoots.push(root);
+            }
+
+        });
+
+
+        if (!uniqueRoots.length) {
+
+            translateElement(
+                document.body,
+                lang
+            );
+
+        } else {
+
+            uniqueRoots.forEach(
+                function (root) {
+
+                    translateElement(
+                        root,
+                        lang
+                    );
+
+                }
+            );
+
+        }
+
+
+        translateAttributes(lang);
+    }
+
+
+    /* ============================================================
+       LANGUAGE SELECTOR
+       ============================================================ */
+
+    function createLanguageSelector() {
 
         if (
             document.getElementById(
@@ -1255,7 +1499,10 @@
 
 
         wrapper.innerHTML = `
-            <select id="aimrelax-language" aria-label="Language">
+            <select
+                id="aimrelax-language"
+                aria-label="Language"
+            >
                 <option value="hy">🇦🇲 Հայերեն</option>
                 <option value="ru">🇷🇺 Русский</option>
                 <option value="en">🇬🇧 English</option>
@@ -1267,25 +1514,25 @@
             document.createElement("style");
 
         style.textContent = `
-
             #aimrelax-language-selector {
                 position: fixed;
-                top: 12px;
-                right: 12px;
+                top: 10px;
+                right: 10px;
                 z-index: 999999;
             }
 
             #aimrelax-language {
+                appearance: auto;
                 background: #111;
                 color: #fff;
                 border: 1px solid #ff7200;
                 border-radius: 7px;
-                padding: 8px 11px;
-                font-size: 13px;
+                padding: 7px 9px;
+                font-size: 12px;
                 font-weight: 700;
                 cursor: pointer;
                 outline: none;
-                box-shadow: 0 4px 15px rgba(0,0,0,.35);
+                box-shadow: 0 4px 18px rgba(0,0,0,.35);
             }
 
             #aimrelax-language:hover {
@@ -1296,24 +1543,27 @@
                 border-color: #ff7200;
             }
 
-            @media (max-width: 650px) {
-
+            @media(max-width:650px) {
                 #aimrelax-language-selector {
-                    top: 7px;
-                    right: 7px;
+                    top: 6px;
+                    right: 6px;
                 }
 
                 #aimrelax-language {
-                    padding: 7px 8px;
-                    font-size: 11px;
+                    padding: 6px 7px;
+                    font-size: 10px;
                 }
             }
         `;
 
 
-        document.head.appendChild(style);
+        document.head.appendChild(
+            style
+        );
 
-        document.body.appendChild(wrapper);
+        document.body.appendChild(
+            wrapper
+        );
 
 
         const select =
@@ -1322,7 +1572,8 @@
             );
 
 
-        select.value = getLanguage();
+        select.value =
+            getLanguage();
 
 
         select.addEventListener(
@@ -1335,6 +1586,40 @@
 
             }
         );
+
+    }
+
+
+    /* ============================================================
+       LANGUAGE STORAGE
+       ============================================================ */
+
+    function getLanguage() {
+
+        const saved =
+            localStorage.getItem(
+                STORAGE_KEY
+            );
+
+        if (
+            saved === "hy" ||
+            saved === "ru" ||
+            saved === "en"
+        ) {
+            return saved;
+        }
+
+        return DEFAULT_LANGUAGE;
+    }
+
+
+    function saveLanguage(lang) {
+
+        localStorage.setItem(
+            STORAGE_KEY,
+            lang
+        );
+
     }
 
 
@@ -1344,8 +1629,12 @@
 
     function setLanguage(lang) {
 
-        if (!LANGUAGES[lang]) {
-            lang = "hy";
+        if (
+            lang !== "hy" &&
+            lang !== "ru" &&
+            lang !== "en"
+        ) {
+            lang = DEFAULT_LANGUAGE;
         }
 
 
@@ -1357,21 +1646,20 @@
 
 
         /*
-         * IMPORTANT:
-         * Only one controlled UI pass.
-         * No MutationObserver.
+         * Translate currently available UI.
          */
 
-        translateUI(lang);
+        translatePage(lang);
 
-        translateAttributes(lang);
 
+        /*
+         * Update selector.
+         */
 
         const select =
             document.getElementById(
                 "aimrelax-language"
             );
-
 
         if (select) {
             select.value = lang;
@@ -1379,20 +1667,61 @@
 
 
         /*
-         * Let other AIMRELAX scripts know
-         * that the language changed.
+         * Some pages render content from Supabase
+         * shortly after page load.
+         *
+         * We do a few controlled delayed passes.
+         *
+         * NO MutationObserver.
          */
 
-        window.dispatchEvent(
-            new CustomEvent(
-                "aimrelax-language-changed",
-                {
-                    detail: {
-                        language: lang
+        setTimeout(function () {
+
+            try {
+                translatePage(lang);
+            } catch (e) {}
+
+        }, 500);
+
+
+        setTimeout(function () {
+
+            try {
+                translatePage(lang);
+            } catch (e) {}
+
+        }, 1500);
+
+
+        setTimeout(function () {
+
+            try {
+                translatePage(lang);
+            } catch (e) {}
+
+        }, 3000);
+
+
+        /*
+         * Tell existing AIMRELAX code that
+         * language has changed.
+         */
+
+        try {
+
+            window.dispatchEvent(
+                new CustomEvent(
+                    "aimrelax-language-changed",
+                    {
+                        detail: {
+                            language: lang
+                        }
                     }
-                }
-            )
-        );
+                )
+            );
+
+        } catch (e) {}
+
     }
 
 
@@ -1406,49 +1735,61 @@
 
         getLanguage: getLanguage,
 
-        languages: LANGUAGES,
+        translate: function (
+            text,
+            lang
+        ) {
 
-        translations: T,
-
-        translate: function (text, lang) {
-
-            return translateText(
+            return getTranslation(
                 text,
                 lang || getLanguage()
             );
 
+        },
+
+        languages: LANGUAGES,
+
+        translations: translations,
+
+        refresh: function () {
+
+            translatePage(
+                getLanguage()
+            );
+
         }
+
     };
 
 
     /* ============================================================
-       INIT
+       INITIALIZATION
        ============================================================ */
 
     function init() {
 
         try {
 
-            createSelector();
+            createLanguageSelector();
 
-            const language =
-                getLanguage();
-
-            setLanguage(language);
+            setLanguage(
+                getLanguage()
+            );
 
         } catch (error) {
 
             /*
-             * Language system must NEVER
-             * break the main website.
+             * Language system must never
+             * break the website.
              */
 
             console.error(
-                "AIMRELAX language system error:",
+                "AIMRELAX language error:",
                 error
             );
 
         }
+
     }
 
 
