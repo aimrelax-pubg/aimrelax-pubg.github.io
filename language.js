@@ -1,1366 +1,858 @@
-/* =========================================================
-   AIMRELAX-PUBG
-   GLOBAL LANGUAGE SYSTEM
-   Armenian / Russian / English
-
-   Supported:
-   index.html
-   1vs1.html
-   clan-applications.html
-   exam.html
-   exam-admin.html
-   media.html
-   quiz.html
-
-   DO NOT add this file to sw.js
-   ========================================================= */
-
-(() => {
-  "use strict";
-
-  const STORAGE_KEY = "aimrelax_language";
-
-  const LANGUAGES = {
-    hy: "🇦🇲 Հայերեն",
-    ru: "🇷🇺 Русский",
-    en: "🇬🇧 English"
-  };
-
-  /*
-   * Armenian is the original/base language of the website.
-   * The script remembers the original Armenian text and translates
-   * only known UI strings.
-   */
-
-  const T = {
-
-    /* =========================
-       GENERAL
-       ========================= */
-
-    "Մուտք": {
-      ru: "Вход",
-      en: "Login"
-    },
-
-    "ՄՈՒՏՔ": {
-      ru: "ВХОД",
-      en: "LOGIN"
-    },
-
-    "Մուտք գործել": {
-      ru: "Войти",
-      en: "Log in"
-    },
-
-    "ՄՈՒՏՔ ԳՈՐԾԵԼ": {
-      ru: "ВОЙТИ",
-      en: "LOG IN"
-    },
-
-    "Գրանցում": {
-      ru: "Регистрация",
-      en: "Registration"
-    },
-
-    "ԳՐԱՆՑՈՒՄ": {
-      ru: "РЕГИСТРАЦИЯ",
-      en: "REGISTRATION"
-    },
-
-    "Գրանցվել": {
-      ru: "Зарегистрироваться",
-      en: "Register"
-    },
-
-    "ԳՐԱՆՑՎԵԼ": {
-      ru: "ЗАРЕГИСТРИРОВАТЬСЯ",
-      en: "REGISTER"
-    },
-
-    "Ելք": {
-      ru: "Выход",
-      en: "Logout"
-    },
-
-    "ԵԼՔ ՀԱՇՎԻՑ": {
-      ru: "ВЫЙТИ ИЗ АККАУНТА",
-      en: "LOG OUT"
-    },
-
-    "Պահպանել": {
-      ru: "Сохранить",
-      en: "Save"
-    },
-
-    "ՊԱՀՊԱՆԵԼ ՓՈՓՈԽՈՒԹՅՈՒՆՆԵՐԸ": {
-      ru: "СОХРАНИТЬ ИЗМЕНЕНИЯ",
-      en: "SAVE CHANGES"
-    },
-
-    "Չեղարկել": {
-      ru: "Отмена",
-      en: "Cancel"
-    },
-
-    "Փակել": {
-      ru: "Закрыть",
-      en: "Close"
-    },
-
-    "Հաստատել": {
-      ru: "Подтвердить",
-      en: "Confirm"
-    },
-
-    "Ջնջել": {
-      ru: "Удалить",
-      en: "Delete"
-    },
-
-    "Հեռացնել": {
-      ru: "Удалить",
-      en: "Remove"
-    },
-
-    "Ընդունել": {
-      ru: "Принять",
-      en: "Accept"
-    },
-
-    "Մերժել": {
-      ru: "Отклонить",
-      en: "Reject"
-    },
-
-    "Ուղարկել": {
-      ru: "Отправить",
-      en: "Send"
-    },
-
-    "Բեռնել": {
-      ru: "Загрузить",
-      en: "Load"
-    },
-
-    "Որոնել": {
-      ru: "Поиск",
-      en: "Search"
-    },
-
-    "Կարգավորումներ": {
-      ru: "Настройки",
-      en: "Settings"
-    },
-
-    "⚙️ Կարգավորումներ": {
-      ru: "⚙️ Настройки",
-      en: "⚙️ Settings"
-    },
-
-
-    /* =========================
-       ACCOUNT
-       ========================= */
-
-    "🔐 Մուտք": {
-      ru: "🔐 Вход",
-      en: "🔐 Login"
-    },
-
-    "👤 Ստեղծել հաշիվ": {
-      ru: "👤 Создать аккаунт",
-      en: "👤 Create account"
-    },
-
-    "🔄 Վերականգնել գաղտնաբառը": {
-      ru: "🔄 Восстановить пароль",
-      en: "🔄 Reset password"
-    },
-
-    "👤 Իմ հաշիվը": {
-      ru: "👤 Мой аккаунт",
-      en: "👤 My account"
-    },
-
-    "Ձեր E-mail": {
-      ru: "Ваш E-mail",
-      en: "Your E-mail"
-    },
-
-    "Գաղտնաբառ": {
-      ru: "Пароль",
-      en: "Password"
-    },
-
-    "Գաղտնաբառ (առնվազն 6 նիշ)": {
-      ru: "Пароль (минимум 6 символов)",
-      en: "Password (minimum 6 characters)"
-    },
-
-    "Կրկնել գաղտնաբառը": {
-      ru: "Повторите пароль",
-      en: "Repeat password"
-    },
-
-    "PUBG Nickname": {
-      ru: "PUBG Nickname",
-      en: "PUBG Nickname"
-    },
-
-    "Մոռացե՞լ եք գաղտնաբառը": {
-      ru: "Забыли пароль?",
-      en: "Forgot your password?"
-    },
-
-    "Վերադառնալ մուտք": {
-      ru: "Вернуться ко входу",
-      en: "Back to login"
-    },
-
-    "ՈՒՂԱՐԿԵԼ ՀՂՈՒՄԸ": {
-      ru: "ОТПРАВИТЬ ССЫЛКУ",
-      en: "SEND LINK"
-    },
-
-    "⚙️ Անձնական կարգավորումներ": {
-      ru: "⚙️ Личные настройки",
-      en: "⚙️ Personal settings"
-    },
-
-    "Նոր Nickname": {
-      ru: "Новый Nickname",
-      en: "New Nickname"
-    },
-
-    "Նոր E-mail": {
-      ru: "Новый E-mail",
-      en: "New E-mail"
-    },
-
-    "Ընթացիկ գաղտնաբառ (եթե փոխում եք գաղտնաբառը)": {
-      ru: "Текущий пароль (если меняете пароль)",
-      en: "Current password (if changing password)"
-    },
-
-    "Նոր գաղտնաբառ (ըստ ցանկության)": {
-      ru: "Новый пароль (необязательно)",
-      en: "New password (optional)"
-    },
-
-    "Մուտք եք գործել որպես": {
-      ru: "Вы вошли как",
-      en: "You are logged in as"
-    },
-
-    "Ձեր գրանցումը հաջողությամբ կատարվել է": {
-      ru: "Ваша регистрация успешно завершена",
-      en: "Your registration was successful"
-    },
-
-    "Ձեր E-mail-ը հաստատված է։ Այժմ կարող եք մուտք գործել և մասնակցել քվեարկությանը։": {
-      ru: "Ваш E-mail подтверждён. Теперь вы можете войти и участвовать в голосовании.",
-      en: "Your E-mail is verified. You can now log in and participate in the voting."
-    },
-
-    "Google մուտք": {
-      ru: "Вход через Google",
-      en: "Google login"
-    },
-
-    "🔵 Մուտք Google-ով": {
-      ru: "🔵 Войти через Google",
-      en: "🔵 Login with Google"
-    },
-
-
-    /* =========================
-       FRIENDS / CHAT
-       ========================= */
-
-    "Ընկեր": {
-      ru: "Друг",
-      en: "Friend"
-    },
-
-    "👤 Ընկերության հայտեր": {
-      ru: "👤 Заявки в друзья",
-      en: "👤 Friend requests"
-    },
-
-    "Ընկերության հայտ": {
-      ru: "Заявка в друзья",
-      en: "Friend request"
-    },
-
-    "Նոր հայտ չկա։": {
-      ru: "Новых заявок нет.",
-      en: "No new requests."
-    },
-
-    "Դեռ ընկերներ չունեք։": {
-      ru: "У вас пока нет друзей.",
-      en: "You don't have any friends yet."
-    },
-
-    "Նախ մուտք գործեք։": {
-      ru: "Сначала войдите.",
-      en: "Please log in first."
-    },
-
-    "Չգտնվեց։": {
-      ru: "Ничего не найдено.",
-      en: "Nothing found."
-    },
-
-    "+ Ընկեր": {
-      ru: "+ Друг",
-      en: "+ Friend"
-    },
-
-    "🟢 Օնլայն": {
-      ru: "🟢 Онлайн",
-      en: "🟢 Online"
-    },
-
-    "⚪ Օֆլայն": {
-      ru: "⚪ Офлайн",
-      en: "⚪ Offline"
-    },
-
-    "Հեռացնել": {
-      ru: "Удалить",
-      en: "Remove"
-    },
-
-    "CHAT": {
-      ru: "ЧАТ",
-      en: "CHAT"
-    },
-
-    "Դուք": {
-      ru: "Вы",
-      en: "You"
-    },
-
-    "🗑️ Ջնջել": {
-      ru: "🗑️ Удалить",
-      en: "🗑️ Delete"
-    },
-
-    "Անձնական Chat-ի համար նախ ավելացրեք ընկեր։": {
-      ru: "Сначала добавьте друга для личного чата.",
-      en: "Add a friend first to use private chat."
-    },
-
-    "Մուտք գործեք՝ անձնական Chat-ից օգտվելու համար։": {
-      ru: "Войдите, чтобы использовать личный чат.",
-      en: "Log in to use private chat."
-    },
-
-    "Նոր հաղորդագրություն": {
-      ru: "Новое сообщение",
-      en: "New message"
-    },
-
-    "Նոր ծանուցում": {
-      ru: "Новое уведомление",
-      en: "New notification"
-    },
-
-
-    /* =========================
-       NOTIFICATIONS
-       ========================= */
-
-    "Ծանուցումներ": {
-      ru: "Уведомления",
-      en: "Notifications"
-    },
-
-    "Ծանուցումները բեռնվում են...": {
-      ru: "Уведомления загружаются...",
-      en: "Loading notifications..."
-    },
-
-    "Կարդացված դարձնել": {
-      ru: "Отметить как прочитанные",
-      en: "Mark as read"
-    },
-
-    "Մուտք գործեք՝ ծանուցումները միացնելու համար։": {
-      ru: "Войдите, чтобы включить уведомления.",
-      en: "Log in to enable notifications."
-    },
-
-    "Նոր ծանուցում": {
-      ru: "Новое уведомление",
-      en: "New notification"
-    },
-
-
-    /* =========================
-       MAIN PAGE
-       ========================= */
-
-    "Պաշտոնական կլանային կայք": {
-      ru: "Официальный сайт клана",
-      en: "Official clan website"
-    },
-
-    "Խաղացողներ": {
-      ru: "Игроки",
-      en: "Players"
-    },
-
-    "Քվեարկություն": {
-      ru: "Голосование",
-      en: "Voting"
-    },
-
-    "Ձեռքբերումներ": {
-      ru: "Достижения",
-      en: "Achievements"
-    },
-
-    "Կապ": {
-      ru: "Контакты",
-      en: "Contact"
-    },
-
-    "Մեր մասին": {
-      ru: "О нас",
-      en: "About us"
-    },
-
-    "Խաղացողներ": {
-      ru: "Игроки",
-      en: "Players"
-    },
-
-    "Ձեռքբերումներ": {
-      ru: "Достижения",
-      en: "Achievements"
-    },
-
-    "Պատկերասրահ": {
-      ru: "Галерея",
-      en: "Gallery"
-    },
-
-    "Կապ մեզ հետ": {
-      ru: "Связаться с нами",
-      en: "Contact us"
-    },
-
-    "Դեռևս չկա։": {
-      ru: "Пока нет.",
-      en: "Not available yet."
-    },
-
-
-    /* =========================
-       VOTING
-       ========================= */
-
-    "Քվեարկել": {
-      ru: "Голосовать",
-      en: "Vote"
-    },
-
-    "Քվեարկել խաղացողի օգտին": {
-      ru: "Проголосовать за игрока",
-      en: "Vote for a player"
-    },
-
-    "Ձայն": {
-      ru: "Голос",
-      en: "Vote"
-    },
-
-    "Ձայներ": {
-      ru: "Голоса",
-      en: "Votes"
-    },
-
-    "Ընդհանուր ձայներ": {
-      ru: "Всего голосов",
-      en: "Total votes"
-    },
-
-
-    /* =========================
-       1 VS 1
-       ========================= */
-
-    "1VS1": {
-      ru: "1VS1",
-      en: "1VS1"
-    },
-
-    "1VS1 փուլ": {
-      ru: "Раунд 1VS1",
-      en: "1VS1 round"
-    },
-
-    "Նոր 1VS1 փուլը ստեղծվեց": {
-      ru: "Новый раунд 1VS1 создан",
-      en: "New 1VS1 round created"
-    },
-
-    "մասնակից": {
-      ru: "участников",
-      en: "participants"
-    },
-
-    "մասնակիցներ": {
-      ru: "участников",
-      en: "participants"
-    },
-
-    "խաղ": {
-      ru: "игр",
-      en: "games"
-    },
-
-    "խաղացող սպասման մեջ": {
-      ru: "игрок ожидает",
-      en: "player waiting"
-    },
-
-    "խաղացող սպասման մեջ։": {
-      ru: "игрок ожидает.",
-      en: "player waiting."
-    },
-
-    "Չհաջողվեց ստեղծել փուլ։": {
-      ru: "Не удалось создать раунд.",
-      en: "Failed to create round."
-    },
-
-    "🎰 ՊՏՏԵԼ ԲՈՒՏԻԼԿԱՆ": {
-      ru: "🎰 КРУТИТЬ БУТЫЛКУ",
-      en: "🎰 SPIN THE BOTTLE"
-    },
-
-
-    /* =========================
-       APPLICATIONS
-       ========================= */
-
-    "Դիմումներ": {
-      ru: "Заявки",
-      en: "Applications"
-    },
-
-    "Կլանային դիմումներ": {
-      ru: "Заявки в клан",
-      en: "Clan applications"
-    },
-
-    "Հաստատել դիմումը": {
-      ru: "Одобрить заявку",
-      en: "Approve application"
-    },
-
-    "Մերժել դիմումը": {
-      ru: "Отклонить заявку",
-      en: "Reject application"
-    },
-
-    "Դիմումը հաստատվեց։": {
-      ru: "Заявка одобрена.",
-      en: "Application approved."
-    },
-
-    "Դիմումը մերժվեց։": {
-      ru: "Заявка отклонена.",
-      en: "Application rejected."
-    },
-
-
-    /* =========================
-       EXAM
-       ========================= */
-
-    "Քննություն": {
-      ru: "Экзамен",
-      en: "Exam"
-    },
-
-    "Քննություն հանձնել": {
-      ru: "Пройти экзамен",
-      en: "Take the exam"
-    },
-
-    "Սկսել քննությունը": {
-      ru: "Начать экзамен",
-      en: "Start exam"
-    },
-
-    "Ավարտել քննությունը": {
-      ru: "Завершить экзамен",
-      en: "Finish exam"
-    },
-
-    "Չհաջողվեց ավարտել քննությունը։": {
-      ru: "Не удалось завершить экзамен.",
-      en: "Failed to finish the exam."
-    },
-
-    "Արդյունք": {
-      ru: "Результат",
-      en: "Result"
-    },
-
-    "Արդյունքները": {
-      ru: "Результаты",
-      en: "Results"
-    },
-
-    "Ճիշտ պատասխան": {
-      ru: "Правильный ответ",
-      en: "Correct answer"
-    },
-
-    "Ճիշտ պատասխաններ": {
-      ru: "Правильные ответы",
-      en: "Correct answers"
-    },
-
-    "Սխալ պատասխան": {
-      ru: "Неправильный ответ",
-      en: "Incorrect answer"
-    },
-
-    "Հաջողությամբ": {
-      ru: "Успешно",
-      en: "Successfully"
-    },
-
-    "Քննությունը ավարտված է": {
-      ru: "Экзамен завершён",
-      en: "Exam completed"
-    },
-
-
-    /* =========================
-       MEDIA
-       ========================= */
-
-    "🎬 Վիդեոներ և նկարներ": {
-      ru: "🎬 Видео и фотографии",
-      en: "🎬 Videos and photos"
-    },
-
-    "Նյութերը հրապարակվում են միայն Owner/Admin-ի հաստատումից հետո։": {
-      ru: "Материалы публикуются только после одобрения Owner/Admin.",
-      en: "Materials are published only after Owner/Admin approval."
-    },
-
-    "➕ Ավելացնել նյութ": {
-      ru: "➕ Добавить материал",
-      en: "➕ Add media"
-    },
-
-    "Վերնագիր": {
-      ru: "Название",
-      en: "Title"
-    },
-
-    "Նկար կամ վիդեո": {
-      ru: "Фото или видео",
-      en: "Image or video"
-    },
-
-    "Առավելագույնը 50 MB": {
-      ru: "Максимум 50 MB",
-      en: "Maximum 50 MB"
-    },
-
-    "Նկարագրություն": {
-      ru: "Описание",
-      en: "Description"
-    },
-
-    "📤 Ուղարկել հաստատման": {
-      ru: "📤 Отправить на проверку",
-      en: "📤 Submit for approval"
-    },
-
-    "Չհաջողվեց բեռնել նյութերը։": {
-      ru: "Не удалось загрузить материалы.",
-      en: "Failed to load media."
-    },
-
-    "Հաստատված նյութ դեռ չկա։": {
-      ru: "Одобренных материалов пока нет.",
-      en: "No approved media yet."
-    },
-
-    "Ստուգվում է…": {
-      ru: "Проверка…",
-      en: "Checking…"
-    },
-
-    "👤 Մուտք գործած օգտատեր": {
-      ru: "👤 Авторизованный пользователь",
-      en: "👤 Logged-in user"
-    },
-
-    "🔒 Մուտք գործեք՝ նյութ ավելացնելու համար": {
-      ru: "🔒 Войдите, чтобы добавить материал",
-      en: "🔒 Log in to add media"
-    },
-
-
-    /* =========================
-       COMMON STATUS
-       ========================= */
-
-    "Բեռնվում է...": {
-      ru: "Загрузка...",
-      en: "Loading..."
-    },
-
-    "Բեռնվում է…": {
-      ru: "Загрузка…",
-      en: "Loading…"
-    },
-
-    "Խնդրում ենք սպասել...": {
-      ru: "Пожалуйста, подождите...",
-      en: "Please wait..."
-    },
-
-    "Հաջողությամբ կատարվեց։": {
-      ru: "Успешно выполнено.",
-      en: "Completed successfully."
-    },
-
-    "Փոփոխությունները պահպանվեցին։": {
-      ru: "Изменения сохранены.",
-      en: "Changes saved."
-    },
-
-    "Չհաջողվեց։": {
-      ru: "Не удалось.",
-      en: "Failed."
-    },
-
-    "Սխալ տեղի ունեցավ։": {
-      ru: "Произошла ошибка.",
-      en: "An error occurred."
-    },
-
-    "Նախ մուտք գործեք։": {
-      ru: "Сначала войдите.",
-      en: "Please log in first."
-    }
-  };
-
-
-  /* =========================================================
-     EXTRA ATTRIBUTE TRANSLATIONS
-     ========================================================= */
-
-  const ATTR_TRANSLATIONS = {
-
-    "Ձեր E-mail": {
-      ru: "Ваш E-mail",
-      en: "Your E-mail"
-    },
-
-    "Գաղտնաբառ": {
-      ru: "Пароль",
-      en: "Password"
-    },
-
-    "Կրկնել գաղտնաբառը": {
-      ru: "Повторите пароль",
-      en: "Repeat password"
-    },
-
-    "Նոր Nickname": {
-      ru: "Новый Nickname",
-      en: "New Nickname"
-    },
-
-    "Նոր E-mail": {
-      ru: "Новый E-mail",
-      en: "New E-mail"
-    },
-
-    "Նոր գաղտնաբառ (ըստ ցանկության)": {
-      ru: "Новый пароль (необязательно)",
-      en: "New password (optional)"
-    }
-  };
-
-
-  /* =========================================================
-     LANGUAGE
-     ========================================================= */
-
-  function getLanguage() {
-    const saved = localStorage.getItem(STORAGE_KEY);
-
-    if (saved && LANGUAGES[saved]) {
-      return saved;
+(function () {
+    "use strict";
+
+    const STORAGE_KEY = "aimrelax_language";
+
+    const LANGUAGES = {
+        hy: "🇦🇲 Հայերեն",
+        ru: "🇷🇺 Русский",
+        en: "🇬🇧 English"
+    };
+
+    const T = {
+        "Գլխավոր": {
+            ru: "Главная",
+            en: "Home"
+        },
+
+        "Մեր մասին": {
+            ru: "О нас",
+            en: "About us"
+        },
+
+        "Խաղացողներ": {
+            ru: "Игроки",
+            en: "Players"
+        },
+
+        "Ձեռքբերումներ": {
+            ru: "Достижения",
+            en: "Achievements"
+        },
+
+        "Մեդիա": {
+            ru: "Медиа",
+            en: "Media"
+        },
+
+        "Քվեարկություն": {
+            ru: "Голосование",
+            en: "Voting"
+        },
+
+        "Կապ": {
+            ru: "Контакты",
+            en: "Contact"
+        },
+
+        "Համայնք": {
+            ru: "Сообщество",
+            en: "Community"
+        },
+
+        "Պրոֆիլ": {
+            ru: "Профиль",
+            en: "Profile"
+        },
+
+        "Կարգավորումներ": {
+            ru: "Настройки",
+            en: "Settings"
+        },
+
+        "Դուրս գալ": {
+            ru: "Выйти",
+            en: "Logout"
+        },
+
+        "Մուտք": {
+            ru: "Войти",
+            en: "Login"
+        },
+
+        "Գրանցվել": {
+            ru: "Зарегистрироваться",
+            en: "Register"
+        },
+
+        "ՊԱՇՏՈՆԱԿԱՆ ԿԼԱՆԱՅԻՆ ԿԱՅՔ": {
+            ru: "ОФИЦИАЛЬНЫЙ САЙТ КЛАНА",
+            en: "OFFICIAL CLAN WEBSITE"
+        },
+
+        "ՄԻԱՆԱԼ AIMRELAX-ԻՆ": {
+            ru: "ПРИСОЕДИНИТЬСЯ К AIMRELAX",
+            en: "JOIN AIMRELAX"
+        },
+
+        "ՄԵՐ ՍՈՑ. ԷՋԵՐԸ": {
+            ru: "НАШИ СОЦИАЛЬНЫЕ СТРАНИЦЫ",
+            en: "OUR SOCIAL PAGES"
+        },
+
+        "🗳 Քվեարկություն": {
+            ru: "🗳 Голосование",
+            en: "🗳 Voting"
+        },
+
+        "ՔՎԵԱՐԿԵԼ": {
+            ru: "ГОЛОСОВАТЬ",
+            en: "VOTE"
+        },
+
+        "Խաղացողները բեռնվում են...": {
+            ru: "Игроки загружаются...",
+            en: "Loading players..."
+        },
+
+        "ԿԱՊ ՀԱՍՏԱՏԵԼ": {
+            ru: "СВЯЗАТЬСЯ С НАМИ",
+            en: "CONTACT US"
+        },
+
+        "ՈՒՂԱՐԿԵԼ ՆԱՄԱԿԸ": {
+            ru: "ОТПРАВИТЬ СООБЩЕНИЕ",
+            en: "SEND MESSAGE"
+        },
+
+        "Ձեր E-mail": {
+            ru: "Ваш E-mail",
+            en: "Your E-mail"
+        },
+
+        "Ձեր նամակը": {
+            ru: "Ваше сообщение",
+            en: "Your message"
+        },
+
+        "Նամակը հաջողությամբ ուղարկվեց ✅": {
+            ru: "Сообщение успешно отправлено ✅",
+            en: "Message sent successfully ✅"
+        },
+
+        "Չհաջողվեց ուղարկել նամակը ❌": {
+            ru: "Не удалось отправить сообщение ❌",
+            en: "Failed to send message ❌"
+        },
+
+        "💬 Չատ": {
+            ru: "💬 Чат",
+            en: "💬 Chat"
+        },
+
+        "💬 Անձնական Chat": {
+            ru: "💬 Личный чат",
+            en: "💬 Private Chat"
+        },
+
+        "Բացեք ընկերոջ CHAT-ը՝ զրույցը սկսելու համար։": {
+            ru: "Откройте чат с другом, чтобы начать разговор.",
+            en: "Open a friend's chat to start a conversation."
+        },
+
+        "Մուտք գործեք՝ անձնական Chat-ից օգտվելու համար։": {
+            ru: "Войдите, чтобы использовать личный чат.",
+            en: "Log in to use private chat."
+        },
+
+        "Չհաջողվեց բեռնել ընկերներին։": {
+            ru: "Не удалось загрузить друзей.",
+            en: "Failed to load friends."
+        },
+
+        "Անձնական Chat-ի համար նախ ավելացրեք ընկեր։": {
+            ru: "Сначала добавьте друга для личного чата.",
+            en: "Add a friend first to use private chat."
+        },
+
+        "Գրեք հաղորդագրություն...": {
+            ru: "Введите сообщение...",
+            en: "Write a message..."
+        },
+
+        "Ձայնագրում է…": {
+            ru: "Идёт запись…",
+            en: "Recording…"
+        },
+
+        "Չեղարկել": {
+            ru: "Отменить",
+            en: "Cancel"
+        },
+
+        "Օնլայն": {
+            ru: "Онлайн",
+            en: "Online"
+        },
+
+        "Օֆլայն": {
+            ru: "Офлайн",
+            en: "Offline"
+        },
+
+        "Ջնջել": {
+            ru: "Удалить",
+            en: "Delete"
+        },
+
+        "Պահպանել": {
+            ru: "Сохранить",
+            en: "Save"
+        },
+
+        "Բացել": {
+            ru: "Открыть",
+            en: "Open"
+        },
+
+        "Փնտրել": {
+            ru: "Поиск",
+            en: "Search"
+        },
+
+        "Բեռնել": {
+            ru: "Загрузить",
+            en: "Load"
+        },
+
+        "Սպասեք...": {
+            ru: "Подождите...",
+            en: "Please wait..."
+        },
+
+        "Հաստատել": {
+            ru: "Подтвердить",
+            en: "Confirm"
+        },
+
+        "Փակել": {
+            ru: "Закрыть",
+            en: "Close"
+        },
+
+        "Վերականգնել գաղտնաբառը": {
+            ru: "Восстановить пароль",
+            en: "Reset password"
+        },
+
+        "Էլ․ փոստ": {
+            ru: "Электронная почта",
+            en: "Email"
+        },
+
+        "Գաղտնաբառ": {
+            ru: "Пароль",
+            en: "Password"
+        },
+
+        "Այո": {
+            ru: "Да",
+            en: "Yes"
+        },
+
+        "Ոչ": {
+            ru: "Нет",
+            en: "No"
+        },
+
+        "📷 Նկար ընտրել": {
+            ru: "📷 Выбрать изображение",
+            en: "📷 Choose image"
+        },
+
+        "⬆️ Ավելացնել": {
+            ru: "⬆️ Добавить",
+            en: "⬆️ Add"
+        },
+
+        "🗑️ Ջնջել": {
+            ru: "🗑️ Удалить",
+            en: "🗑️ Delete"
+        },
+
+        "💬 Մեկնաբանություններ": {
+            ru: "💬 Комментарии",
+            en: "💬 Comments"
+        },
+
+        "Մեկնաբանություն...": {
+            ru: "Комментарий...",
+            en: "Comment..."
+        },
+
+        "ՆԿԱՐ": {
+            ru: "ИЗОБРАЖЕНИЕ",
+            en: "IMAGE"
+        },
+
+        "☀️ Պարզ": {
+            ru: "☀️ Ясно",
+            en: "☀️ Clear"
+        },
+
+        "🌤️ Մասամբ ամպամած": {
+            ru: "🌤️ Переменная облачность",
+            en: "🌤️ Partly cloudy"
+        },
+
+        "☁️ Ամպամած": {
+            ru: "☁️ Облачно",
+            en: "☁️ Cloudy"
+        },
+
+        "🌧️ Անձրև": {
+            ru: "🌧️ Дождь",
+            en: "🌧️ Rain"
+        },
+
+        "❄️ Ձյուն": {
+            ru: "❄️ Снег",
+            en: "❄️ Snow"
+        },
+
+        "⛈️ Ամպրոպ": {
+            ru: "⛈️ Гроза",
+            en: "⛈️ Thunderstorm"
+        },
+
+        "Եղանակը հասանելի չէ": {
+            ru: "Погода недоступна",
+            en: "Weather unavailable"
+        },
+
+        "Խնդրում ենք գրել ձեր PUBG անունը": {
+            ru: "Пожалуйста, введите ваш PUBG никнейм",
+            en: "Please enter your PUBG nickname"
+        },
+
+        "Խնդրում ենք գրել ձեր էլ․ փոստը": {
+            ru: "Пожалуйста, введите ваш email",
+            en: "Please enter your email"
+        },
+
+        "Խնդրում ենք գրել ձեր հաղորդագրությունը": {
+            ru: "Пожалуйста, напишите сообщение",
+            en: "Please enter your message"
+        },
+
+        "Նոր հաղորդագրություն": {
+            ru: "Новое сообщение",
+            en: "New message"
+        },
+
+        "Նոր ծանուցում": {
+            ru: "Новое уведомление",
+            en: "New notification"
+        },
+
+        "Ծանուցումներ": {
+            ru: "Уведомления",
+            en: "Notifications"
+        },
+
+        "Դիմումներ": {
+            ru: "Заявки",
+            en: "Applications"
+        },
+
+        "Կլանային դիմումներ": {
+            ru: "Заявки в клан",
+            en: "Clan applications"
+        },
+
+        "Քննություն": {
+            ru: "Экзамен",
+            en: "Exam"
+        },
+
+        "Քննություն հանձնել": {
+            ru: "Пройти экзамен",
+            en: "Take the exam"
+        },
+
+        "Սկսել քննությունը": {
+            ru: "Начать экзамен",
+            en: "Start exam"
+        },
+
+        "Ավարտել քննությունը": {
+            ru: "Завершить экзамен",
+            en: "Finish exam"
+        },
+
+        "Արդյունք": {
+            ru: "Результат",
+            en: "Result"
+        },
+
+        "Արդյունքները": {
+            ru: "Результаты",
+            en: "Results"
+        },
+
+        "Ճիշտ պատասխան": {
+            ru: "Правильный ответ",
+            en: "Correct answer"
+        },
+
+        "Ճիշտ պատասխաններ": {
+            ru: "Правильные ответы",
+            en: "Correct answers"
+        },
+
+        "Սխալ պատասխան": {
+            ru: "Неправильный ответ",
+            en: "Incorrect answer"
+        },
+
+        "Քննությունը ավարտված է": {
+            ru: "Экзамен завершён",
+            en: "Exam completed"
+        },
+
+        "1VS1": {
+            ru: "1VS1",
+            en: "1VS1"
+        },
+
+        "1VS1 փուլ": {
+            ru: "Раунд 1VS1",
+            en: "1VS1 round"
+        },
+
+        "Մասնակիցներ": {
+            ru: "Участники",
+            en: "Participants"
+        },
+
+        "🎬 Վիդեոներ և նկարներ": {
+            ru: "🎬 Видео и фотографии",
+            en: "🎬 Videos and photos"
+        },
+
+        "➕ Ավելացնել նյութ": {
+            ru: "➕ Добавить материал",
+            en: "➕ Add media"
+        },
+
+        "Վերնագիր": {
+            ru: "Название",
+            en: "Title"
+        },
+
+        "Նկարագրություն": {
+            ru: "Описание",
+            en: "Description"
+        },
+
+        "Նկար կամ վիդեո": {
+            ru: "Фото или видео",
+            en: "Image or video"
+        },
+
+        "📤 Ուղարկել հաստատման": {
+            ru: "📤 Отправить на проверку",
+            en: "📤 Submit for approval"
+        },
+
+        "Բեռնվում է...": {
+            ru: "Загрузка...",
+            en: "Loading..."
+        },
+
+        "Հաջողությամբ կատարվեց։": {
+            ru: "Успешно выполнено.",
+            en: "Completed successfully."
+        },
+
+        "Փոփոխությունները պահպանվեցին։": {
+            ru: "Изменения сохранены.",
+            en: "Changes saved."
+        },
+
+        "Չհաջողվեց։": {
+            ru: "Не удалось.",
+            en: "Failed."
+        },
+
+        "Սխալ տեղի ունեցավ։": {
+            ru: "Произошла ошибка.",
+            en: "An error occurred."
+        }
+    };
+
+
+    let currentLanguage = localStorage.getItem(STORAGE_KEY);
+
+    if (!LANGUAGES[currentLanguage]) {
+        currentLanguage = "hy";
     }
 
-    return "hy";
-  }
 
-
-  let currentLanguage = getLanguage();
-
-
-  function saveLanguage(lang) {
-    localStorage.setItem(STORAGE_KEY, lang);
-  }
-
-
-  function translate(text, lang = currentLanguage) {
-
-    if (!text) {
-      return text;
+    function getLanguage() {
+        return currentLanguage;
     }
 
-    const clean = String(text).trim();
 
-    if (!clean) {
-      return text;
-    }
+    function translate(text) {
 
-    if (lang === "hy") {
-      return clean;
-    }
-
-    const item = T[clean];
-
-    if (!item) {
-      return text;
-    }
-
-    return item[lang] || text;
-  }
-
-
-  /* =========================================================
-     TRANSLATE DOM
-     ========================================================= */
-
-  const translatedNodes = new WeakMap();
-
-
-  function shouldIgnoreNode(node) {
-
-    if (!node || !node.parentElement) {
-      return true;
-    }
-
-    const parent = node.parentElement;
-
-    const tag = parent.tagName?.toLowerCase();
-
-    if (
-      tag === "script" ||
-      tag === "style" ||
-      tag === "noscript" ||
-      tag === "textarea"
-    ) {
-      return true;
-    }
-
-    if (
-      parent.closest(
-        "script,style,noscript,textarea,[data-no-translate],[contenteditable='true']"
-      )
-    ) {
-      return true;
-    }
-
-    return false;
-  }
-
-
-  function translateTextNode(node) {
-
-    if (shouldIgnoreNode(node)) {
-      return;
-    }
-
-    let original = translatedNodes.get(node);
-
-    if (original === undefined) {
-
-      original = node.nodeValue;
-
-      translatedNodes.set(node, original);
-    }
-
-    const originalTrimmed = original.trim();
-
-    if (!originalTrimmed) {
-      return;
-    }
-
-    const translated = translate(originalTrimmed);
-
-    if (translated === originalTrimmed) {
-      return;
-    }
-
-    const leading = original.match(/^\s*/)?.[0] || "";
-    const trailing = original.match(/\s*$/)?.[0] || "";
-
-    node.nodeValue = leading + translated + trailing;
-  }
-
-
-  function translateAttributes(root = document) {
-
-    const elements = root.querySelectorAll
-      ? root.querySelectorAll("input,textarea,button,[title],[aria-label]")
-      : [];
-
-    elements.forEach(el => {
-
-      ["placeholder", "title", "aria-label"].forEach(attr => {
-
-        if (!el.hasAttribute(attr)) {
-          return;
+        if (!text) {
+            return text;
         }
 
-        const value = el.getAttribute(attr);
+        const value = String(text);
+        const trimmed = value.trim();
 
-        if (!value) {
-          return;
+        if (!T[trimmed]) {
+            return value;
         }
 
-        const translated = ATTR_TRANSLATIONS[value] || translate(value);
-
-        if (translated !== value) {
-          el.setAttribute(attr, translated);
+        if (currentLanguage === "hy") {
+            return trimmed;
         }
-      });
-    });
-  }
 
-
-  function translateDOM(root = document.body) {
-
-    if (!root) {
-      return;
+        return T[trimmed][currentLanguage] || trimmed;
     }
 
-    const walker = document.createTreeWalker(
-      root,
-      NodeFilter.SHOW_TEXT,
-      {
-        acceptNode(node) {
 
-          if (shouldIgnoreNode(node)) {
-            return NodeFilter.FILTER_REJECT;
-          }
+    function createSelector() {
 
-          return NodeFilter.FILTER_ACCEPT;
-        }
-      }
-    );
-
-    const nodes = [];
-
-    let node;
-
-    while ((node = walker.nextNode())) {
-      nodes.push(node);
-    }
-
-    nodes.forEach(translateTextNode);
-
-    translateAttributes(root);
-  }
-
-
-  /* =========================================================
-     DATA-I18N SUPPORT
-     ========================================================= */
-
-  function translateMarkedElements(root = document) {
-
-    const elements = root.querySelectorAll
-      ? root.querySelectorAll("[data-i18n]")
-      : [];
-
-    elements.forEach(el => {
-
-      const key = el.getAttribute("data-i18n");
-
-      if (!key) {
-        return;
-      }
-
-      const translated = translate(key);
-
-      if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
-        if (el.placeholder) {
-          el.placeholder = translated;
-        }
-      } else {
-        el.textContent = translated;
-      }
-    });
-  }
-
-
-  /* =========================================================
-     LANGUAGE SELECTOR
-     ========================================================= */
-
-  function createLanguageSelector() {
-
-    if (document.getElementById("aimrelax-language-switcher")) {
-      return;
-    }
-
-    const wrapper = document.createElement("div");
-
-    wrapper.id = "aimrelax-language-switcher";
-
-    wrapper.innerHTML = `
-      <button
-        id="aimrelax-language-button"
-        type="button"
-        aria-label="Language"
-      >
-        ${LANGUAGES[currentLanguage]}
-      </button>
-
-      <div id="aimrelax-language-menu">
-        <button type="button" data-lang="hy">🇦🇲 Հայերեն</button>
-        <button type="button" data-lang="ru">🇷🇺 Русский</button>
-        <button type="button" data-lang="en">🇬🇧 English</button>
-      </div>
-    `;
-
-    document.body.appendChild(wrapper);
-
-    const style = document.createElement("style");
-
-    style.id = "aimrelax-language-style";
-
-    style.textContent = `
-      #aimrelax-language-switcher{
-        position:fixed;
-        right:14px;
-        top:14px;
-        z-index:999999;
-        font-family:Arial,Helvetica,sans-serif;
-      }
-
-      #aimrelax-language-button{
-        background:#111;
-        color:#fff;
-        border:1px solid #ff7a00;
-        border-radius:7px;
-        padding:8px 11px;
-        font-size:12px;
-        font-weight:700;
-        cursor:pointer;
-        box-shadow:0 4px 18px rgba(0,0,0,.4);
-      }
-
-      #aimrelax-language-button:hover{
-        background:#ff7a00;
-        color:#000;
-      }
-
-      #aimrelax-language-menu{
-        display:none;
-        position:absolute;
-        right:0;
-        top:calc(100% + 6px);
-        min-width:145px;
-        background:#111;
-        border:1px solid #333;
-        border-radius:8px;
-        padding:5px;
-        box-shadow:0 8px 25px rgba(0,0,0,.55);
-      }
-
-      #aimrelax-language-menu.open{
-        display:block;
-      }
-
-      #aimrelax-language-menu button{
-        width:100%;
-        display:block;
-        border:0;
-        background:transparent;
-        color:#fff;
-        text-align:left;
-        padding:9px 10px;
-        border-radius:5px;
-        cursor:pointer;
-        font-size:13px;
-      }
-
-      #aimrelax-language-menu button:hover{
-        background:#222;
-        color:#ff7a00;
-      }
-
-      @media(max-width:650px){
-        #aimrelax-language-switcher{
-          top:8px;
-          right:8px;
+        if (document.getElementById("aimrelax-language-selector")) {
+            return;
         }
 
-        #aimrelax-language-button{
-          padding:7px 8px;
-          font-size:11px;
-        }
-      }
-    `;
+        const box = document.createElement("div");
 
-    document.head.appendChild(style);
+        box.id = "aimrelax-language-selector";
 
+        box.innerHTML = `
+            <select id="aimrelax-language-select">
+                <option value="hy">🇦🇲 Հայերեն</option>
+                <option value="ru">🇷🇺 Русский</option>
+                <option value="en">🇬🇧 English</option>
+            </select>
+        `;
 
-    const button =
-      document.getElementById("aimrelax-language-button");
+        const style = document.createElement("style");
 
-    const menu =
-      document.getElementById("aimrelax-language-menu");
+        style.textContent = `
+            #aimrelax-language-selector {
+                position: fixed;
+                top: 12px;
+                right: 12px;
+                z-index: 2147483647;
+            }
 
+            #aimrelax-language-select {
+                appearance: auto;
+                -webkit-appearance: auto;
+                background: #111;
+                color: #fff;
+                border: 2px solid #ff7200;
+                border-radius: 8px;
+                padding: 8px 10px;
+                min-width: 125px;
+                font-size: 13px;
+                font-weight: 700;
+                cursor: pointer;
+                outline: none;
+            }
 
-    button.addEventListener("click", event => {
+            #aimrelax-language-select:hover {
+                border-color: #fff;
+            }
 
-      event.stopPropagation();
+            #aimrelax-language-select option {
+                background: #111;
+                color: #fff;
+            }
 
-      menu.classList.toggle("open");
-    });
+            @media (max-width: 600px) {
+                #aimrelax-language-selector {
+                    top: 8px;
+                    right: 8px;
+                }
 
+                #aimrelax-language-select {
+                    min-width: 115px;
+                    padding: 7px 8px;
+                    font-size: 12px;
+                }
+            }
+        `;
 
-    menu.querySelectorAll("[data-lang]").forEach(item => {
+        document.head.appendChild(style);
+        document.body.appendChild(box);
 
-      item.addEventListener("click", () => {
+        const select = document.getElementById(
+            "aimrelax-language-select"
+        );
 
-        const lang = item.dataset.lang;
+        select.value = currentLanguage;
 
-        setLanguage(lang);
-
-        menu.classList.remove("open");
-      });
-    });
-
-
-    document.addEventListener("click", event => {
-
-      if (!wrapper.contains(event.target)) {
-        menu.classList.remove("open");
-      }
-    });
-  }
-
-
-  /* =========================================================
-     SET LANGUAGE
-     ========================================================= */
-
-  function setLanguage(lang) {
-
-    if (!LANGUAGES[lang]) {
-      return;
-    }
-
-    currentLanguage = lang;
-
-    saveLanguage(lang);
-
-    document.documentElement.lang = lang;
-
-    /*
-     * Rebuild from the original Armenian text.
-     * This prevents:
-     * Armenian → Russian → English → Russian
-     * from breaking translations.
-     */
-
-    restoreOriginalText();
-
-    translateDOM();
-
-    translateMarkedElements();
-
-    const button =
-      document.getElementById("aimrelax-language-button");
-
-    if (button) {
-      button.textContent = LANGUAGES[lang];
-    }
-
-    /*
-     * Allow existing page JavaScript to react to
-     * language changes if needed.
-     */
-
-    window.dispatchEvent(
-      new CustomEvent("aimrelax-language-changed", {
-        detail: {
-          language: lang
-        }
-      })
-    );
-  }
-
-
-  /* =========================================================
-     RESTORE ORIGINAL TEXT
-     ========================================================= */
-
-  function restoreOriginalText() {
-
-    const walker = document.createTreeWalker(
-      document.body,
-      NodeFilter.SHOW_TEXT
-    );
-
-    const nodes = [];
-
-    let node;
-
-    while ((node = walker.nextNode())) {
-      nodes.push(node);
-    }
-
-    nodes.forEach(node => {
-
-      const original = translatedNodes.get(node);
-
-      if (original !== undefined) {
-        node.nodeValue = original;
-      }
-    });
-  }
-
-
-  /* =========================================================
-     DYNAMIC CONTENT
-     ========================================================= */
-
-  let observer;
-
-
-  function startObserver() {
-
-    if (observer) {
-      observer.disconnect();
-    }
-
-    observer = new MutationObserver(mutations => {
-
-      for (const mutation of mutations) {
-
-        if (mutation.type === "characterData") {
-
-          translateTextNode(mutation.target);
-
-          continue;
-        }
-
-
-        mutation.addedNodes.forEach(node => {
-
-          if (node.nodeType === Node.TEXT_NODE) {
-
-            translateTextNode(node);
-
-          } else if (node.nodeType === Node.ELEMENT_NODE) {
-
-            translateDOM(node);
-
-            translateMarkedElements(node);
-          }
+        select.addEventListener("change", function () {
+            setLanguage(this.value);
         });
-      }
-    });
-
-
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      characterData: true
-    });
-  }
-
-
-  /* =========================================================
-     PUBLIC API
-     ========================================================= */
-
-  window.AIMRELAX_LANGUAGE = {
-
-    getLanguage,
-
-    setLanguage,
-
-    translate,
-
-    languages: LANGUAGES,
-
-    translations: T,
-
-    refresh() {
-
-      restoreOriginalText();
-
-      translateDOM();
-
-      translateMarkedElements();
     }
-  };
 
 
-  /* =========================================================
-     INIT
-     ========================================================= */
+    function translateTextNodes(root) {
 
-  function initLanguageSystem() {
+        const walker = document.createTreeWalker(
+            root,
+            NodeFilter.SHOW_TEXT
+        );
 
-    document.documentElement.lang = currentLanguage;
+        const nodes = [];
 
-    createLanguageSelector();
+        let node;
 
-    /*
-     * First save original DOM state.
-     */
-    translateDOM();
+        while ((node = walker.nextNode())) {
 
-    /*
-     * Apply selected language.
-     */
-    setLanguage(currentLanguage);
+            const parent = node.parentElement;
 
-    /*
-     * Watch dynamically created chat/notification/status UI.
-     */
-    startObserver();
-  }
+            if (!parent) {
+                continue;
+            }
+
+            const tag = parent.tagName;
+
+            if (
+                tag === "SCRIPT" ||
+                tag === "STYLE" ||
+                tag === "NOSCRIPT"
+            ) {
+                continue;
+            }
+
+            if (
+                parent.closest(
+                    "#aimrelax-language-selector"
+                )
+            ) {
+                continue;
+            }
+
+            const original = node.nodeValue;
+            const trimmed = original.trim();
+
+            if (!trimmed) {
+                continue;
+            }
+
+            nodes.push({
+                node,
+                original
+            });
+        }
 
 
-  if (document.readyState === "loading") {
+        nodes.forEach(item => {
 
-    document.addEventListener(
-      "DOMContentLoaded",
-      initLanguageSystem,
-      { once: true }
-    );
+            const translated = translate(item.original);
 
-  } else {
+            if (translated === item.original) {
+                return;
+            }
 
-    initLanguageSystem();
-  }
+            const original = item.original;
+            const trimmed = original.trim();
+
+            const start = original.indexOf(trimmed);
+
+            const before = original.substring(
+                0,
+                start
+            );
+
+            const after = original.substring(
+                start + trimmed.length
+            );
+
+            item.node.nodeValue =
+                before +
+                translated +
+                after;
+        });
+    }
+
+
+    function translatePlaceholders() {
+
+        document
+            .querySelectorAll(
+                "input[placeholder], textarea[placeholder]"
+            )
+            .forEach(element => {
+
+                const value =
+                    element.getAttribute("placeholder");
+
+                if (!value) {
+                    return;
+                }
+
+                const translated = translate(value);
+
+                if (translated !== value) {
+                    element.setAttribute(
+                        "placeholder",
+                        translated
+                    );
+                }
+            });
+    }
+
+
+    function translateAttributes() {
+
+        document
+            .querySelectorAll("[title], [aria-label]")
+            .forEach(element => {
+
+                ["title", "aria-label"].forEach(attribute => {
+
+                    const value =
+                        element.getAttribute(attribute);
+
+                    if (!value) {
+                        return;
+                    }
+
+                    const translated =
+                        translate(value);
+
+                    if (translated !== value) {
+                        element.setAttribute(
+                            attribute,
+                            translated
+                        );
+                    }
+                });
+            });
+    }
+
+
+    function setLanguage(language) {
+
+        if (!LANGUAGES[language]) {
+            language = "hy";
+        }
+
+        currentLanguage = language;
+
+        localStorage.setItem(
+            STORAGE_KEY,
+            language
+        );
+
+        document.documentElement.lang =
+            language;
+
+        translateTextNodes(document.body);
+        translatePlaceholders();
+        translateAttributes();
+
+        const select =
+            document.getElementById(
+                "aimrelax-language-select"
+            );
+
+        if (select) {
+            select.value = language;
+        }
+
+        window.dispatchEvent(
+            new CustomEvent(
+                "aimrelax-language-changed",
+                {
+                    detail: {
+                        language
+                    }
+                }
+            )
+        );
+    }
+
+
+    function startObserver() {
+
+        const observer =
+            new MutationObserver(
+                mutations => {
+
+                    mutations.forEach(mutation => {
+
+                        mutation.addedNodes.forEach(node => {
+
+                            if (
+                                node.nodeType !==
+                                Node.ELEMENT_NODE
+                            ) {
+                                return;
+                            }
+
+                            if (
+                                node.id ===
+                                "aimrelax-language-selector"
+                            ) {
+                                return;
+                            }
+
+                            translateTextNodes(node);
+                            translatePlaceholders();
+                            translateAttributes();
+                        });
+                    });
+                }
+            );
+
+
+        observer.observe(
+            document.body,
+            {
+                childList: true,
+                subtree: true
+            }
+        );
+    }
+
+
+    function init() {
+
+        createSelector();
+
+        setLanguage(currentLanguage);
+
+        startObserver();
+    }
+
+
+    window.AIMRELAX_LANGUAGE = {
+        getLanguage,
+        setLanguage,
+        translate,
+        languages: LANGUAGES,
+        translations: T
+    };
+
+
+    if (
+        document.readyState ===
+        "loading"
+    ) {
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            init,
+            {
+                once: true
+            }
+        );
+
+    } else {
+
+        init();
+    }
 
 })();
