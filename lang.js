@@ -1,4 +1,8 @@
-/* AIMRELAX-PUBG GLOBAL LANGUAGE SYSTEM */
+/* AIMRELAX-PUBG LOCAL LANGUAGE SYSTEM
+   Google Translate չի օգտագործվում։
+   Nickname-ները ավտոմատ պաշտպանված են։
+*/
+
 (function () {
   "use strict";
 
@@ -10,379 +14,293 @@
     ["ru", "🇷🇺 Русский"],
     ["en", "🇬🇧 English"]
   ];
-  
-const NEVER_TRANSLATE_SELECTORS = [
-  '.nickname',
-  '.player-name',
-  '.username',
-  '.chat-nickname',
-  '[data-nickname]',
-  '[data-player-name]'
-];
 
-function isNeverTranslate(element) {
-  if (!element || element.nodeType !== 1) return false;
+  /*
+   ============================================================
+   NICKNAME PROTECTION
+   ============================================================
+   HTML-ում nickname-ների վրա class ավելացնելու կարիք չկա։
+  */
 
-  return NEVER_TRANSLATE_SELECTORS.some(selector =>
-    element.matches(selector) ||
-    element.closest(selector)
-  );
-}
-  function getLang() {
-    return localStorage.getItem(KEY) || DEFAULT_LANG;
+  const NICKNAMES = new Set([
+    "MOMPO",
+    "DOMPO",
+    "INFERNO",
+    "KOKO",
+    "KØKØ",
+    "PRINCES",
+    "YUKI",
+    "WAY",
+    "WAYツ",
+    "AKA",
+    "LOGIN",
+    "FURY",
+    "IMFERNO",
+    "AGILE",
+    "ANGRY",
+    "MANE",
+    "DOUBLEV",
+    "SCARY",
+    "SIMBA",
+    "CAT",
+    "HOV",
+    "KAR",
+    "FAN",
+    "REY",
+    "R E Y",
+    "IMPAER",
+    "IMPÆR",
+    "BETON",
+    "BOX3R",
+    "STALIN",
+    "ZOMPO"
+  ]);
+
+  /*
+   AIM prefix-ով nickname-ները նույնպես պաշտպանված են։
+   Օրինակ՝ 『Aim』MOMPO
+  */
+
+  function normalizeNickname(value) {
+    return String(value || "")
+      .replace(/『Aim』/gi, "")
+      .replace(/[『』]/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toUpperCase();
   }
 
-  function setCookie(lang) {
-    const value = "/" + DEFAULT_LANG + "/" + lang;
+  function isKnownNickname(text) {
+    const clean = normalizeNickname(text);
 
-    document.cookie =
-      "googtrans=" + value +
-      "; path=/; max-age=31536000; SameSite=Lax";
+    if (!clean) return false;
 
-    document.cookie =
-      "_googtrans=" + value +
-      "; path=/; max-age=31536000; SameSite=Lax";
-  }
-
-  function clearCookie() {
-    document.cookie =
-      "googtrans=; path=/; max-age=0; SameSite=Lax";
-
-    document.cookie =
-      "_googtrans=; path=/; max-age=0; SameSite=Lax";
-  }
-
-  function applyGoogle(lang) {
-    if (lang === DEFAULT_LANG) {
-      clearCookie();
-      location.reload();
-      return;
+    if (NICKNAMES.has(clean)) {
+      return true;
     }
 
-    setCookie(lang);
+    /*
+     『Aim』MOMPO
+     『Aim』DOMPO
+     『Aim』KØKØ
+     և այլն
+    */
+    if (/^AIM[\s:_-]*[A-Z0-9ØÆツ『』]+$/i.test(clean)) {
+      const withoutAim = clean
+        .replace(/^AIM[\s:_-]*/i, "")
+        .trim();
 
-    let tries = 0;
-
-    const timer = setInterval(function () {
-      tries++;
-
-      const select = document.querySelector(".goog-te-combo");
-
-      if (select) {
-        select.value = lang;
-
-        select.dispatchEvent(
-          new Event("change", {
-            bubbles: true
-          })
-        );
-
-        clearInterval(timer);
-        return;
-      }
-
-      if (tries >= 50) {
-        clearInterval(timer);
-        location.reload();
-      }
-
-    }, 100);
-  }
-
-  function choose(lang) {
-    if (!LANGS.some(function (x) {
-      return x[0] === lang;
-    })) {
-      lang = DEFAULT_LANG;
-    }
-
-    localStorage.setItem(KEY, lang);
-
-    if (lang === DEFAULT_LANG) {
-      clearCookie();
-      location.reload();
-    } else {
-      setCookie(lang);
-
-      const select =
-        document.querySelector(".goog-te-combo");
-
-      if (select) {
-        select.value = lang;
-
-        select.dispatchEvent(
-          new Event("change", {
-            bubbles: true
-          })
-        );
-      } else {
-        location.reload();
+      if (NICKNAMES.has(withoutAim)) {
+        return true;
       }
     }
+
+    return false;
   }
 
-  function addStyle() {
-    if (
-      document.getElementById(
-        "aimrelax-lang-style"
-      )
-    ) {
-      return;
+  /*
+   Եթե nickname-ը գտնվում է նման տարրի մեջ,
+   նույնպես երբեք չի թարգմանվում։
+  */
+
+  const NICKNAME_PARENT_SELECTORS = [
+    ".nickname",
+    ".player-name",
+    ".username",
+    ".chat-nickname",
+    ".friend-nickname",
+    ".player-nickname",
+
+    "[data-nickname]",
+    "[data-player-name]",
+    "[data-username]",
+
+    '[class*="nickname"]',
+    '[class*="player-name"]',
+    '[class*="username"]',
+    '[class*="friend-name"]',
+    '[id*="nickname"]',
+    '[id*="player-name"]',
+    '[id*="username"]'
+  ];
+
+  function isNicknameElement(element) {
+    if (!element || element.nodeType !== 1) {
+      return false;
     }
 
-    const s = document.createElement("style");
-
-    s.id = "aimrelax-lang-style";
-
-    s.textContent = `
-      #aimrelax-language-box {
-        position: fixed !important;
-        top: 10px !important;
-        right: 10px !important;
-        z-index: 2147483647 !important;
-
-        background: rgba(12,12,12,.96);
-
-        border: 1px solid #ff7200;
-
-        border-radius: 9px;
-
-        padding: 4px;
-
-        box-shadow:
-          0 4px 18px rgba(0,0,0,.45);
-      }
-
-      #aimrelax-language-select {
-        background: #111 !important;
-
-        color: #fff !important;
-
-        border: 0 !important;
-
-        border-radius: 6px;
-
-        padding: 7px 8px;
-
-        font-size: 12px;
-
-        font-weight: 700;
-
-        outline: none;
-      }
-
-      #aimrelax-language-select option {
-        background: #111;
-
-        color: #fff;
-      }
-
-      .goog-te-banner-frame,
-      .skiptranslate iframe {
-        display: none !important;
-      }
-
-      body {
-        top: 0 !important;
-      }
-
-      .goog-logo-link,
-      .goog-te-gadget span {
-        display: none !important;
-      }
-
-      #google_translate_element {
-        position: fixed !important;
-
-        left: -10000px !important;
-        top: -10000px !important;
-
-        width: 1px !important;
-        height: 1px !important;
-
-        overflow: hidden !important;
-      }
-
-      @media (max-width: 650px) {
-
-        #aimrelax-language-box {
-          top: 7px !important;
-          right: 7px !important;
-        }
-
-        #aimrelax-language-select {
-          font-size: 11px;
-
-          padding: 6px;
-        }
-      }
-    `;
-
-    document.head.appendChild(s);
-  }
-
-  function addUI() {
-    if (
-      document.getElementById(
-        "aimrelax-language-box"
-      )
-    ) {
-      return;
-    }
-
-    const box = document.createElement("div");
-
-    box.id = "aimrelax-language-box";
-
-    const select =
-      document.createElement("select");
-
-    select.id =
-      "aimrelax-language-select";
-
-    LANGS.forEach(function (x) {
-
-      const option =
-        document.createElement("option");
-
-      option.value = x[0];
-
-      option.textContent = x[1];
-
-      select.appendChild(option);
-
-    });
-
-    select.value = getLang();
-
-    select.addEventListener(
-      "change",
-      function () {
-
-        choose(this.value);
-
-      }
-    );
-
-    box.appendChild(select);
-
-    document.body.appendChild(box);
-
-    const hidden =
-      document.createElement("div");
-
-    hidden.id =
-      "google_translate_element";
-
-    document.body.appendChild(hidden);
-  }
-
-  window.googleTranslateElementInit =
-    function () {
-
+    /*
+     Առաջինը՝ class/id/data attribute-ներով։
+    */
+    for (const selector of NICKNAME_PARENT_SELECTORS) {
       try {
-
-        new google.translate.TranslateElement(
-          {
-            pageLanguage: DEFAULT_LANG,
-
-            includedLanguages:
-              "hy,ru,en",
-
-            autoDisplay: false,
-
-            multilanguagePage: true
-          },
-
-          "google_translate_element"
-        );
-
-        const wanted = getLang();
-
-        if (wanted !== DEFAULT_LANG) {
-
-          setTimeout(
-            function () {
-              applyGoogle(wanted);
-            },
-            800
-          );
-
+        if (element.matches(selector) || element.closest(selector)) {
+          return true;
         }
-
-      } catch (e) {
-
-        console.error(
-          "AIMRELAX language error:",
-          e
-        );
-
-      }
-
-    };
-
-  function loadGoogle() {
-
-    if (getLang() === DEFAULT_LANG) {
-      return;
+      } catch (e) {}
     }
 
+    /*
+     Երկրորդը՝ հենց տեքստով։
+    */
+    const text = element.textContent?.trim();
+
+    if (text && isKnownNickname(text)) {
+      return true;
+    }
+
+    /*
+     Եթե element-ի մեջ կա միայն մեկ text node
+     և դրա արժեքը nickname է։
+    */
     if (
-      document.getElementById(
-        "aimrelax-google-script"
-      )
+      element.childNodes &&
+      element.childNodes.length === 1 &&
+      element.firstChild.nodeType === Node.TEXT_NODE
     ) {
-      return;
+      if (isKnownNickname(element.firstChild.nodeValue)) {
+        return true;
+      }
     }
 
-    const s =
-      document.createElement("script");
-
-    s.id =
-      "aimrelax-google-script";
-
-    s.src =
-      "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
-
-    s.async = true;
-
-    document.head.appendChild(s);
+    return false;
   }
 
-  function boot() {
+  function isNicknameTextNode(node) {
+    if (!node || node.nodeType !== Node.TEXT_NODE) {
+      return false;
+    }
 
-    addStyle();
+    const text = node.nodeValue || "";
+    const clean = text.trim();
 
-    addUI();
+    if (isKnownNickname(clean)) {
+      return true;
+    }
 
-    loadGoogle();
+    const parent = node.parentElement;
 
+    if (parent && isNicknameElement(parent)) {
+      return true;
+    }
+
+    /*
+     Հենց AIM nickname-ը text node-ի մեջ լինի։
+    */
+    if (/『Aim』/i.test(clean)) {
+      const withoutAim = clean
+        .replace(/『Aim』/gi, "")
+        .trim();
+
+      if (isKnownNickname(withoutAim)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
-  if (
-    document.readyState === "loading"
-  ) {
+  /*
+   ============================================================
+   TRANSLATIONS
+   ============================================================
+  */
 
-    document.addEventListener(
-      "DOMContentLoaded",
-      boot,
-      { once: true }
-    );
+  const T = {
 
-  } else {
+    "Մուտք": {
+      ru: "Войти",
+      en: "Login"
+    },
 
-    boot();
+    "Գրանցում": {
+      ru: "Регистрация",
+      en: "Register"
+    },
 
-  }
+    "Մուտք / Գրանցում": {
+      ru: "Вход / Регистрация",
+      en: "Login / Register"
+    },
 
-  window.AIMRELAX_LANGUAGE = {
+    "Մուտք գործել": {
+      ru: "Войти",
+      en: "Sign in"
+    },
 
-    get: getLang,
+    "Գրանցվել": {
+      ru: "Зарегистрироваться",
+      en: "Sign up"
+    },
 
-    set: choose,
+    "Դուրս գալ": {
+      ru: "Выйти",
+      en: "Logout"
+    },
 
-    languages: LANGS
+    "Պրոֆիլ": {
+      ru: "Профиль",
+      en: "Profile"
+    },
 
-  };
+    "Կարգավորումներ": {
+      ru: "Настройки",
+      en: "Settings"
+    },
 
-})();
+    "Ընկերներ": {
+      ru: "Друзья",
+      en: "Friends"
+    },
+
+    "Խմբեր": {
+      ru: "Группы",
+      en: "Groups"
+    },
+
+    "Խումբ": {
+      ru: "Группа",
+      en: "Group"
+    },
+
+    "Չատ": {
+      ru: "Чат",
+      en: "Chat"
+    },
+
+    "Անձնական չատ": {
+      ru: "Личный чат",
+      en: "Private chat"
+    },
+
+    "Խմբային չատ": {
+      ru: "Групповой чат",
+      en: "Group chat"
+    },
+
+    "Ուղարկել": {
+      ru: "Отправить",
+      en: "Send"
+    },
+
+    "Ջնջել": {
+      ru: "Удалить",
+      en: "Delete"
+    },
+
+    "Փակել": {
+      ru: "Закрыть",
+      en: "Close"
+    },
+
+    "Հաստատել": {
+      ru: "Подтвердить",
+      en: "Confirm"
+    },
+
+    "Չեղարկել": {
+      ru: "Отмена",
+      en: "Cancel"
+    },
+
+   
