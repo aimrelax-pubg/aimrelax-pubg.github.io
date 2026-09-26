@@ -10,7 +10,24 @@
     ["ru", "🇷🇺 Русский"],
     ["en", "🇬🇧 English"]
   ];
+  
+const NEVER_TRANSLATE_SELECTORS = [
+  '.nickname',
+  '.player-name',
+  '.username',
+  '.chat-nickname',
+  '[data-nickname]',
+  '[data-player-name]'
+];
 
+function isNeverTranslate(element) {
+  if (!element || element.nodeType !== 1) return false;
+
+  return NEVER_TRANSLATE_SELECTORS.some(selector =>
+    element.matches(selector) ||
+    element.closest(selector)
+  );
+}
   function getLang() {
     return localStorage.getItem(KEY) || DEFAULT_LANG;
   }
