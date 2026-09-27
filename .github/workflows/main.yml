@@ -1,4 +1,4 @@
-name: AIMRELAX APK
+name: AIMRELAX APK TEST
 
 on:
   workflow_dispatch:
@@ -8,154 +8,79 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
-      # ============================================================
-      # 1. CHECKOUT
-      # ============================================================
       - name: Checkout
         uses: actions/checkout@v4
 
-
-      # ============================================================
-      # 2. NODE
-      # ============================================================
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-
-      # ============================================================
-      # 3. JAVA
-      # ============================================================
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
 
-
-      # ============================================================
-      # 4. NPM
-      # ============================================================
       - name: Initialize npm
         run: npm init -y
 
-
-      # ============================================================
-      # 5. CAPACITOR 7
-      # ============================================================
       - name: Install Capacitor
         run: |
           npm install @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
 
-
-      # ============================================================
-      # 6. PREPARE WEBSITE
-      # ============================================================
-      - name: Prepare web files
+      - name: Prepare test page
         run: |
-          set -e
-
           rm -rf www
-          mkdir -p www
+          mkdir www
 
-          cp index.html www/
+          cat > www/index.html <<'EOF'
+          <!doctype html>
+          <html>
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>AIMRELAX TEST</title>
+          </head>
 
-          cp sw.js www/ 2>/dev/null || true
-          cp manifest.json www/ 2>/dev/null || true
+          <body style="margin:0;background:#111;color:white;font-family:Arial;text-align:center;padding-top:100px">
 
-          echo "===== WWW FILES ====="
-          find www -maxdepth 1 -type f -print
+            <h1>AIMRELAX APK</h1>
 
+            <h2>WebView TEST OK</h2>
 
-      # ============================================================
-      # 7. REMOVE OLD CAPACITOR CONFIG
-      # ============================================================
-      - name: Remove old Capacitor configs
-        run: |
-          rm -f capacitor.config.json
-          rm -f capacitor.config.js
-          true
+            <p>Եթե սա տեսնում ես, Android APK-ն ճիշտ է բացում HTML-ը։</p>
 
+          </body>
+          </html>
+          EOF
 
-      # ============================================================
-      # 8. CREATE CAPACITOR CONFIG
-      # ============================================================
       - name: Create Capacitor config
         run: |
-          printf '%s\n' \
-            '{' \
-            '  "appId": "com.aimrelax.pubg",' \
-            '  "appName": "AIMRELAX PUBG",' \
-            '  "webDir": "www"' \
-            '}' > capacitor.config.json
+          cat > capacitor.config.json <<'EOF'
+          {
+            "appId": "com.aimrelax.pubg",
+            "appName": "AIMRELAX PUBG",
+            "webDir": "www"
+          }
+          EOF
 
-          echo "===== CAPACITOR CONFIG ====="
-          cat capacitor.config.json
-
-
-      # ============================================================
-      # 9. VERIFY CONFIG
-      # ============================================================
-      - name: Verify config
-        run: |
-          set -e
-
-          echo "===== CONFIG FILE ====="
-          find . -maxdepth 1 -type f -name 'capacitor.config.*' -print
-
-          echo "===== CONFIG CONTENT ====="
-          cat capacitor.config.json
-
-
-      # ============================================================
-      # 10. ADD ANDROID
-      # ============================================================
       - name: Add Android
         run: |
           npx cap add android
 
-
-      # ============================================================
-      # 11. SYNC ANDROID
-      # ============================================================
       - name: Sync Android
         run: |
           npx cap sync android
 
-
-      # ============================================================
-      # 12. VERIFY WEBSITE INSIDE APK
-      # ============================================================
-      - name: Verify website assets
-        run: |
-          set -e
-
-          echo "===== ANDROID WEBSITE ====="
-
-          test -f android/app/src/main/assets/public/index.html
-
-          ls -lh android/app/src/main/assets/public/
-
-          echo "AIMRELAX index.html is inside Android assets."
-
-
-      # ============================================================
-      # 13. BUILD APK
-      # ============================================================
       - name: Build APK
         working-directory: android
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug
 
-
-      # ============================================================
-      # 14. UPLOAD APK
-      # ============================================================
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: AIMRELAX-APK
+          name: AIMRELAX-APK-TEST
           path: android/app/build/outputs/apk/debug/app-debug.apk
