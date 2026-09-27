@@ -51,7 +51,7 @@ jobs:
 
 
       # ==================================================
-      # 6. WEBSITE FILES
+      # 6. WEBSITE
       # ==================================================
       - name: Prepare web files
         shell: bash
@@ -89,9 +89,6 @@ jobs:
           }
           EOF
 
-          echo "===== CAPACITOR CONFIG ====="
-          cat capacitor.config.json
-
 
       # ==================================================
       # 8. CREATE ANDROID
@@ -102,7 +99,7 @@ jobs:
 
 
       # ==================================================
-      # 9. ADD JITPACK
+      # 9. JITPACK
       # ==================================================
       - name: Configure JitPack
         shell: bash
@@ -149,7 +146,7 @@ jobs:
 
           p.write_text(s)
 
-          print("===== FINAL android/build.gradle =====")
+          print("===== android/build.gradle =====")
           print(s)
 
           if "jitpack.io" not in s:
@@ -160,7 +157,7 @@ jobs:
 
 
       # ==================================================
-      # 10. ADD LIVEKIT
+      # 10. LIVEKIT
       # ==================================================
       - name: Add LiveKit dependency
         shell: bash
@@ -188,9 +185,7 @@ jobs:
 
               s = s.replace(
                   marker,
-                  marker
-                  + "\n    "
-                  + dependency,
+                  marker + "\n    " + dependency,
                   1
               )
 
@@ -202,7 +197,7 @@ jobs:
 
 
       # ==================================================
-      # 11. CREATE NATIVE MAIN ACTIVITY
+      # 11. MAIN ACTIVITY
       # ==================================================
       - name: Create native MainActivity
         shell: bash
@@ -218,7 +213,6 @@ jobs:
           cat > \
             android/app/src/main/java/com/aimrelax/pubg/MainActivity.kt \
             <<'KOTLIN'
-
           package com.aimrelax.pubg
 
           import android.app.Activity
@@ -233,30 +227,22 @@ jobs:
           import io.livekit.android.room.Room
           import io.livekit.android.room.track.screencapture.ScreenCaptureParams
 
-
           class MainActivity : BridgeActivity() {
 
               private lateinit var room: Room
 
               private val SCREEN_CAPTURE_REQUEST = 9001
 
-
-              override fun onCreate(
-                  savedInstanceState: Bundle?
-              ) {
-
+              override fun onCreate(savedInstanceState: Bundle?) {
                   super.onCreate(savedInstanceState)
 
-                  room = LiveKit.create(
-                      applicationContext
-                  )
+                  room = LiveKit.create(applicationContext)
 
                   bridge.webView.addJavascriptInterface(
                       AndroidBridge(),
                       "AIMRELAX_NATIVE"
                   )
               }
-
 
               inner class AndroidBridge {
 
@@ -265,37 +251,25 @@ jobs:
                       return true
                   }
 
-
                   @JavascriptInterface
                   fun startLiveKit(
                       serverUrl: String,
                       token: String
                   ) {
-
-                      runOnUiThread {
-
-                          Thread {
-
-                              try {
-
-                                  room.connect(
-                                      serverUrl,
-                                      token
-                                  )
-
-                              } catch (e: Exception) {
-
-                                  e.printStackTrace()
-                              }
-
-                          }.start()
-                      }
+                      Thread {
+                          try {
+                              room.connect(
+                                  serverUrl,
+                                  token
+                              )
+                          } catch (e: Exception) {
+                              e.printStackTrace()
+                          }
+                      }.start()
                   }
-
 
                   @JavascriptInterface
                   fun startScreenShare() {
-
                       runOnUiThread {
 
                           try {
@@ -305,10 +279,8 @@ jobs:
                                       MEDIA_PROJECTION_SERVICE
                                   ) as MediaProjectionManager
 
-
                               val intent =
                                   manager.createScreenCaptureIntent()
-
 
                               startActivityForResult(
                                   intent,
@@ -316,67 +288,49 @@ jobs:
                               )
 
                           } catch (e: Exception) {
-
                               e.printStackTrace()
                           }
                       }
                   }
-
 
                   @JavascriptInterface
                   fun stopScreenShare() {
-
                       runOnUiThread {
-
                           try {
-
                               room.localParticipant
                                   .setScreenShareEnabled(false)
-
                           } catch (e: Exception) {
-
                               e.printStackTrace()
                           }
                       }
                   }
 
-
                   @JavascriptInterface
                   fun disconnectLiveKit() {
-
                       runOnUiThread {
-
                           try {
-
                               room.disconnect()
-
                           } catch (e: Exception) {
-
                               e.printStackTrace()
                           }
                       }
                   }
               }
 
-
               override fun onActivityResult(
                   requestCode: Int,
                   resultCode: Int,
                   data: Intent?
               ) {
-
                   super.onActivityResult(
                       requestCode,
                       resultCode,
                       data
                   )
 
-
                   if (
-                      requestCode ==
-                      SCREEN_CAPTURE_REQUEST &&
-                      resultCode ==
-                      Activity.RESULT_OK &&
+                      requestCode == SCREEN_CAPTURE_REQUEST &&
+                      resultCode == Activity.RESULT_OK &&
                       data != null
                   ) {
 
@@ -384,10 +338,8 @@ jobs:
 
                           val params =
                               ScreenCaptureParams(
-                                  mediaProjectionPermissionResultData =
-                                      data
+                                  mediaProjectionPermissionResultData = data
                               )
-
 
                           room.localParticipant
                               .setScreenShareEnabled(
@@ -396,12 +348,10 @@ jobs:
                               )
 
                       } catch (e: Exception) {
-
                           e.printStackTrace()
                       }
                   }
               }
-
 
               override fun onDestroy() {
 
@@ -413,20 +363,20 @@ jobs:
                   super.onDestroy()
               }
           }
-
           KOTLIN
 
 
       # ==================================================
-      # 12. ADD ANDROID PERMISSIONS
+      # 12. SAFE MANIFEST EDIT
       # ==================================================
-      - name: Add Android permissions
+      - name: Configure Android Manifest
         shell: bash
         run: |
           set -e
 
           python3 <<'PY'
           from pathlib import Path
+          import re
 
           p = Path(
               "android/app/src/main/AndroidManifest.xml"
@@ -434,48 +384,119 @@ jobs:
 
           s = p.read_text()
 
+          print("===== ORIGINAL MANIFEST =====")
+          print(s)
+          print("=============================")
+
+          # ------------------------------------------------
+          # Find the complete opening <manifest ...> tag.
+          # This handles attributes spread over multiple lines.
+          # ------------------------------------------------
+          match = re.search(
+              r'<manifest\b[^>]*>',
+              s,
+              re.DOTALL
+          )
+
+          if not match:
+              raise SystemExit(
+                  "ERROR: <manifest> opening tag not found"
+              )
+
+          manifest_tag = match.group(0)
+
+          # ------------------------------------------------
+          # Guarantee Android namespace.
+          # ------------------------------------------------
+          if "xmlns:android=" not in manifest_tag:
+
+              manifest_tag = manifest_tag[:-1]
+
+              manifest_tag += (
+                  ' xmlns:android='
+                  '"http://schemas.android.com/apk/res/android">'
+              )
+
+          # ------------------------------------------------
+          # Remove our permissions if they somehow exist.
+          # ------------------------------------------------
+          permission_lines = [
+              '<uses-permission android:name="android.permission.INTERNET" />',
+              '<uses-permission android:name="android.permission.RECORD_AUDIO" />',
+              '<uses-permission android:name="android.permission.CAMERA" />'
+          ]
+
+          for line in permission_lines:
+              s = s.replace(line, "")
+
+          # ------------------------------------------------
+          # Replace only the opening manifest tag.
+          # ------------------------------------------------
+          s = (
+              s[:match.start()]
+              + manifest_tag
+              + s[match.end():]
+          )
+
+          # ------------------------------------------------
+          # Insert permissions AFTER the manifest opening tag.
+          # ------------------------------------------------
           permissions = """
               <uses-permission android:name="android.permission.INTERNET" />
               <uses-permission android:name="android.permission.RECORD_AUDIO" />
               <uses-permission android:name="android.permission.CAMERA" />
           """.strip()
 
-          # Remove any previously inserted copies.
-          for line in [
-              '<uses-permission android:name="android.permission.INTERNET" />',
-              '<uses-permission android:name="android.permission.RECORD_AUDIO" />',
-              '<uses-permission android:name="android.permission.CAMERA" />'
-          ]:
-              s = s.replace(line, "")
+          new_match = re.search(
+              r'<manifest\b[^>]*>',
+              s,
+              re.DOTALL
+          )
 
-          # Find the opening <manifest ...> tag safely.
-          manifest_end = s.find(">")
+          insert_position = new_match.end()
 
-          if manifest_end == -1:
-              raise SystemExit(
-                  "ERROR: Cannot find opening <manifest> tag"
-              )
-
-          # Insert permissions immediately after <manifest ...>
           s = (
-              s[:manifest_end + 1]
+              s[:insert_position]
               + "\n"
               + permissions
               + "\n"
-              + s[manifest_end + 1:]
+              + s[insert_position:]
           )
 
           p.write_text(s)
 
           print("")
-          print("===== FINAL AndroidManifest.xml =====")
+          print("===== FINAL MANIFEST =====")
           print(s)
-          print("=====================================")
+          print("==========================")
+
+          # ------------------------------------------------
+          # Basic required checks
+          # ------------------------------------------------
+          if "xmlns:android=" not in s:
+              raise SystemExit(
+                  "ERROR: android namespace missing"
+              )
+
+          if "android.permission.INTERNET" not in s:
+              raise SystemExit(
+                  "ERROR: INTERNET permission missing"
+              )
+
+          if "android.permission.RECORD_AUDIO" not in s:
+              raise SystemExit(
+                  "ERROR: RECORD_AUDIO permission missing"
+              )
+
+          if "android.permission.CAMERA" not in s:
+              raise SystemExit(
+                  "ERROR: CAMERA permission missing"
+              )
           PY
 
 
       # ==================================================
-      # 13. VALIDATE MANIFEST
+      # 13. VALIDATE MANIFEST XML
       # ==================================================
       - name: Validate AndroidManifest XML
         shell: bash
@@ -485,11 +506,15 @@ jobs:
           python3 <<'PY'
           import xml.etree.ElementTree as ET
 
-          path = "android/app/src/main/AndroidManifest.xml"
+          path = (
+              "android/app/src/main/AndroidManifest.xml"
+          )
 
           ET.parse(path)
 
-          print("AndroidManifest.xml XML is VALID")
+          print(
+              "SUCCESS: AndroidManifest.xml is valid XML"
+          )
           PY
 
 
@@ -502,7 +527,7 @@ jobs:
 
 
       # ==================================================
-      # 15. VERIFY CONFIG
+      # 15. VERIFY
       # ==================================================
       - name: Verify configuration
         shell: bash
@@ -542,8 +567,20 @@ jobs:
           echo "MainActivity.kt OK"
 
 
+          echo ""
+          echo "======================================"
+          echo "MANIFEST"
+          echo "======================================"
+
+          grep -n "uses-permission" \
+            android/app/src/main/AndroidManifest.xml
+
+          grep -n "xmlns:android" \
+            android/app/src/main/AndroidManifest.xml
+
+
       # ==================================================
-      # 16. BUILD APK
+      # 16. BUILD
       # ==================================================
       - name: Build APK
         working-directory: android
@@ -554,7 +591,7 @@ jobs:
 
 
       # ==================================================
-      # 17. UPLOAD APK
+      # 17. UPLOAD
       # ==================================================
       - name: Upload APK
         uses: actions/upload-artifact@v4
