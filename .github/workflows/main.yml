@@ -9,107 +9,137 @@ jobs:
 
     steps:
 
-      # ============================================================
-      # 1. CHECKOUT
-      # ============================================================
       - name: Checkout
         uses: actions/checkout@v4
 
-
-      # ============================================================
-      # 2. NODE
-      # ============================================================
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-
-      # ============================================================
-      # 3. JAVA
-      # ============================================================
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
 
-
-      # ============================================================
-      # 4. NPM
-      # ============================================================
-      - name: Initialize npm
-        run: npm init -y
-
-
-      # ============================================================
-      # 5. CAPACITOR
-      # ============================================================
-      - name: Install Capacitor
+      - name: Initialize Gradle project
         run: |
-          npm install @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
+          mkdir -p android/app/src/main/java/com/aimrelax/pubg
+          mkdir -p android/app/src/main/res/mipmap-hdpi
+          mkdir -p android/app/src/main/res/mipmap-mdpi
+          mkdir -p android/app/src/main/res/mipmap-xhdpi
+          mkdir -p android/app/src/main/res/mipmap-xxhdpi
+          mkdir -p android/app/src/main/res/mipmap-xxxhdpi
 
-
-      # ============================================================
-      # 6. PREPARE REAL AIMRELAX WEBSITE
-      # ============================================================
-      - name: Prepare web files
+      - name: Create settings.gradle
         run: |
-          set -e
+          cat > settings.gradle <<'EOF'
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
 
-          rm -rf www
-          mkdir -p www
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
 
-          # REAL AIMRELAX WEBSITE
-          cp index.html www/
+          rootProject.name = "AIMRELAX"
+          include(":app")
+          EOF
 
-          # Optional files
-          cp sw.js www/ 2>/dev/null || true
-          cp manifest.json www/ 2>/dev/null || true
-
-          echo "===== WWW FILES ====="
-          find www -maxdepth 1 -type f -print
-
-          echo "===== INDEX SIZE ====="
-          wc -c www/index.html
-
-
-      # ============================================================
-      # 7. CAPACITOR CONFIG
-      # ============================================================
-      - name: Create Capacitor config
+      - name: Create root build.gradle
         run: |
-          cat > capacitor.config.json <<'EOF'
-          {
-            "appId": "com.aimrelax.pubg",
-            "appName": "AIMRELAX PUBG",
-            "webDir": "www"
+          cat > build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application' version '8.7.3' apply false
           }
           EOF
 
-          cat capacitor.config.json
-
-
-      # ============================================================
-      # 8. ADD ANDROID
-      # ============================================================
-      - name: Add Android
+      - name: Create gradle.properties
         run: |
-          npx cap add android
+          cat > gradle.properties <<'EOF'
+          android.useAndroidX=true
+          android.nonTransitiveRClass=true
+          EOF
 
-
-      # ============================================================
-      # 9. CREATE SIMPLE WEBVIEW ACTIVITY
-      # ============================================================
-      - name: Create WebView MainActivity
+      - name: Create app build.gradle
         run: |
-          set -e
+          cat > android/app/build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application'
+          }
 
-          rm -f android/app/src/main/java/com/aimrelax/pubg/MainActivity.java
-          rm -f android/app/src/main/java/com/aimrelax/pubg/MainActivity.kt
+          android {
+              namespace 'com.aimrelax.pubg'
+              compileSdk 35
 
-          mkdir -p android/app/src/main/java/com/aimrelax/pubg
+              defaultConfig {
+                  applicationId 'com.aimrelax.pubg'
+                  minSdk 23
+                  targetSdk 35
+                  versionCode 1
+                  versionName '1.0'
+              }
+          }
+          EOF
 
+      - name: Create AndroidManifest.xml
+        run: |
+          cat > android/app/src/main/AndroidManifest.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+              <uses-permission android:name="android.permission.INTERNET" />
+
+              <application
+                  android:allowBackup="true"
+                  android:label="AIMRELAX PUBG"
+                  android:usesCleartextTraffic="false"
+                  android:theme="@style/AppTheme">
+
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true">
+
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+
+                  </activity>
+
+              </application>
+
+          </manifest>
+          EOF
+
+      - name: Create styles.xml
+        run: |
+          mkdir -p android/app/src/main/res/values
+
+          cat > android/app/src/main/res/values/styles.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+
+          <resources>
+
+              <style name="AppTheme"
+                  parent="android:style/Theme.Material.Light.NoActionBar">
+
+                  <item name="android:fontFamily">sans</item>
+                  <item name="android:windowActionModeOverlay">true</item>
+                  <item name="android:colorAccent">#ff6a00</item>
+
+              </style>
+
+          </resources>
+          EOF
+
+      - name: Create MainActivity
+        run: |
           cat > android/app/src/main/java/com/aimrelax/pubg/MainActivity.java <<'JAVA'
           package com.aimrelax.pubg;
 
@@ -118,6 +148,8 @@ jobs:
           import android.webkit.WebSettings;
           import android.webkit.WebView;
           import android.webkit.WebViewClient;
+          import android.webkit.WebChromeClient;
+          import android.webkit.CookieManager;
 
           public class MainActivity extends Activity {
 
@@ -133,16 +165,31 @@ jobs:
 
                   settings.setJavaScriptEnabled(true);
                   settings.setDomStorageEnabled(true);
+                  settings.setDatabaseEnabled(true);
 
-                  settings.setAllowFileAccess(true);
+                  settings.setAllowFileAccess(false);
                   settings.setAllowContentAccess(true);
 
-                  settings.setDatabaseEnabled(true);
+                  settings.setJavaScriptCanOpenWindowsAutomatically(true);
+                  settings.setSupportMultipleWindows(true);
+
+                  settings.setMediaPlaybackRequiresUserGesture(false);
+
+                  CookieManager cookieManager =
+                      CookieManager.getInstance();
+
+                  cookieManager.setAcceptCookie(true);
+                  cookieManager.setAcceptThirdPartyCookies(
+                      webView,
+                      true
+                  );
 
                   webView.setWebViewClient(new WebViewClient());
 
+                  webView.setWebChromeClient(new WebChromeClient());
+
                   webView.loadUrl(
-                      "file:///android_asset/public/index.html"
+                      "https://aimrelax-pubg.github.io/"
                   );
 
                   setContentView(webView);
@@ -160,119 +207,18 @@ jobs:
           }
           JAVA
 
-
-      # ============================================================
-      # 10. MANIFEST
-      # ============================================================
-      - name: Configure Manifest
+      - name: Setup Gradle
         run: |
-          set -e
+          gradle wrapper --gradle-version 8.10.2
 
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-          import xml.etree.ElementTree as ET
-
-          p = Path("android/app/src/main/AndroidManifest.xml")
-
-          text = p.read_text()
-
-          # Android namespace
-          if "xmlns:android=" not in text:
-              text = re.sub(
-                  r"<manifest\b",
-                  '<manifest xmlns:android="http://schemas.android.com/apk/res/android"',
-                  text,
-                  count=1
-              )
-
-          # Internet permission
-          if "android.permission.INTERNET" not in text:
-
-              m = re.search(
-                  r"<manifest\b[^>]*>",
-                  text,
-                  flags=re.DOTALL
-              )
-
-              if not m:
-                  raise SystemExit("Manifest opening tag not found")
-
-              text = (
-                  text[:m.end()]
-                  + '\n    <uses-permission android:name="android.permission.INTERNET" />'
-                  + text[m.end():]
-              )
-
-          p.write_text(text)
-
-          # Validate XML
-          ET.parse(p)
-
-          print("Manifest XML: OK")
-          PY
-
-          echo "===== MANIFEST ====="
-          cat android/app/src/main/AndroidManifest.xml
-
-
-      # ============================================================
-      # 11. SYNC
-      # ============================================================
-      - name: Sync Android
-        run: |
-          npx cap sync android
-
-
-      # ============================================================
-      # 12. VERIFY REAL WEBSITE
-      # ============================================================
-      - name: Verify real website
-        run: |
-          set -e
-
-          echo "===== ANDROID WEB ASSETS ====="
-
-          test -f android/app/src/main/assets/public/index.html
-
-          echo "index.html found."
-
-          wc -c android/app/src/main/assets/public/index.html
-
-          echo "===== FIRST LINES ====="
-
-          head -n 10 \
-            android/app/src/main/assets/public/index.html
-
-
-      # ============================================================
-      # 13. VERIFY MAIN ACTIVITY
-      # ============================================================
-      - name: Verify MainActivity
-        run: |
-          set -e
-
-          test -f \
-            android/app/src/main/java/com/aimrelax/pubg/MainActivity.java
-
-          echo "MainActivity.java found."
-
-
-      # ============================================================
-      # 14. BUILD APK
-      # ============================================================
       - name: Build APK
         working-directory: android
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug
 
-
-      # ============================================================
-      # 15. UPLOAD APK
-      # ============================================================
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: AIMRELAX-APK
+          name: AIMRELAX-APK-HTTPS
           path: android/app/build/outputs/apk/debug/app-debug.apk
