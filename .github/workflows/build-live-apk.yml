@@ -351,6 +351,7 @@ jobs:
           import android.graphics.Color
           import android.media.projection.MediaProjectionManager
           import android.os.Bundle
+          import androidx.activity.result.contract.ActivityResultContracts
           import android.webkit.CookieManager
           import android.webkit.JavascriptInterface
           import android.webkit.WebChromeClient
