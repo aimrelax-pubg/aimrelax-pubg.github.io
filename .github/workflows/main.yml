@@ -66,7 +66,7 @@ jobs:
           cp sw.js www/ 2>/dev/null || true
           cp manifest.json www/ 2>/dev/null || true
 
-          echo "===== WWW ====="
+          echo "===== WWW FILES ====="
           find www -maxdepth 1 -type f -print
 
 
@@ -89,7 +89,7 @@ jobs:
           }
           EOF
 
-          echo "===== capacitor.config.json ====="
+          echo "===== CAPACITOR CONFIG ====="
           cat capacitor.config.json
 
 
@@ -102,8 +102,7 @@ jobs:
 
 
       # ==================================================
-      # 9. ADD JITPACK TO THE REAL CAPACITOR
-      #    android/build.gradle
+      # 9. ADD JITPACK
       # ==================================================
       - name: Configure JitPack
         shell: bash
@@ -118,24 +117,13 @@ jobs:
 
           jitpack = 'maven { url "https://jitpack.io" }'
 
-          print("")
-          print("===== ORIGINAL android/build.gradle =====")
-          print(s)
-          print("==========================================")
-
-          # ------------------------------------------
-          # If JitPack already exists, don't duplicate
-          # ------------------------------------------
           if "jitpack.io" not in s:
 
-              # --------------------------------------
-              # Find allprojects { repositories {
-              # --------------------------------------
               allprojects_pos = s.find("allprojects")
 
               if allprojects_pos == -1:
                   raise SystemExit(
-                      "ERROR: allprojects block not found in android/build.gradle"
+                      "ERROR: allprojects block not found"
                   )
 
               repositories_pos = s.find(
@@ -145,10 +133,12 @@ jobs:
 
               if repositories_pos == -1:
                   raise SystemExit(
-                      "ERROR: allprojects repositories block not found"
+                      "ERROR: repositories block not found"
                   )
 
-              insert_pos = repositories_pos + len("repositories {")
+              insert_pos = repositories_pos + len(
+                  "repositories {"
+              )
 
               s = (
                   s[:insert_pos]
@@ -159,14 +149,12 @@ jobs:
 
           p.write_text(s)
 
-          print("")
           print("===== FINAL android/build.gradle =====")
           print(s)
-          print("======================================")
 
           if "jitpack.io" not in s:
               raise SystemExit(
-                  "ERROR: JitPack was NOT added"
+                  "ERROR: JitPack was not added"
               )
           PY
 
@@ -185,7 +173,9 @@ jobs:
           p = Path("android/app/build.gradle")
           s = p.read_text()
 
-          dependency = 'implementation("io.livekit:livekit-android:2.29.0")'
+          dependency = (
+              'implementation("io.livekit:livekit-android:2.29.0")'
+          )
 
           if "io.livekit:livekit-android" not in s:
 
@@ -193,37 +183,42 @@ jobs:
 
               if marker not in s:
                   raise SystemExit(
-                      "ERROR: dependencies block not found in android/app/build.gradle"
+                      "ERROR: dependencies block not found"
                   )
 
               s = s.replace(
                   marker,
-                  marker + "\n    " + dependency,
+                  marker
+                  + "\n    "
+                  + dependency,
                   1
               )
 
           p.write_text(s)
 
-          print("")
-          print("===== LIVEKIT DEPENDENCY =====")
+          print("===== LIVEKIT =====")
           print(dependency)
-          print("==============================")
           PY
 
 
       # ==================================================
-      # 11. NATIVE MAIN ACTIVITY
+      # 11. CREATE NATIVE MAIN ACTIVITY
       # ==================================================
       - name: Create native MainActivity
         shell: bash
         run: |
           set -e
 
-          mkdir -p android/app/src/main/java/com/aimrelax/pubg
+          mkdir -p \
+            android/app/src/main/java/com/aimrelax/pubg
 
-          rm -f android/app/src/main/java/com/aimrelax/pubg/MainActivity.java
+          rm -f \
+            android/app/src/main/java/com/aimrelax/pubg/MainActivity.java
 
-          cat > android/app/src/main/java/com/aimrelax/pubg/MainActivity.kt <<'KOTLIN'
+          cat > \
+            android/app/src/main/java/com/aimrelax/pubg/MainActivity.kt \
+            <<'KOTLIN'
+
           package com.aimrelax.pubg
 
           import android.app.Activity
@@ -238,16 +233,23 @@ jobs:
           import io.livekit.android.room.Room
           import io.livekit.android.room.track.screencapture.ScreenCaptureParams
 
+
           class MainActivity : BridgeActivity() {
 
               private lateinit var room: Room
 
               private val SCREEN_CAPTURE_REQUEST = 9001
 
-              override fun onCreate(savedInstanceState: Bundle?) {
+
+              override fun onCreate(
+                  savedInstanceState: Bundle?
+              ) {
+
                   super.onCreate(savedInstanceState)
 
-                  room = LiveKit.create(applicationContext)
+                  room = LiveKit.create(
+                      applicationContext
+                  )
 
                   bridge.webView.addJavascriptInterface(
                       AndroidBridge(),
@@ -269,9 +271,11 @@ jobs:
                       serverUrl: String,
                       token: String
                   ) {
+
                       runOnUiThread {
 
                           Thread {
+
                               try {
 
                                   room.connect(
@@ -283,6 +287,7 @@ jobs:
 
                                   e.printStackTrace()
                               }
+
                           }.start()
                       }
                   }
@@ -300,8 +305,10 @@ jobs:
                                       MEDIA_PROJECTION_SERVICE
                                   ) as MediaProjectionManager
 
+
                               val intent =
                                   manager.createScreenCaptureIntent()
+
 
                               startActivityForResult(
                                   intent,
@@ -364,9 +371,12 @@ jobs:
                       data
                   )
 
+
                   if (
-                      requestCode == SCREEN_CAPTURE_REQUEST &&
-                      resultCode == Activity.RESULT_OK &&
+                      requestCode ==
+                      SCREEN_CAPTURE_REQUEST &&
+                      resultCode ==
+                      Activity.RESULT_OK &&
                       data != null
                   ) {
 
@@ -374,8 +384,10 @@ jobs:
 
                           val params =
                               ScreenCaptureParams(
-                                  mediaProjectionPermissionResultData = data
+                                  mediaProjectionPermissionResultData =
+                                      data
                               )
+
 
                           room.localParticipant
                               .setScreenShareEnabled(
@@ -401,11 +413,12 @@ jobs:
                   super.onDestroy()
               }
           }
+
           KOTLIN
 
 
       # ==================================================
-      # 12. ANDROID PERMISSIONS
+      # 12. ADD ANDROID PERMISSIONS
       # ==================================================
       - name: Add Android permissions
         shell: bash
@@ -421,45 +434,67 @@ jobs:
 
           s = p.read_text()
 
-          permissions = [
+          permissions = """
+              <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.RECORD_AUDIO" />
+              <uses-permission android:name="android.permission.CAMERA" />
+          """.strip()
+
+          # Remove any previously inserted copies.
+          for line in [
               '<uses-permission android:name="android.permission.INTERNET" />',
               '<uses-permission android:name="android.permission.RECORD_AUDIO" />',
               '<uses-permission android:name="android.permission.CAMERA" />'
-          ]
+          ]:
+              s = s.replace(line, "")
 
+          # Find the opening <manifest ...> tag safely.
           manifest_end = s.find(">")
 
           if manifest_end == -1:
               raise SystemExit(
-                  "ERROR: AndroidManifest.xml is invalid"
+                  "ERROR: Cannot find opening <manifest> tag"
               )
 
-          for permission in permissions:
-
-              if permission not in s:
-
-                  s = (
-                      s[:manifest_end + 1]
-                      + "\n    "
-                      + permission
-                      + s[manifest_end + 1:]
-                  )
-
-                  manifest_end += (
-                      len(permission) + 5
-                  )
+          # Insert permissions immediately after <manifest ...>
+          s = (
+              s[:manifest_end + 1]
+              + "\n"
+              + permissions
+              + "\n"
+              + s[manifest_end + 1:]
+          )
 
           p.write_text(s)
 
           print("")
-          print("===== AndroidManifest.xml =====")
+          print("===== FINAL AndroidManifest.xml =====")
           print(s)
-          print("===============================")
+          print("=====================================")
           PY
 
 
       # ==================================================
-      # 13. CAPACITOR SYNC
+      # 13. VALIDATE MANIFEST
+      # ==================================================
+      - name: Validate AndroidManifest XML
+        shell: bash
+        run: |
+          set -e
+
+          python3 <<'PY'
+          import xml.etree.ElementTree as ET
+
+          path = "android/app/src/main/AndroidManifest.xml"
+
+          ET.parse(path)
+
+          print("AndroidManifest.xml XML is VALID")
+          PY
+
+
+      # ==================================================
+      # 14. CAPACITOR SYNC
       # ==================================================
       - name: Sync Android
         run: |
@@ -467,17 +502,17 @@ jobs:
 
 
       # ==================================================
-      # 14. VERIFY EVERYTHING
+      # 15. VERIFY CONFIG
       # ==================================================
-      - name: Verify Android configuration
+      - name: Verify configuration
         shell: bash
         run: |
           set -e
 
           echo ""
-          echo "=========================================="
+          echo "======================================"
           echo "JITPACK"
-          echo "=========================================="
+          echo "======================================"
 
           grep -Rni "jitpack.io" \
             android/build.gradle \
@@ -487,9 +522,9 @@ jobs:
 
 
           echo ""
-          echo "=========================================="
+          echo "======================================"
           echo "LIVEKIT"
-          echo "=========================================="
+          echo "======================================"
 
           grep -Rni "io.livekit" \
             android/app/build.gradle \
@@ -497,26 +532,18 @@ jobs:
 
 
           echo ""
-          echo "=========================================="
+          echo "======================================"
           echo "MAIN ACTIVITY"
-          echo "=========================================="
+          echo "======================================"
 
           test -f \
             android/app/src/main/java/com/aimrelax/pubg/MainActivity.kt
 
-          echo "MainActivity.kt exists"
-
-
-          echo ""
-          echo "=========================================="
-          echo "ANDROID PROJECT"
-          echo "=========================================="
-
-          ls -la android
+          echo "MainActivity.kt OK"
 
 
       # ==================================================
-      # 15. BUILD APK
+      # 16. BUILD APK
       # ==================================================
       - name: Build APK
         working-directory: android
@@ -527,7 +554,7 @@ jobs:
 
 
       # ==================================================
-      # 16. UPLOAD APK
+      # 17. UPLOAD APK
       # ==================================================
       - name: Upload APK
         uses: actions/upload-artifact@v4
