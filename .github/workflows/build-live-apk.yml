@@ -9,17 +9,17 @@ jobs:
 
     steps:
 
-      # --------------------------------------------------
+      # ==========================================================
       # CHECKOUT
-      # --------------------------------------------------
+      # ==========================================================
 
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
 
-      # --------------------------------------------------
+      # ==========================================================
       # JAVA 17
-      # --------------------------------------------------
+      # ==========================================================
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
@@ -28,9 +28,9 @@ jobs:
           java-version: "17"
 
 
-      # --------------------------------------------------
+      # ==========================================================
       # CREATE ANDROID PROJECT
-      # --------------------------------------------------
+      # ==========================================================
 
       - name: Create Android project
         shell: bash
@@ -41,9 +41,9 @@ jobs:
           mkdir -p android-app/app/src/main/res/values
 
 
-          # ------------------------------------------------
+          # ======================================================
           # GRADLE PROPERTIES
-          # ------------------------------------------------
+          # ======================================================
 
           cat > android-app/gradle.properties <<'EOF'
           android.useAndroidX=true
@@ -52,9 +52,9 @@ jobs:
           EOF
 
 
-          # ------------------------------------------------
-          # SETTINGS
-          # ------------------------------------------------
+          # ======================================================
+          # SETTINGS.GRADLE
+          # ======================================================
 
           cat > android-app/settings.gradle <<'EOF'
           pluginManagement {
@@ -84,9 +84,9 @@ jobs:
           EOF
 
 
-          # ------------------------------------------------
-          # ROOT BUILD
-          # ------------------------------------------------
+          # ======================================================
+          # ROOT BUILD.GRADLE
+          # ======================================================
 
           cat > android-app/build.gradle <<'EOF'
           plugins {
@@ -96,9 +96,9 @@ jobs:
           EOF
 
 
-          # ------------------------------------------------
-          # APP BUILD
-          # ------------------------------------------------
+          # ======================================================
+          # APP BUILD.GRADLE
+          # ======================================================
 
           cat > android-app/app/build.gradle <<'EOF'
           plugins {
@@ -158,7 +158,6 @@ jobs:
               }
           }
 
-
           dependencies {
 
               implementation 'androidx.core:core-ktx:1.15.0'
@@ -174,18 +173,18 @@ jobs:
           EOF
 
 
-          # ------------------------------------------------
+          # ======================================================
           # PROGUARD
-          # ------------------------------------------------
+          # ======================================================
 
           cat > android-app/app/proguard-rules.pro <<'EOF'
           # AIMRELAX
           EOF
 
 
-          # ------------------------------------------------
+          # ======================================================
           # STRINGS
-          # ------------------------------------------------
+          # ======================================================
 
           cat > android-app/app/src/main/res/values/strings.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
@@ -198,9 +197,9 @@ jobs:
           EOF
 
 
-          # ------------------------------------------------
+          # ======================================================
           # COLORS
-          # ------------------------------------------------
+          # ======================================================
 
           cat > android-app/app/src/main/res/values/colors.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
@@ -213,9 +212,9 @@ jobs:
           EOF
 
 
-          # ------------------------------------------------
+          # ======================================================
           # THEME
-          # ------------------------------------------------
+          # ======================================================
 
           cat > android-app/app/src/main/res/values/themes.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
@@ -250,9 +249,9 @@ jobs:
           EOF
 
 
-          # ------------------------------------------------
+          # ======================================================
           # ANDROID MANIFEST
-          # ------------------------------------------------
+          # ======================================================
 
           cat > android-app/app/src/main/AndroidManifest.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
@@ -267,17 +266,14 @@ jobs:
               <uses-permission
                   android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-
               <uses-permission
                   android:name="android.permission.CAMERA" />
 
               <uses-permission
                   android:name="android.permission.RECORD_AUDIO" />
 
-
               <uses-permission
                   android:name="android.permission.POST_NOTIFICATIONS" />
-
 
               <uses-permission
                   android:name="android.permission.FOREGROUND_SERVICE" />
@@ -321,19 +317,31 @@ jobs:
                   </activity>
 
 
+                  <!-- LiveKit screen capture foreground service -->
+
+                  <service
+
+                      android:name="io.livekit.android.room.track.screencapture.ScreenCaptureService"
+
+                      android:enabled="true"
+
+                      android:exported="false"
+
+                      android:foregroundServiceType="mediaProjection" />
+
+
               </application>
 
           </manifest>
           EOF
 
 
-          # ------------------------------------------------
+          # ======================================================
           # MAIN ACTIVITY
-          # ------------------------------------------------
+          # ======================================================
 
           cat > android-app/app/src/main/java/com/aimrelax/live/MainActivity.kt <<'EOF'
           package com.aimrelax.live
-
 
           import android.Manifest
           import android.annotation.SuppressLint
@@ -352,12 +360,13 @@ jobs:
           import android.webkit.WebViewClient
           import android.widget.FrameLayout
 
-          import androidx.activity.result.contract.ActivityResultContracts
+          import androidx.activity.result.ActivityResultContracts
           import androidx.appcompat.app.AppCompatActivity
           import androidx.core.content.ContextCompat
 
           import io.livekit.android.LiveKit
           import io.livekit.android.room.Room
+          import io.livekit.android.room.track.screencapture.ScreenCaptureParams
 
           import kotlinx.coroutines.CoroutineScope
           import kotlinx.coroutines.Dispatchers
@@ -365,14 +374,11 @@ jobs:
           import kotlinx.coroutines.cancel
           import kotlinx.coroutines.launch
 
-
           class MainActivity : AppCompatActivity() {
-
 
               private lateinit var webView: WebView
 
               private lateinit var room: Room
-
 
               private val scope =
                   CoroutineScope(
@@ -381,18 +387,14 @@ jobs:
                   )
 
 
-              // ------------------------------------------------
+              // ==================================================
               // SCREEN CAPTURE RESULT
-              // ------------------------------------------------
+              // ==================================================
 
               private val screenCaptureLauncher =
-
                   registerForActivityResult(
-
                       ActivityResultContracts.StartActivityForResult()
-
                   ) { result ->
-
 
                       if (
                           result.resultCode != Activity.RESULT_OK
@@ -411,10 +413,8 @@ jobs:
                           return@registerForActivityResult
                       }
 
-
                       val data =
                           result.data
-
 
                       if (data == null) {
 
@@ -435,17 +435,15 @@ jobs:
                           return@registerForActivityResult
                       }
 
-
                       publishScreen(data)
                   }
 
 
-              // ------------------------------------------------
-              // ANDROID JS BRIDGE
-              // ------------------------------------------------
+              // ==================================================
+              // JAVASCRIPT BRIDGE
+              // ==================================================
 
               inner class AIMRELAXBridge {
-
 
                   @JavascriptInterface
                   fun startLiveKit(
@@ -474,8 +472,7 @@ jobs:
 
                           try {
 
-                              room
-                                  .localParticipant
+                              room.localParticipant
                                   .setScreenShareEnabled(
                                       false
                                   )
@@ -511,9 +508,9 @@ jobs:
               }
 
 
-              // ------------------------------------------------
+              // ==================================================
               // ON CREATE
-              // ------------------------------------------------
+              // ==================================================
 
               @SuppressLint("SetJavaScriptEnabled")
               override fun onCreate(
@@ -524,7 +521,6 @@ jobs:
                       savedInstanceState
                   )
 
-
                   window.statusBarColor =
                       Color.BLACK
 
@@ -532,19 +528,11 @@ jobs:
                       Color.BLACK
 
 
-                  // --------------------------------------------
-                  // LIVEKIT ROOM
-                  // --------------------------------------------
-
                   room =
                       LiveKit.create(
                           applicationContext
                       )
 
-
-                  // --------------------------------------------
-                  // WEBVIEW
-                  // --------------------------------------------
 
                   val root =
                       FrameLayout(this)
@@ -555,13 +543,9 @@ jobs:
 
 
                   root.addView(
-
                       webView,
-
                       FrameLayout.LayoutParams(
-
                           FrameLayout.LayoutParams.MATCH_PARENT,
-
                           FrameLayout.LayoutParams.MATCH_PARENT
                       )
                   )
@@ -572,13 +556,8 @@ jobs:
 
                   setupWebView()
 
-
                   requestPermissions()
 
-
-                  // --------------------------------------------
-                  // REAL AIMRELAX WEBSITE
-                  // --------------------------------------------
 
                   webView.loadUrl(
                       "https://aimrelax-pubg.github.io/"
@@ -586,13 +565,12 @@ jobs:
               }
 
 
-              // ------------------------------------------------
+              // ==================================================
               // WEBVIEW
-              // ------------------------------------------------
+              // ==================================================
 
               @SuppressLint("SetJavaScriptEnabled")
               private fun setupWebView() {
-
 
                   webView.setBackgroundColor(
                       Color.BLACK
@@ -640,24 +618,14 @@ jobs:
                       )
 
 
-                  // --------------------------------------------
-                  // JS BRIDGE
-                  // --------------------------------------------
-
                   webView.addJavascriptInterface(
                       AIMRELAXBridge(),
                       "AIMRELAX_NATIVE"
                   )
 
 
-                  // --------------------------------------------
-                  // WEB CHROME
-                  // --------------------------------------------
-
                   webView.webChromeClient =
-
                       object : WebChromeClient() {
-
 
                           override fun onPermissionRequest(
                               request:
@@ -674,21 +642,12 @@ jobs:
                       }
 
 
-                  // --------------------------------------------
-                  // WEBVIEW CLIENT
-                  // --------------------------------------------
-
                   webView.webViewClient =
-
                       object : WebViewClient() {
 
-
                           override fun shouldOverrideUrlLoading(
-
                               view: WebView,
-
                               request: WebResourceRequest
-
                           ): Boolean {
 
                               return false
@@ -696,11 +655,8 @@ jobs:
 
 
                           override fun onPageFinished(
-
                               view: WebView,
-
                               url: String
-
                           ) {
 
                               super.onPageFinished(
@@ -708,21 +664,19 @@ jobs:
                                   url
                               )
 
-
                               injectNativeReady()
                           }
                       }
               }
 
 
-              // ------------------------------------------------
-              // NATIVE READY EVENT
-              // ------------------------------------------------
+              // ==================================================
+              // NATIVE READY
+              // ==================================================
 
               private fun injectNativeReady() {
 
                   val js =
-
                       """
                       window.AIMRELAX_ANDROID = true;
 
@@ -741,27 +695,21 @@ jobs:
               }
 
 
-              // ------------------------------------------------
+              // ==================================================
               // PERMISSIONS
-              // ------------------------------------------------
+              // ==================================================
 
               private fun requestPermissions() {
-
 
                   val permissions =
                       mutableListOf<String>()
 
 
                   if (
-
                       ContextCompat.checkSelfPermission(
-
                           this,
-
                           Manifest.permission.RECORD_AUDIO
-
                       ) != PackageManager.PERMISSION_GRANTED
-
                   ) {
 
                       permissions.add(
@@ -771,15 +719,10 @@ jobs:
 
 
                   if (
-
                       ContextCompat.checkSelfPermission(
-
                           this,
-
                           Manifest.permission.CAMERA
-
                       ) != PackageManager.PERMISSION_GRANTED
-
                   ) {
 
                       permissions.add(
@@ -793,10 +736,8 @@ jobs:
                   ) {
 
                       registerForActivityResult(
-
                           ActivityResultContracts
                               .RequestMultiplePermissions()
-
                       ) {
 
                       }.launch(
@@ -806,18 +747,14 @@ jobs:
               }
 
 
-              // ------------------------------------------------
+              // ==================================================
               // CONNECT LIVEKIT
-              // ------------------------------------------------
+              // ==================================================
 
               private fun connectLiveKit(
-
                   serverUrl: String,
-
                   token: String
-
               ) {
-
 
                   if (
                       serverUrl.isBlank() ||
@@ -825,7 +762,6 @@ jobs:
                   ) {
 
                       sendToWebsite(
-
                           """
                           window.dispatchEvent(
                               new CustomEvent(
@@ -847,8 +783,6 @@ jobs:
 
                       try {
 
-
-                          // Disconnect old room
                           try {
 
                               room.disconnect()
@@ -857,14 +791,12 @@ jobs:
                           }
 
 
-                          // Create fresh Room
                           room =
                               LiveKit.create(
                                   applicationContext
                               )
 
 
-                          // Connect
                           room.connect(
                               serverUrl,
                               token
@@ -872,7 +804,6 @@ jobs:
 
 
                           sendToWebsite(
-
                               """
                               window.dispatchEvent(
                                   new CustomEvent(
@@ -885,7 +816,6 @@ jobs:
 
                       } catch (e: Exception) {
 
-
                           val message =
                               org.json.JSONObject.quote(
                                   e.message
@@ -894,7 +824,6 @@ jobs:
 
 
                           sendToWebsite(
-
                               """
                               window.dispatchEvent(
                                   new CustomEvent(
@@ -912,22 +841,19 @@ jobs:
               }
 
 
-              // ------------------------------------------------
-              // OPEN ANDROID SCREEN CAPTURE
-              // ------------------------------------------------
+              // ==================================================
+              // OPEN SCREEN CAPTURE
+              // ==================================================
 
               private fun openScreenCapture() {
 
-
                   val manager =
-
                       getSystemService(
                           MEDIA_PROJECTION_SERVICE
                       ) as MediaProjectionManager
 
 
                   val intent =
-
                       manager.createScreenCaptureIntent()
 
 
@@ -937,36 +863,36 @@ jobs:
               }
 
 
-              // ------------------------------------------------
+              // ==================================================
               // PUBLISH SCREEN
-              // ------------------------------------------------
+              // ==================================================
 
               private fun publishScreen(
                   data: Intent
               ) {
 
-
                   scope.launch {
-
 
                       try {
 
+                          val screenCaptureParams =
+                              ScreenCaptureParams(
+                                  mediaProjectionPermissionResultData =
+                                      data
+                              )
+
 
                           val success =
-
-                              room
-                                  .localParticipant
+                              room.localParticipant
                                   .setScreenShareEnabled(
                                       true,
-                                      data
+                                      screenCaptureParams
                                   )
 
 
                           if (success) {
 
-
                               sendToWebsite(
-
                                   """
                                   window.dispatchEvent(
                                       new CustomEvent(
@@ -976,12 +902,9 @@ jobs:
                                   """.trimIndent()
                               )
 
-
                           } else {
 
-
                               sendToWebsite(
-
                                   """
                                   window.dispatchEvent(
                                       new CustomEvent(
@@ -999,18 +922,14 @@ jobs:
 
                       } catch (e: Exception) {
 
-
                           val message =
-
                               org.json.JSONObject.quote(
-
                                   e.message
                                       ?: "Screen share error"
                               )
 
 
                           sendToWebsite(
-
                               """
                               window.dispatchEvent(
                                   new CustomEvent(
@@ -1028,9 +947,9 @@ jobs:
               }
 
 
-              // ------------------------------------------------
+              // ==================================================
               // SEND EVENT TO WEBSITE
-              // ------------------------------------------------
+              // ==================================================
 
               private fun sendToWebsite(
                   javascript: String
@@ -1046,15 +965,14 @@ jobs:
               }
 
 
-              // ------------------------------------------------
+              // ==================================================
               // BACK BUTTON
-              // ------------------------------------------------
+              // ==================================================
 
               @Deprecated(
                   "Deprecated in Java"
               )
               override fun onBackPressed() {
-
 
                   if (
                       webView.canGoBack()
@@ -1069,12 +987,11 @@ jobs:
               }
 
 
-              // ------------------------------------------------
+              // ==================================================
               // DESTROY
-              // ------------------------------------------------
+              // ==================================================
 
               override fun onDestroy() {
-
 
                   try {
 
@@ -1086,9 +1003,7 @@ jobs:
 
                   scope.cancel()
 
-
                   webView.destroy()
-
 
                   super.onDestroy()
               }
@@ -1096,20 +1011,21 @@ jobs:
           EOF
 
 
-      # ------------------------------------------------------
+      # ==========================================================
       # GRADLE
-      # ------------------------------------------------------
+      # ==========================================================
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
 
-      # ------------------------------------------------------
-      # BUILD
-      # ------------------------------------------------------
+      # ==========================================================
+      # BUILD APK
+      # ==========================================================
 
       - name: Build APK
         working-directory: android-app
+        shell: bash
         run: |
 
           gradle wrapper \
@@ -1120,18 +1036,16 @@ jobs:
             --stacktrace
 
 
-      # ------------------------------------------------------
-      # APK ARTIFACT
-      # ------------------------------------------------------
+      # ==========================================================
+      # UPLOAD APK
+      # ==========================================================
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
-
         with:
 
           name: AIMRELAX-Android-APK
 
-          path:
-            android-app/app/build/outputs/apk/debug/app-debug.apk
+          path: android-app/app/build/outputs/apk/debug/app-debug.apk
 
           if-no-files-found: error
