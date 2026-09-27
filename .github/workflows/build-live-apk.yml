@@ -28,7 +28,6 @@ jobs:
             'android.useAndroidX=true' \
             'android.enableJetifier=true' \
             > android-app/gradle.properties
-
           printf '%s\n' \
             'pluginManagement {' \
             '    repositories {' \
@@ -43,8 +42,14 @@ jobs:
             '    repositories {' \
             '        google()' \
             '        mavenCentral()' \
+            '        maven { url = uri("https://jitpack.io") }' \
             '    }' \
             '}' \
+            '' \
+            'rootProject.name = "AIMRELAX-LIVE"' \
+            'include(":app")' \
+            > android-app/settings.gradle
+          
             '' \
             'rootProject.name = "AIMRELAX-LIVE"' \
             'include(":app")' \
