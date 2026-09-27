@@ -24,7 +24,6 @@ jobs:
 
           mkdir -p android-app/app/src/main/java/com/aimrelax/live
           mkdir -p android-app/app/src/main/res/values
-          mkdir -p android-app/app/src/main/res/xml
 
           cat > android-app/gradle.properties <<'EOF'
           org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
@@ -103,9 +102,13 @@ jobs:
 
           dependencies {
               implementation("androidx.core:core-ktx:1.15.0")
+
               implementation("androidx.activity:activity:1.10.1")
               implementation("androidx.activity:activity-ktx:1.10.1")
+
               implementation("androidx.appcompat:appcompat:1.7.0")
+
+              implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
 
               implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
 
@@ -201,20 +204,19 @@ jobs:
 
           import androidx.activity.result.contract.ActivityResultContracts
           import androidx.appcompat.app.AppCompatActivity
-          import androidx.core.app.ActivityCompat
           import androidx.core.content.ContextCompat
+          import androidx.lifecycle.lifecycleScope
 
           import io.livekit.android.LiveKit
           import io.livekit.android.room.Room
           import io.livekit.android.room.track.screencapture.ScreenCaptureParams
 
+          import kotlinx.coroutines.launch
+
           class MainActivity : AppCompatActivity() {
 
               private lateinit var webView: WebView
               private lateinit var room: Room
-
-              private var pendingServerUrl: String? = null
-              private var pendingToken: String? = null
 
               private val mediaProjectionLauncher =
                   registerForActivityResult(
@@ -336,10 +338,7 @@ jobs:
                   serverUrl: String,
                   token: String
               ) {
-                  pendingServerUrl = serverUrl
-                  pendingToken = token
-
-                  lifecycleScope.launchWhenStarted {
+                  lifecycleScope.launch {
                       try {
                           room.connect(
                               serverUrl,
@@ -373,7 +372,7 @@ jobs:
               private fun publishScreen(
                   data: Intent
               ) {
-                  lifecycleScope.launchWhenStarted {
+                  lifecycleScope.launch {
                       try {
 
                           val screenCaptureParams =
@@ -408,7 +407,7 @@ jobs:
               }
 
               private fun stopScreenShare() {
-                  lifecycleScope.launchWhenStarted {
+                  lifecycleScope.launch {
                       try {
 
                           room.localParticipant
@@ -421,14 +420,14 @@ jobs:
                       } catch (e: Exception) {
 
                           sendToWeb(
-                              "window.dispatchEvent(new CustomEvent('aimrelax-screen-share-error',{detail:{message:${jsString(e.message ?: "Unable to stop screen sharing")}}}));"
+                              "window.dispatchEvent(new CustomEvent('aimrelax-screen-share-error',{detail:{message:${jsString(e.message ?: "Unable to stop screen share")}}}));"
                           )
                       }
                   }
               }
 
               private fun disconnectLiveKit() {
-                  lifecycleScope.launchWhenStarted {
+                  lifecycleScope.launch {
                       try {
                           room.disconnect()
 
@@ -485,21 +484,21 @@ jobs:
                   @JavascriptInterface
                   fun startScreenShare() {
                       runOnUiThread {
-                          MainActivity@this.startScreenShare()
+                          this@MainActivity.startScreenShare()
                       }
                   }
 
                   @JavascriptInterface
                   fun stopScreenShare() {
                       runOnUiThread {
-                          MainActivity@this.stopScreenShare()
+                          this@MainActivity.stopScreenShare()
                       }
                   }
 
                   @JavascriptInterface
                   fun disconnectLiveKit() {
                       runOnUiThread {
-                          MainActivity@this.disconnectLiveKit()
+                          this@MainActivity.disconnectLiveKit()
                       }
                   }
               }
