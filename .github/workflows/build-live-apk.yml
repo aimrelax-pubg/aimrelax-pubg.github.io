@@ -76,8 +76,8 @@ jobs:
                   applicationId 'com.aimrelax.live'
                   minSdk 26
                   targetSdk 35
-                  versionCode 1
-                  versionName '1.0'
+                  versionCode 2
+                  versionName '1.1'
               }
 
               buildTypes {
@@ -122,7 +122,7 @@ jobs:
 
           cat > android-app/app/src/main/res/values/strings.xml <<'EOF'
           <resources>
-              <string name="app_name">AIMRELAX LIVE</string>
+              <string name="app_name">AIMRELAX</string>
           </resources>
           EOF
 
@@ -138,8 +138,8 @@ jobs:
               <style name="Theme.AIMRELAX" parent="Theme.AppCompat.DayNight.NoActionBar">
                   <item name="android:fontFamily">sans</item>
                   <item name="android:colorAccent">#FF6600</item>
-                  <item name="android:navigationBarColor">@color/black</item>
-                  <item name="android:statusBarColor">@color/black</item>
+                  <item name="android:navigationBarColor">#000000</item>
+                  <item name="android:statusBarColor">#000000</item>
                   <item name="android:windowLightStatusBar">false</item>
               </style>
           </resources>
@@ -270,18 +270,31 @@ jobs:
               }
 
               private fun setupWebView() {
+
                   webView = WebView(this)
 
                   webView.settings.apply {
                       javaScriptEnabled = true
                       domStorageEnabled = true
+                      databaseEnabled = true
                       mediaPlaybackRequiresUserGesture = false
                       allowFileAccess = false
                       allowContentAccess = false
                       cacheMode = WebSettings.LOAD_DEFAULT
                   }
 
-                  webView.webViewClient = WebViewClient()
+                  webView.webViewClient = object : WebViewClient() {
+
+                      override fun shouldOverrideUrlLoading(
+                          view: WebView,
+                          url: String
+                      ): Boolean {
+
+                          view.loadUrl(url)
+                          return true
+                      }
+                  }
+
                   webView.webChromeClient = WebChromeClient()
 
                   webView.addJavascriptInterface(
@@ -291,13 +304,20 @@ jobs:
 
                   setContentView(webView)
 
+                  /*
+                   * IMPORTANT:
+                   * The APK opens the real AIMRELAX website.
+                   * There is NO native READY / SHARE SCREEN page.
+                   */
                   webView.loadUrl(
                       "https://aimrelax-pubg.github.io/"
                   )
               }
 
               private fun requestPermissionsIfNeeded() {
-                  val permissions = mutableListOf<String>()
+
+                  val permissions =
+                      mutableListOf<String>()
 
                   if (
                       ContextCompat.checkSelfPermission(
@@ -305,7 +325,9 @@ jobs:
                           Manifest.permission.CAMERA
                       ) != PackageManager.PERMISSION_GRANTED
                   ) {
-                      permissions.add(Manifest.permission.CAMERA)
+                      permissions.add(
+                          Manifest.permission.CAMERA
+                      )
                   }
 
                   if (
@@ -314,17 +336,22 @@ jobs:
                           Manifest.permission.RECORD_AUDIO
                       ) != PackageManager.PERMISSION_GRANTED
                   ) {
-                      permissions.add(Manifest.permission.RECORD_AUDIO)
+                      permissions.add(
+                          Manifest.permission.RECORD_AUDIO
+                      )
                   }
 
                   if (
-                      Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                      Build.VERSION.SDK_INT >=
+                      Build.VERSION_CODES.TIRAMISU &&
                       ContextCompat.checkSelfPermission(
                           this,
                           Manifest.permission.POST_NOTIFICATIONS
                       ) != PackageManager.PERMISSION_GRANTED
                   ) {
-                      permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+                      permissions.add(
+                          Manifest.permission.POST_NOTIFICATIONS
+                      )
                   }
 
                   if (permissions.isNotEmpty()) {
@@ -338,8 +365,11 @@ jobs:
                   serverUrl: String,
                   token: String
               ) {
+
                   lifecycleScope.launch {
+
                       try {
+
                           room.connect(
                               serverUrl,
                               token
@@ -359,6 +389,7 @@ jobs:
               }
 
               private fun startScreenShare() {
+
                   val manager =
                       getSystemService(
                           MEDIA_PROJECTION_SERVICE
@@ -372,12 +403,15 @@ jobs:
               private fun publishScreen(
                   data: Intent
               ) {
+
                   lifecycleScope.launch {
+
                       try {
 
                           val screenCaptureParams =
                               ScreenCaptureParams(
-                                  mediaProjectionPermissionResultData = data
+                                  mediaProjectionPermissionResultData =
+                                      data
                               )
 
                           val success =
@@ -388,10 +422,13 @@ jobs:
                                   )
 
                           if (success) {
+
                               sendToWeb(
                                   "window.dispatchEvent(new CustomEvent('aimrelax-screen-share-started'));"
                               )
+
                           } else {
+
                               sendToWeb(
                                   "window.dispatchEvent(new CustomEvent('aimrelax-screen-share-error',{detail:{message:'Unable to start screen sharing'}}));"
                               )
@@ -407,7 +444,9 @@ jobs:
               }
 
               private fun stopScreenShare() {
+
                   lifecycleScope.launch {
+
                       try {
 
                           room.localParticipant
@@ -427,8 +466,11 @@ jobs:
               }
 
               private fun disconnectLiveKit() {
+
                   lifecycleScope.launch {
+
                       try {
+
                           room.disconnect()
 
                           sendToWeb(
@@ -440,9 +482,14 @@ jobs:
                   }
               }
 
-              private fun sendToWeb(script: String) {
+              private fun sendToWeb(
+                  script: String
+              ) {
+
                   runOnUiThread {
+
                       if (::webView.isInitialized) {
+
                           webView.evaluateJavascript(
                               script,
                               null
@@ -451,13 +498,28 @@ jobs:
                   }
               }
 
-              private fun jsString(value: String): String {
+              private fun jsString(
+                  value: String
+              ): String {
+
                   return "'" +
                       value
-                          .replace("\\", "\\\\")
-                          .replace("'", "\\'")
-                          .replace("\n", "\\n")
-                          .replace("\r", "\\r") +
+                          .replace(
+                              "\\",
+                              "\\\\"
+                          )
+                          .replace(
+                              "'",
+                              "\\'"
+                          )
+                          .replace(
+                              "\n",
+                              "\\n"
+                          )
+                          .replace(
+                              "\r",
+                              "\\r"
+                          ) +
                       "'"
               }
 
@@ -473,7 +535,9 @@ jobs:
                       serverUrl: String,
                       token: String
                   ) {
+
                       runOnUiThread {
+
                           connectLiveKit(
                               serverUrl,
                               token
@@ -483,33 +547,45 @@ jobs:
 
                   @JavascriptInterface
                   fun startScreenShare() {
+
                       runOnUiThread {
-                          this@MainActivity.startScreenShare()
+
+                          this@MainActivity
+                              .startScreenShare()
                       }
                   }
 
                   @JavascriptInterface
                   fun stopScreenShare() {
+
                       runOnUiThread {
-                          this@MainActivity.stopScreenShare()
+
+                          this@MainActivity
+                              .stopScreenShare()
                       }
                   }
 
                   @JavascriptInterface
                   fun disconnectLiveKit() {
+
                       runOnUiThread {
-                          this@MainActivity.disconnectLiveKit()
+
+                          this@MainActivity
+                              .disconnectLiveKit()
                       }
                   }
               }
 
               override fun onDestroy() {
+
                   try {
                       room.disconnect()
                   } catch (_: Exception) {
                   }
 
-                  webView.destroy()
+                  if (::webView.isInitialized) {
+                      webView.destroy()
+                  }
 
                   super.onDestroy()
               }
