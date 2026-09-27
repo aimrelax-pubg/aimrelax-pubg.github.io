@@ -1,524 +1,184 @@
-<!DOCTYPE html>
-<html lang="hy">
+<!DOCTYPE html><html lang="hy">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-
-<title>AIMRELAX LIVE</title>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
-
-<style>
-*{
-  box-sizing:border-box;
-}
-
-html,body{
-  margin:0;
-  padding:0;
-  background:#070707;
-  color:#fff;
-  font-family:Arial,Helvetica,sans-serif;
-}
-
+<title>AIMRELAX LIVE</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script><style>
+*{box-sizing:border-box}
 body{
-  min-height:100vh;
+ margin:0;
+ background:#070707;
+ color:#fff;
+ font-family:Arial,sans-serif;
 }
-
 header{
-  position:sticky;
-  top:0;
-  z-index:100;
-  background:rgba(0,0,0,.96);
-  border-bottom:1px solid #272727;
+ padding:16px;
+ background:#0d0d0d;
+ border-bottom:1px solid #252525;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
 }
-
-.nav{
-  max-width:1200px;
-  margin:auto;
-  min-height:64px;
-  padding:0 16px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-}
-
 .logo{
-  color:#ff7600;
-  text-decoration:none;
-  font-size:21px;
-  font-weight:900;
-  letter-spacing:1px;
+ color:#ff7200;
+ font-size:22px;
+ font-weight:900;
 }
-
-.logo span{
-  color:#fff;
-}
-
-.back{
-  color:#aaa;
-  text-decoration:none;
-  font-size:14px;
-}
-
-.back:hover{
-  color:#ff7600;
-}
-
-main{
-  width:100%;
-  max-width:1200px;
-  margin:auto;
-  padding:20px 14px 50px;
-}
-
-.panel{
-  background:#101010;
-  border:1px solid #292929;
-  border-radius:15px;
-  padding:18px;
-  margin-bottom:18px;
-}
-
-h1,h2,h3{
-  margin-top:0;
-}
-
-.live-heading{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-}
-
-.live-badge{
-  display:inline-flex;
-  align-items:center;
-  gap:7px;
-  background:#250707;
-  border:1px solid #7b1d1d;
-  color:#ff4545;
-  padding:7px 12px;
-  border-radius:20px;
-  font-size:12px;
-  font-weight:900;
-}
-
-.live-dot{
-  width:8px;
-  height:8px;
-  border-radius:50%;
-  background:#ff3030;
-  box-shadow:0 0 10px #ff3030;
-}
-
-input{
-  width:100%;
-  background:#080808;
-  border:1px solid #333;
-  color:#fff;
-  border-radius:9px;
-  padding:13px;
-  margin:7px 0;
-  outline:none;
-}
-
-input:focus{
-  border-color:#ff7600;
-}
-
-button{
-  border:0;
-  border-radius:9px;
-  padding:12px 16px;
-  margin:5px 4px 5px 0;
-  font-weight:800;
-  cursor:pointer;
-}
-
-button:disabled{
-  opacity:.45;
-  cursor:not-allowed;
-}
-
-.btn-start{
-  background:#ff7000;
-  color:#000;
-}
-
-.btn-stop{
-  background:#d71920;
-  color:#fff;
-}
-
-.btn-secondary{
-  background:#252525;
-  color:#fff;
-  border:1px solid #3a3a3a;
-}
-
 .status{
-  min-height:22px;
-  margin-top:10px;
-  color:#aaa;
-  font-size:14px;
+ font-size:13px;
+ color:#aaa;
 }
-
-.status.success{
-  color:#4ee58a;
+.container{
+ max-width:1100px;
+ margin:auto;
+ padding:18px;
 }
-
-.status.error{
-  color:#ff5656;
+.card{
+ background:#101010;
+ border:1px solid #272727;
+ border-radius:14px;
+ padding:16px;
+ margin-bottom:16px;
 }
-
+h2,h3{margin-top:0}
+input,button{
+ width:100%;
+ padding:13px;
+ border-radius:8px;
+ border:1px solid #333;
+ margin-top:8px;
+ font-size:15px;
+}
+input{
+ background:#151515;
+ color:#fff;
+}
+button{
+ background:#ff7200;
+ color:#000;
+ border:0;
+ font-weight:900;
+ cursor:pointer;
+}
+button.secondary{
+ background:#202020;
+ color:#fff;
+}
+button.danger{
+ background:#d93025;
+ color:#fff;
+}
+button:disabled{
+ opacity:.45;
+}
 .video-wrap{
-  width:100%;
-  background:#000;
-  border-radius:13px;
-  overflow:hidden;
-  position:relative;
-  aspect-ratio:16/9;
-  min-height:220px;
+ background:#000;
+ border-radius:12px;
+ overflow:hidden;
+ min-height:240px;
+ display:flex;
+ align-items:center;
+ justify-content:center;
 }
-
-#liveVideo{
-  width:100%;
-  height:100%;
-  display:block;
-  object-fit:contain;
-  background:#000;
+video{
+ width:100%;
+ max-height:70vh;
+ background:#000;
+ display:block;
 }
-
-.video-placeholder{
-  position:absolute;
-  inset:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  color:#666;
-  padding:20px;
-  pointer-events:none;
+.notice{
+ background:#17110b;
+ border:1px solid #633900;
+ color:#ffb36b;
+ padding:14px;
+ border-radius:10px;
+ line-height:1.5;
 }
-
-.video-placeholder.hidden{
-  display:none;
+.hidden{display:none!important}
+.live-dot{
+ color:#ff3333;
+ font-weight:900;
 }
-
-.live-info{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
-  margin-top:12px;
-  flex-wrap:wrap;
+.row{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:10px;
 }
-
-.stream-title{
-  font-size:18px;
-  font-weight:900;
-}
-
-.viewer-count{
-  color:#aaa;
-  font-size:14px;
-}
-
-.stream-list{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-  gap:12px;
-}
-
-.stream-card{
-  background:#151515;
-  border:1px solid #303030;
-  border-radius:12px;
-  padding:15px;
-}
-
-.stream-card-title{
-  font-weight:900;
-  margin-bottom:7px;
-}
-
-.stream-card-host{
-  color:#999;
-  font-size:13px;
-  margin-bottom:12px;
-}
-
-.empty{
-  color:#777;
-  padding:20px 0;
-  text-align:center;
-}
-
-.chat-box{
-  background:#080808;
-  border:1px solid #292929;
-  border-radius:12px;
-  min-height:180px;
-  max-height:320px;
-  overflow:auto;
-  padding:10px;
-}
-
-.chat-message{
-  padding:8px 10px;
-  border-bottom:1px solid #1d1d1d;
-}
-
-.chat-message:last-child{
-  border-bottom:0;
-}
-
-.chat-name{
-  color:#ff7600;
-  font-weight:800;
-}
-
-.chat-text{
-  color:#eee;
-  margin-left:5px;
-}
-
-.controls{
-  margin-top:10px;
-}
-
 .small{
-  color:#777;
-  font-size:12px;
-  line-height:1.5;
+ color:#888;
+ font-size:12px;
+ line-height:1.5;
 }
-
-.hidden{
-  display:none!important;
+#message{
+ margin-top:10px;
+ color:#ff8b2b;
+ min-height:20px;
 }
-
-@media(max-width:600px){
-
-  main{
-    padding:12px 10px 35px;
-  }
-
-  .panel{
-    padding:14px;
-    border-radius:12px;
-  }
-
-  .live-heading{
-    align-items:flex-start;
-    flex-direction:column;
-  }
-
-  .video-wrap{
-    min-height:200px;
-  }
-
-  button{
-    padding:11px 13px;
-  }
+@media(max-width:650px){
+ .row{grid-template-columns:1fr}
+ header{align-items:flex-start;gap:10px;flex-direction:column}
 }
-</style>
-</head>
+</style></head><body><header>
+  <div class="logo">AIMRELAX LIVE</div>
+  <div class="status" id="authStatus">Ստուգում...</div>
+</header><div class="container">  <div class="card" id="hostCard">
+    <h2>🎮 Start LIVE</h2><input id="liveTitle"
+       value="AIMRELAX PUBG LIVE"
+       maxlength="100"
+       placeholder="LIVE-ի անունը">
 
-<body>
+<button id="startBtn">🔴 START LIVE</button>
 
-<header>
-  <div class="nav">
+<div class="row">
+  <button id="screenBtn" class="secondary" disabled>
+    📱 SHARE SCREEN
+  </button>
 
-    <a class="logo" href="index.html">
-      AIM<span>RELAX</span>-PUBG
-    </a>
+  <button id="micBtn" class="secondary" disabled>
+    🎙️ MIC ON
+  </button>
+</div>
 
-    <a class="back" href="index.html">
-      ← Գլխավոր էջ
-    </a>
+<button id="stopBtn" class="danger" disabled>
+  ⛔ STOP LIVE
+</button>
 
-  </div>
-</header>
+<div id="message"></div>
 
-<main>
+  </div>  <div class="card" id="androidNotice">
+    <h3>📱 PUBG Mobile streaming</h3><div class="notice">
+  Այս Android սարքի browser-ը չի աջակցում web screen sharing-ին։
+  <br><br>
 
-  <section class="panel">
+  PUBG Mobile-ի իրական screen streaming-ի համար օգտագործիր
+  <b>AIMRELAX LIVE Android հավելվածը</b>։
 
-    <div class="live-heading">
+  <br><br>
 
-      <div>
-        <h1>🎮 AIMRELAX LIVE</h1>
-        <div class="small">
-          PUBG MOBILE gameplay • Live Streaming
-        </div>
-      </div>
+  Հավելվածը կօգտագործի Android-ի պաշտոնական
+  <b>MediaProjection</b>-ը և LiveKit-ը։
+</div>
 
-      <div class="live-badge">
-        <span class="live-dot"></span>
-        LIVE
-      </div>
+  </div>  <div class="card">
+    <h2>🔴 LIVE</h2><div class="video-wrap">
+  <video id="remoteVideo"
+         autoplay
+         playsinline
+         controls></video>
+</div>
 
-    </div>
+<div id="viewerStatus" class="small">
+  Live stream չկա։
+</div>
 
-    <div id="authStatus" class="status">
-      Մուտքը ստուգվում է...
-    </div>
-
-    <div id="hostControls" class="hidden">
-
-      <input
-        id="liveTitle"
-        maxlength="100"
-        value="AIMRELAX PUBG MOBILE LIVE"
-        placeholder="LIVE-ի անունը">
-
-      <div class="controls">
-
-        <button
-          id="startBtn"
-          class="btn-start"
-          type="button">
-          🔴 START LIVE
-        </button>
-
-        <button
-          id="screenBtn"
-          class="btn-secondary hidden"
-          type="button">
-          📱 SHARE SCREEN
-        </button>
-
-        <button
-          id="micBtn"
-          class="btn-secondary hidden"
-          type="button">
-          🎤 MIC ON
-        </button>
-
-        <button
-          id="stopBtn"
-          class="btn-stop hidden"
-          type="button">
-          ⛔ STOP LIVE
-        </button>
-
-      </div>
-
-      <div id="hostStatus" class="status">
-        Պատրաստ է։
-      </div>
-
-    </div>
-
-  </section>
-
-
-  <section class="panel">
-
-    <div class="live-heading">
-
-      <h2>📺 LIVE PLAYER</h2>
-
-      <div
-        id="viewerCount"
-        class="viewer-count">
-        👥 0 դիտող
-      </div>
-
-    </div>
-
-    <div class="video-wrap">
-
-      <video
-        id="liveVideo"
-        autoplay
-        playsinline
-        controls>
-      </video>
-
-      <div
-        id="videoPlaceholder"
-        class="video-placeholder">
-        Այս պահին LIVE-ը միացված չէ։
-      </div>
-
-    </div>
-
-    <div class="live-info">
-
-      <div
-        id="currentStreamTitle"
-        class="stream-title">
-        AIMRELAX LIVE
-      </div>
-
-      <div
-        id="currentHost"
-        class="viewer-count">
-      </div>
-
-    </div>
-
-    <div
-      id="viewerStatus"
-      class="status">
-      Ընտրիր LIVE-ը ներքևի ցանկից։
-    </div>
-
-  </section>
-
-
-  <section class="panel">
-
-    <h2>🔴 LIVE STREAMS</h2>
-
-    <div
-      id="liveList"
-      class="stream-list">
-      <div class="empty">
-        Բեռնվում է...
-      </div>
-    </div>
-
-  </section>
-
-
-  <section class="panel">
-
-    <h2>💬 LIVE CHAT</h2>
-
-    <div
-      id="chatBox"
-      class="chat-box">
-
-      <div class="empty">
-        LIVE-ին միանալուց հետո այստեղ կլինի chat-ը։
-      </div>
-
-    </div>
-
-    <div class="small" style="margin-top:10px">
-      LIVE chat-ը հաջորդ փուլում կմիացնենք քո AIMRELAX-ի
-      արդեն գործող chat համակարգին։
-    </div>
-
-  </section>
-
-</main>
-
-<script>
-
+  </div></div><script>
 const SUPABASE_URL =
   "https://hvhlrbfjloiahbqmnrly.supabase.co";
 
 const SUPABASE_ANON_KEY =
-  "sb_publishable_EcZUkLdUCVv3qWDD7jlvhg_OjTYu1jA";
+  "sb_publishable_EcZUkLdUCvV3qWDD7jlvhg_OjTYu1jA";
 
 const TOKEN_ENDPOINT =
-  SUPABASE_URL +
-  "/functions/v1/live-token";
+  SUPABASE_URL + "/functions/v1/live-token";
 
 const sb =
   supabase.createClient(
@@ -527,925 +187,500 @@ const sb =
   );
 
 let currentUser = null;
-let currentRoom = null;
+let room = null;
 let currentStream = null;
-let currentRole = null;
-let viewerPresence = null;
+let currentRoomName = null;
+let screenTrack = null;
+let micEnabled = false;
 
-const $ = id =>
-  document.getElementById(id);
+const $ = id => document.getElementById(id);
 
-
-async function init(){
-
-  try{
-
-    const {
-      data,
-      error
-    } =
-      await sb.auth.getUser();
-
-    if(error){
-      throw error;
-    }
-
-    currentUser =
-      data?.user || null;
-
-    if(currentUser){
-
-      $("authStatus").textContent =
-        "✓ Մուտք գործած ես AIMRELAX-ում։";
-
-      $("authStatus")
-        .classList.add("success");
-
-      $("hostControls")
-        .classList.remove("hidden");
-
-    }else{
-
-      $("authStatus").textContent =
-        "Մուտք գործիր AIMRELAX՝ LIVE սկսելու համար։";
-
-    }
-
-  }catch(error){
-
-    console.error(error);
-
-    $("authStatus").textContent =
-      "Մուտքի ստուգումը չհաջողվեց։";
-
-    $("authStatus")
-      .classList.add("error");
-
-  }
-
-  await loadLiveStreams();
-
-  $("startBtn")
-    ?.addEventListener(
-      "click",
-      startLive
-    );
-
-  $("screenBtn")
-    ?.addEventListener(
-      "click",
-      shareScreen
-    );
-
-  $("micBtn")
-    ?.addEventListener(
-      "click",
-      toggleMicrophone
-    );
-
-  $("stopBtn")
-    ?.addEventListener(
-      "click",
-      stopLive
-    );
+function msg(text){
+  $("message").textContent = text || "";
 }
 
+function isScreenShareSupported(){
+  return !!(
+    navigator.mediaDevices &&
+    typeof navigator.mediaDevices.getDisplayMedia === "function"
+  );
+}
 
-async function getLiveToken(
-  roomName,
-  role
-){
+async function loadUser(){
 
   const {
-    data
-  } =
-    await sb.auth.getSession();
+    data:{user},
+    error
+  } = await sb.auth.getUser();
 
-  const accessToken =
-    data?.session?.access_token;
+  if(error || !user){
 
-  if(!accessToken){
+    currentUser = null;
 
-    throw new Error(
-      "Մուտք գործելը պարտադիր է։"
-    );
-  }
-
-  const nickname =
-    currentUser?.user_metadata?.nickname ||
-    currentUser?.user_metadata?.username ||
-    currentUser?.user_metadata?.full_name ||
-    "AIMRELAX User";
-
-  const response =
-    await fetch(
-      TOKEN_ENDPOINT,
-      {
-        method:"POST",
-
-        headers:{
-          "Content-Type":
-            "application/json",
-
-          "Authorization":
-            "Bearer " +
-            accessToken,
-
-          "apikey":
-            SUPABASE_ANON_KEY
-        },
-
-        body:JSON.stringify({
-
-          room_name:
-            roomName,
-
-          participant_name:
-            nickname,
-
-          role:
-            role
-
-        })
-      }
-    );
-
-  const result =
-    await response.json();
-
-  if(!response.ok){
-
-    throw new Error(
-      result?.error ||
-      "Live token error"
-    );
-  }
-
-  return result;
-}
-
-
-async function startLive(){
-
-  try{
-
-    if(!currentUser){
-
-      alert(
-        "Նախ մուտք գործիր AIMRELAX։"
-      );
-
-      return;
-    }
-
-    if(currentRoom){
-
-      return;
-    }
+    $("authStatus").textContent =
+      "Մուտք գործիր AIMRELAX-ում";
 
     $("startBtn").disabled = true;
 
-    setHostStatus(
-      "LIVE room-ը ստեղծվում է..."
-    );
+    msg("LIVE սկսելու համար պետք է մուտք գործած լինես։");
 
-    const title =
-      $("liveTitle")
-      .value
-      .trim() ||
-      "AIMRELAX PUBG MOBILE LIVE";
-
-    const roomName =
-      "aimrelax-" +
-      crypto.randomUUID();
-
-    const {
-      data,
-      error
-    } =
-      await sb
-      .from("live_streams")
-      .insert({
-
-        host_id:
-          currentUser.id,
-
-        title:
-          title,
-
-        room_name:
-          roomName,
-
-        status:
-          "live"
-
-      })
-      .select()
-      .single();
-
-    if(error){
-
-      throw error;
-    }
-
-    currentStream =
-      data;
-
-    currentRole =
-      "host";
-
-    const credentials =
-      await getLiveToken(
-        roomName,
-        "host"
-      );
-
-    const room =
-      new LivekitClient.Room({
-
-        adaptiveStream:true,
-
-        dynacast:true
-
-      });
-
-    currentRoom =
-      room;
-
-    setupRoomEvents(room);
-
-    await room.connect(
-      credentials.server_url,
-      credentials.participant_token
-    );
-
-    $("startBtn")
-      .classList
-      .add("hidden");
-
-    $("screenBtn")
-      .classList
-      .remove("hidden");
-
-    $("micBtn")
-      .classList
-      .remove("hidden");
-
-    $("stopBtn")
-      .classList
-      .remove("hidden");
-
-    setHostStatus(
-      "🔴 LIVE room-ը պատրաստ է։ Սեղմիր SHARE SCREEN։",
-      true
-    );
-
-    await loadLiveStreams();
-
-  }catch(error){
-
-    console.error(error);
-
-    $("startBtn")
-      .disabled = false;
-
-    setHostStatus(
-      "Սխալ․ " +
-      (error?.message || error),
-      false,
-      true
-    );
-
-    if(currentStream){
-
-      await sb
-        .from("live_streams")
-        .delete()
-        .eq(
-          "id",
-          currentStream.id
-        );
-
-    }
-
-    currentStream =
-      null;
-
-    currentRoom =
-      null;
+    return;
   }
+
+  currentUser = user;
+
+  $("authStatus").textContent =
+    "🟢 " +
+    (
+      user.user_metadata?.nickname ||
+      user.email ||
+      "AIMRELAX User"
+    );
+
+  if(!isScreenShareSupported()){
+    $("screenBtn").disabled = true;
+    $("androidNotice").classList.remove("hidden");
+  }else{
+    $("androidNotice").classList.add("hidden");
+  }
+
+  await loadLiveStream();
 }
 
+async function getToken(roomName,role){
 
-function setupRoomEvents(room){
+  const {
+    data:{session}
+  } = await sb.auth.getSession();
 
-  room.on(
-    LivekitClient.RoomEvent.TrackSubscribed,
-    (
-      track,
-      publication,
-      participant
-    ) => {
+  if(!session?.access_token){
+    throw new Error("Մուտքի session չկա։");
+  }
 
-      if(
-        currentRole === "viewer"
-      ){
+  const participantName =
+    currentUser?.user_metadata?.nickname ||
+    currentUser?.email ||
+    "AIMRELAX User";
 
-        attachRemoteTrack(
-          track,
-          participant
-        );
+  const response =
+    await fetch(TOKEN_ENDPOINT,{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":
+          "Bearer " + session.access_token,
+        "apikey":
+          SUPABASE_ANON_KEY
+      },
+      body:JSON.stringify({
+        room_name:roomName,
+        participant_name:participantName,
+        role:role
+      })
+    });
 
-      }
+  const data = await response.json();
 
-    }
-  );
+  if(!response.ok){
+    throw new Error(
+      data.error || "Token generation failed"
+    );
+  }
 
-  room.on(
-    LivekitClient.RoomEvent.TrackUnsubscribed,
-    (
-      track
-    ) => {
-
-      track.detach();
-
-    }
-  );
-
-  room.on(
-    LivekitClient.RoomEvent.ParticipantConnected,
-    updateViewerCount
-  );
-
-  room.on(
-    LivekitClient.RoomEvent.ParticipantDisconnected,
-    updateViewerCount
-  );
-
-  room.on(
-    LivekitClient.RoomEvent.Disconnected,
-    () => {
-
-      if(
-        currentRole === "viewer"
-      ){
-
-        $("viewerStatus").textContent =
-          "LIVE կապը ավարտվեց։";
-
-      }
-
-    }
-  );
-
-  updateViewerCount();
+  return data;
 }
 
+async function startLive(){
 
-async function shareScreen(){
+  if(!currentUser){
+    msg("Նախ մուտք գործիր։");
+    return;
+  }
 
   try{
 
-    if(!currentRoom){
+    $("startBtn").disabled = true;
+    msg("LIVE միանում է...");
 
-      throw new Error(
-        "LIVE room-ը դեռ միացված չէ։"
-      );
+    const title =
+      $("liveTitle").value.trim() ||
+      "AIMRELAX PUBG LIVE";
 
-    }
+    currentRoomName =
+      "aimrelax_" +
+      currentUser.id.replaceAll("-","") +
+      "_" +
+      Date.now();
 
-    setHostStatus(
-      "Ընտրիր էկրանը կամ PUBG Mobile-ի պատուհանը..."
+    const {data,error} =
+      await sb
+        .from("live_streams")
+        .insert({
+          host_id:currentUser.id,
+          title:title,
+          room_name:currentRoomName,
+          status:"live"
+        })
+        .select()
+        .single();
+
+    if(error) throw error;
+
+    currentStream = data;
+
+    const tokenData =
+      await getToken(currentRoomName,"host");
+
+    room = new LiveKit.Room({
+      adaptiveStream:true,
+      dynacast:true
+    });
+
+    await room.connect(
+      tokenData.server_url,
+      tokenData.participant_token
     );
 
-    await currentRoom
-      .localParticipant
-      .setScreenShareEnabled(
-        true,
-        {
-          audio:true,
-          systemAudio:"include",
-          contentHint:"motion"
-        }
-      );
+    $("screenBtn").disabled =
+      !isScreenShareSupported();
 
-    $("screenBtn")
-      .textContent =
-      "📱 SCREEN SHARING";
+    $("micBtn").disabled = false;
+    $("stopBtn").disabled = false;
 
-    $("screenBtn")
-      .disabled = true;
-
-    setHostStatus(
-      "🔴 LIVE — PUBG Mobile-ի էկրանը հեռարձակվում է։",
-      true
+    msg(
+      isScreenShareSupported()
+      ? "LIVE-ը միացված է։ Կարող ես Share Screen անել։"
+      : "LIVE-ը միացված է։ PUBG screen-ը պետք է ուղարկել AIMRELAX LIVE Android հավելվածից։"
     );
 
-    renderLocalScreen();
+  }catch(e){
 
-  }catch(error){
+    console.error(e);
 
-    console.error(error);
+    msg(
+      "Սխալ․ " +
+      (e?.message || e)
+    );
 
-    setHostStatus(
+    $("startBtn").disabled = false;
+  }
+}
+
+async function shareScreen(){
+
+  if(!room){
+    msg("Նախ Start LIVE արա։");
+    return;
+  }
+
+  if(!isScreenShareSupported()){
+
+    msg(
+      "Այս browser-ը չի աջակցում Screen Share։ " +
+      "Օգտագործիր AIMRELAX LIVE Android հավելվածը PUBG-ի համար։"
+    );
+
+    return;
+  }
+
+  try{
+
+    await room.localParticipant.setScreenShareEnabled(
+      true,
+      {
+        audio:true,
+        systemAudio:"include",
+        contentHint:"motion"
+      }
+    );
+
+    screenTrack =
+      room.localParticipant.getTrackPublication(
+        "screen_share"
+      )?.track || null;
+
+    $("screenBtn").textContent =
+      "🛑 STOP SCREEN";
+
+    $("screenBtn").onclick =
+      stopScreen;
+
+  }catch(e){
+
+    console.error(e);
+
+    msg(
       "Screen Share-ը չմիացավ․ " +
-      (error?.message || error),
-      false,
-      true
+      (e?.message || e)
     );
-
   }
 }
 
+async function stopScreen(){
 
-function renderLocalScreen(){
+  try{
 
-  if(!currentRoom){
-    return;
-  }
-
-  const publications =
-    Array.from(
-      currentRoom
-        .localParticipant
-        .trackPublications
-        .values()
-    );
-
-  for(
-    const publication
-    of publications
-  ){
-
-    if(
-      publication.source ===
-      LivekitClient.Track.Source.ScreenShare
-      &&
-      publication.track
-    ){
-
-      const video =
-        $("liveVideo");
-
-      publication.track
-        .attach(video);
-
-      video.muted = true;
-
-      $("videoPlaceholder")
-        .classList
-        .add("hidden");
-
-      $("currentStreamTitle")
-        .textContent =
-        currentStream?.title ||
-        "AIMRELAX LIVE";
-
+    if(room){
+      await room.localParticipant
+        .setScreenShareEnabled(false);
     }
 
+    screenTrack = null;
+
+    $("screenBtn").textContent =
+      "📱 SHARE SCREEN";
+
+    $("screenBtn").onclick =
+      shareScreen;
+
+  }catch(e){
+    console.error(e);
   }
 }
 
+async function toggleMic(){
 
-async function toggleMicrophone(){
+  if(!room) return;
 
-  if(!currentRoom){
-    return;
-  }
+  micEnabled = !micEnabled;
 
-  const enabled =
-    currentRoom
-      .localParticipant
-      .isMicrophoneEnabled;
+  try{
 
-  await currentRoom
-    .localParticipant
-    .setMicrophoneEnabled(
-      !enabled
+    await room.localParticipant
+      .setMicrophoneEnabled(micEnabled);
+
+    $("micBtn").textContent =
+      micEnabled
+      ? "🎙️ MIC OFF"
+      : "🎙️ MIC ON";
+
+  }catch(e){
+
+    micEnabled = !micEnabled;
+
+    msg(
+      "Microphone-ի սխալ․ " +
+      (e?.message || e)
     );
-
-  $("micBtn")
-    .textContent =
-      enabled
-        ? "🎤 MIC OFF"
-        : "🎤 MIC ON";
+  }
 }
-
 
 async function stopLive(){
 
   try{
+
+    if(room){
+
+      try{
+        await room.localParticipant
+          .setScreenShareEnabled(false);
+      }catch(e){}
+
+      try{
+        await room.localParticipant
+          .setMicrophoneEnabled(false);
+      }catch(e){}
+
+      await room.disconnect();
+    }
 
     if(currentStream){
 
       await sb
         .from("live_streams")
         .update({
-
-          status:
-            "ended",
-
-          ended_at:
-            new Date()
-            .toISOString()
-
+          status:"ended",
+          ended_at:new Date().toISOString()
         })
-        .eq(
-          "id",
-          currentStream.id
-        )
-        .eq(
-          "host_id",
-          currentUser.id
-        );
-
+        .eq("id",currentStream.id);
     }
 
-  }catch(error){
+  }catch(e){
 
-    console.error(error);
+    console.error(e);
 
+  }finally{
+
+    room = null;
+    currentStream = null;
+    currentRoomName = null;
+
+    $("startBtn").disabled = false;
+    $("screenBtn").disabled = true;
+    $("micBtn").disabled = true;
+    $("stopBtn").disabled = true;
+
+    $("screenBtn").textContent =
+      "📱 SHARE SCREEN";
+
+    $("screenBtn").onclick =
+      shareScreen;
+
+    $("micBtn").textContent =
+      "🎙️ MIC ON";
+
+    micEnabled = false;
+
+    msg("LIVE-ը ավարտվեց։");
+    await loadLiveStream();
   }
-
-  if(currentRoom){
-
-    try{
-
-      currentRoom
-        .localParticipant
-        .setScreenShareEnabled(
-          false
-        );
-
-    }catch(e){}
-
-    currentRoom
-      .disconnect();
-
-  }
-
-  currentRoom =
-    null;
-
-  currentStream =
-    null;
-
-  currentRole =
-    null;
-
-  $("startBtn")
-    .classList
-    .remove("hidden");
-
-  $("startBtn")
-    .disabled = false;
-
-  $("screenBtn")
-    .classList
-    .add("hidden");
-
-  $("screenBtn")
-    .disabled = false;
-
-  $("micBtn")
-    .classList
-    .add("hidden");
-
-  $("stopBtn")
-    .classList
-    .add("hidden");
-
-  $("liveVideo")
-    .srcObject = null;
-
-  $("videoPlaceholder")
-    .classList
-    .remove("hidden");
-
-  setHostStatus(
-    "LIVE-ը ավարտվեց։"
-  );
-
-  await loadLiveStreams();
 }
 
+function attachRemoteTrack(track){
 
-async function watchLive(stream){
+  if(track.kind === "video"){
+
+    const video =
+      $("remoteVideo");
+
+    track.attach(video);
+
+    video.play().catch(()=>{});
+
+  }
+
+  if(track.kind === "audio"){
+
+    const audio =
+      track.attach();
+
+    audio.autoplay = true;
+
+    document.body.appendChild(audio);
+
+  }
+}
+
+async function watchStream(stream){
 
   try{
 
-    if(!stream){
-      return;
-    }
-
-    if(currentRoom){
-
-      currentRoom
-        .disconnect();
-
-      currentRoom =
-        null;
-    }
-
-    $("viewerStatus")
-      .textContent =
-      "LIVE-ին միանում ենք...";
-
-    const credentials =
-      await getLiveToken(
+    const tokenData =
+      await getToken(
         stream.room_name,
         "viewer"
       );
 
-    const room =
-      new LivekitClient.Room({
+    if(room){
+      try{
+        await room.disconnect();
+      }catch(e){}
+    }
 
-        adaptiveStream:true,
+    room = new LiveKit.Room({
+      adaptiveStream:true,
+      dynacast:true
+    });
 
-        dynacast:true
-
-      });
-
-    currentRoom =
-      room;
-
-    currentStream =
-      stream;
-
-    currentRole =
-      "viewer";
-
-    setupRoomEvents(room);
+    room.on(
+      LiveKit.RoomEvent.TrackSubscribed,
+      (
+        track,
+        publication,
+        participant
+      )=>{
+        attachRemoteTrack(track);
+      }
+    );
 
     await room.connect(
-      credentials.server_url,
-      credentials.participant_token
+      tokenData.server_url,
+      tokenData.participant_token
     );
 
-    $("currentStreamTitle")
-      .textContent =
-      stream.title;
+    for(
+      const participant
+      of room.remoteParticipants.values()
+    ){
 
-    $("currentHost")
-      .textContent =
-      "🔴 LIVE";
+      for(
+        const publication
+        of participant.trackPublications.values()
+      ){
 
-    $("videoPlaceholder")
-      .classList
-      .add("hidden");
+        if(publication.track){
+          attachRemoteTrack(
+            publication.track
+          );
+        }
+      }
+    }
 
-    $("viewerStatus")
-      .textContent =
-      "🔴 LIVE-ը դիտում ես հիմա։";
+    $("viewerStatus").innerHTML =
+      '<span class="live-dot">● LIVE</span> ' +
+      escapeHtml(stream.title);
 
-    updateViewerCount();
+  }catch(e){
 
-  }catch(error){
+    console.error(e);
 
-    console.error(error);
-
-    $("viewerStatus")
-      .textContent =
-      "Չհաջողվեց միանալ LIVE-ին․ " +
-      (error?.message || error);
-
+    $("viewerStatus").textContent =
+      "LIVE-ին միանալ չհաջողվեց։";
   }
 }
 
-
-function attachRemoteTrack(
-  track,
-  participant
-){
-
-  if(
-    track.kind ===
-    LivekitClient.Track.Kind.Video
-  ){
-
-    const video =
-      $("liveVideo");
-
-    track.attach(video);
-
-    video.autoplay =
-      true;
-
-    video.playsInline =
-      true;
-
-    $("videoPlaceholder")
-      .classList
-      .add("hidden");
-
-  }
-
-  if(
-    track.kind ===
-    LivekitClient.Track.Kind.Audio
-  ){
-
-    track.attach();
-
-  }
-
-  $("currentHost")
-    .textContent =
-    "🔴 " +
-    (
-      participant?.name ||
-      "AIMRELAX"
-    );
-}
-
-
-function updateViewerCount(){
-
-  if(!currentRoom){
-
-    $("viewerCount")
-      .textContent =
-      "👥 0 դիտող";
-
-    return;
-  }
-
-  const count =
-    currentRoom
-      .remoteParticipants
-      .size;
-
-  $("viewerCount")
-    .textContent =
-      "👥 " +
-      count +
-      " դիտող";
-}
-
-
-async function loadLiveStreams(){
+async function loadLiveStream(){
 
   const {
     data,
     error
   } =
     await sb
-    .from("live_streams")
-    .select("*")
-    .eq(
-      "status",
-      "live"
-    )
-    .order(
-      "created_at",
-      {
-        ascending:false
-      }
-    );
-
-  const list =
-    $("liveList");
+      .from("live_streams")
+      .select("*")
+      .eq("status","live")
+      .order("created_at",{ascending:false})
+      .limit(1);
 
   if(error){
 
-    list.innerHTML =
-      `<div class="empty">
-        Չհաջողվեց բեռնել LIVE-երը։
-      </div>`;
+    console.error(error);
+
+    $("viewerStatus").textContent =
+      "LIVE տվյալները չբեռնվեցին։";
 
     return;
   }
 
-  if(!data?.length){
+  if(!data || !data.length){
 
-    list.innerHTML =
-      `<div class="empty">
-        🔴 Այս պահին ոչ ոք LIVE չէ։
-      </div>`;
+    $("viewerStatus").textContent =
+      "Այս պահին LIVE չկա։";
 
     return;
   }
 
-  list.innerHTML =
-    "";
-
-  for(
-    const stream
-    of data
-  ){
-
-    const card =
-      document.createElement(
-        "div"
-      );
-
-    card.className =
-      "stream-card";
-
-    card.innerHTML = `
-
-      <div class="stream-card-title">
-        🔴 ${escapeHtml(stream.title)}
-      </div>
-
-      <div class="stream-card-host">
-        AIMRELAX LIVE
-      </div>
-
-      <button
-        class="btn-start"
-        type="button">
-        ▶ Դիտել LIVE
-      </button>
-
-    `;
-
-    card
-      .querySelector("button")
-      .addEventListener(
-        "click",
-        () => watchLive(stream)
-      );
-
-    list.appendChild(card);
-
-  }
+  await watchStream(data[0]);
 }
-
-
-function setHostStatus(
-  text,
-  success=false,
-  error=false
-){
-
-  const el =
-    $("hostStatus");
-
-  el.textContent =
-    text;
-
-  el.classList.toggle(
-    "success",
-    success
-  );
-
-  el.classList.toggle(
-    "error",
-    error
-  );
-}
-
 
 function escapeHtml(value){
 
   return String(value)
-    .replaceAll(
-      "&",
-      "&amp;"
-    )
-    .replaceAll(
-      "<",
-      "&lt;"
-    )
-    .replaceAll(
-      ">",
-      "&gt;"
-    )
-    .replaceAll(
-      '"',
-      "&quot;"
-    )
-    .replaceAll(
-      "'",
-      "&#039;"
-    );
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
 }
 
+$("startBtn").onclick =
+  startLive;
 
-window.addEventListener(
-  "beforeunload",
-  () => {
+$("screenBtn").onclick =
+  shareScreen;
 
-    if(
-      currentRole === "host" &&
-      currentStream
-    ){
+$("micBtn").onclick =
+  toggleMic;
 
-      // Browser may terminate before
-      // async Supabase update finishes.
-      // Later we will add heartbeat/
-      // automatic stale-LIVE cleanup.
+$("stopBtn").onclick =
+  stopLive;
 
-    }
+loadUser();
 
+sb.auth.onAuthStateChange(
+  ()=>{
+    loadUser();
   }
 );
-
-
-init();
-
-</script>
-
-</body>
+</script></body>
 </html>
