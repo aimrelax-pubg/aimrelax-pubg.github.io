@@ -1,4 +1,4 @@
-name: AIMRELAX APK WebView Test
+name: AIMRELAX APK
 
 on:
   workflow_dispatch:
@@ -9,78 +9,74 @@ jobs:
 
     steps:
 
+      # ============================================================
+      # 1. CHECKOUT
+      # ============================================================
       - name: Checkout
         uses: actions/checkout@v4
 
+
+      # ============================================================
+      # 2. NODE
+      # ============================================================
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
+
+      # ============================================================
+      # 3. JAVA
+      # ============================================================
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
 
+
+      # ============================================================
+      # 4. NPM
+      # ============================================================
       - name: Initialize npm
         run: npm init -y
 
+
+      # ============================================================
+      # 5. CAPACITOR
+      # ============================================================
       - name: Install Capacitor
         run: |
           npm install @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
 
-      # ------------------------------------------------------------
-      # TEST WEB PAGE
-      # ------------------------------------------------------------
-      - name: Prepare test web
+
+      # ============================================================
+      # 6. PREPARE REAL AIMRELAX WEBSITE
+      # ============================================================
+      - name: Prepare web files
         run: |
           set -e
 
           rm -rf www
           mkdir -p www
 
-          cat > www/index.html <<'EOF'
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport"
-                  content="width=device-width, initial-scale=1.0">
+          # REAL AIMRELAX WEBSITE
+          cp index.html www/
 
-            <title>AIMRELAX TEST</title>
-          </head>
+          # Optional files
+          cp sw.js www/ 2>/dev/null || true
+          cp manifest.json www/ 2>/dev/null || true
 
-          <body style="
-            margin:0;
-            background:#111;
-            color:white;
-            font-family:Arial,sans-serif;
-            text-align:center;
-          ">
+          echo "===== WWW FILES ====="
+          find www -maxdepth 1 -type f -print
 
-            <div style="padding:80px 20px">
+          echo "===== INDEX SIZE ====="
+          wc -c www/index.html
 
-              <h1>AIMRELAX APK</h1>
 
-              <h2>ANDROID WEBVIEW OK</h2>
-
-              <p>
-                Local HTML is running inside the APK.
-              </p>
-
-            </div>
-
-          </body>
-          </html>
-          EOF
-
-          echo "===== WEB FILE ====="
-          cat www/index.html
-
-      # ------------------------------------------------------------
-      # CAPACITOR CONFIG
-      # ------------------------------------------------------------
+      # ============================================================
+      # 7. CAPACITOR CONFIG
+      # ============================================================
       - name: Create Capacitor config
         run: |
           cat > capacitor.config.json <<'EOF'
@@ -91,17 +87,20 @@ jobs:
           }
           EOF
 
-      # ------------------------------------------------------------
-      # ADD ANDROID
-      # ------------------------------------------------------------
+          cat capacitor.config.json
+
+
+      # ============================================================
+      # 8. ADD ANDROID
+      # ============================================================
       - name: Add Android
         run: |
           npx cap add android
 
-      # ------------------------------------------------------------
-      # REPLACE CAPACITOR MAIN ACTIVITY
-      # WITH SIMPLE ANDROID WEBVIEW
-      # ------------------------------------------------------------
+
+      # ============================================================
+      # 9. CREATE SIMPLE WEBVIEW ACTIVITY
+      # ============================================================
       - name: Create WebView MainActivity
         run: |
           set -e
@@ -134,8 +133,11 @@ jobs:
 
                   settings.setJavaScriptEnabled(true);
                   settings.setDomStorageEnabled(true);
+
                   settings.setAllowFileAccess(true);
                   settings.setAllowContentAccess(true);
+
+                  settings.setDatabaseEnabled(true);
 
                   webView.setWebViewClient(new WebViewClient());
 
@@ -158,9 +160,10 @@ jobs:
           }
           JAVA
 
-      # ------------------------------------------------------------
-      # FIX MANIFEST
-      # ------------------------------------------------------------
+
+      # ============================================================
+      # 10. MANIFEST
+      # ============================================================
       - name: Configure Manifest
         run: |
           set -e
@@ -171,6 +174,7 @@ jobs:
           import xml.etree.ElementTree as ET
 
           p = Path("android/app/src/main/AndroidManifest.xml")
+
           text = p.read_text()
 
           # Android namespace
@@ -184,6 +188,7 @@ jobs:
 
           # Internet permission
           if "android.permission.INTERNET" not in text:
+
               m = re.search(
                   r"<manifest\b[^>]*>",
                   text,
@@ -191,7 +196,7 @@ jobs:
               )
 
               if not m:
-                  raise SystemExit("Manifest tag not found")
+                  raise SystemExit("Manifest opening tag not found")
 
               text = (
                   text[:m.end()]
@@ -201,6 +206,7 @@ jobs:
 
           p.write_text(text)
 
+          # Validate XML
           ET.parse(p)
 
           print("Manifest XML: OK")
@@ -209,43 +215,64 @@ jobs:
           echo "===== MANIFEST ====="
           cat android/app/src/main/AndroidManifest.xml
 
-      # ------------------------------------------------------------
-      # SYNC
-      # ------------------------------------------------------------
+
+      # ============================================================
+      # 11. SYNC
+      # ============================================================
       - name: Sync Android
         run: |
           npx cap sync android
 
-      # ------------------------------------------------------------
-      # VERIFY FILES
-      # ------------------------------------------------------------
-      - name: Verify APK files
+
+      # ============================================================
+      # 12. VERIFY REAL WEBSITE
+      # ============================================================
+      - name: Verify real website
         run: |
           set -e
 
-          echo "===== HTML ====="
+          echo "===== ANDROID WEB ASSETS ====="
+
           test -f android/app/src/main/assets/public/index.html
 
-          echo "===== ACTIVITY ====="
-          test -f android/app/src/main/java/com/aimrelax/pubg/MainActivity.java
+          echo "index.html found."
 
-          echo "===== FILES ====="
-          ls -lh android/app/src/main/assets/public/
+          wc -c android/app/src/main/assets/public/index.html
 
-      # ------------------------------------------------------------
-      # BUILD
-      # ------------------------------------------------------------
+          echo "===== FIRST LINES ====="
+
+          head -n 10 \
+            android/app/src/main/assets/public/index.html
+
+
+      # ============================================================
+      # 13. VERIFY MAIN ACTIVITY
+      # ============================================================
+      - name: Verify MainActivity
+        run: |
+          set -e
+
+          test -f \
+            android/app/src/main/java/com/aimrelax/pubg/MainActivity.java
+
+          echo "MainActivity.java found."
+
+
+      # ============================================================
+      # 14. BUILD APK
+      # ============================================================
       - name: Build APK
         working-directory: android
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      # ------------------------------------------------------------
-      # UPLOAD
-      # ------------------------------------------------------------
+
+      # ============================================================
+      # 15. UPLOAD APK
+      # ============================================================
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: AIMRELAX-WEBVIEW-TEST
+          name: AIMRELAX-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
