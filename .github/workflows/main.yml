@@ -9,52 +9,51 @@ jobs:
 
     steps:
 
-      # ==================================================
+      # ============================================================
       # 1. CHECKOUT
-      # ==================================================
+      # ============================================================
       - name: Checkout
         uses: actions/checkout@v4
 
 
-      # ==================================================
+      # ============================================================
       # 2. NODE
-      # ==================================================
+      # ============================================================
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
 
-      # ==================================================
+      # ============================================================
       # 3. JAVA
-      # ==================================================
+      # ============================================================
       - name: Setup Java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
 
 
-      # ==================================================
+      # ============================================================
       # 4. NPM
-      # ==================================================
+      # ============================================================
       - name: Initialize npm
         run: npm init -y
 
 
-      # ==================================================
-      # 5. CAPACITOR 7
-      # ==================================================
+      # ============================================================
+      # 5. CAPACITOR
+      # ============================================================
       - name: Install Capacitor
         run: |
           npm install @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
 
 
-      # ==================================================
-      # 6. WEBSITE
-      # ==================================================
+      # ============================================================
+      # 6. PREPARE WEB FILES
+      # ============================================================
       - name: Prepare web files
-        shell: bash
         run: |
           set -e
 
@@ -70,17 +69,14 @@ jobs:
           find www -maxdepth 1 -type f -print
 
 
-      # ==================================================
+      # ============================================================
       # 7. CAPACITOR CONFIG
-      # ==================================================
-      - name: Remove old Capacitor configs
+      # ============================================================
+      - name: Create Capacitor config
         run: |
           rm -f capacitor.config.json
           rm -f capacitor.config.js
 
-
-      - name: Create Capacitor config
-        run: |
           cat > capacitor.config.json <<'EOF'
           {
             "appId": "com.aimrelax.pubg",
@@ -89,130 +85,92 @@ jobs:
           }
           EOF
 
+          cat capacitor.config.json
 
-      # ==================================================
-      # 8. CREATE ANDROID
-      # ==================================================
+
+      # ============================================================
+      # 8. ADD ANDROID
+      # ============================================================
       - name: Add Android
         run: |
           npx cap add android
 
 
-      # ==================================================
-      # 9. JITPACK
-      # ==================================================
-      - name: Configure JitPack
-        shell: bash
+      # ============================================================
+      # 9. ADD JITPACK
+      # ============================================================
+      - name: Add JitPack repository
         run: |
           set -e
 
-          python3 <<'PY'
+          python3 - <<'PY'
           from pathlib import Path
 
           p = Path("android/build.gradle")
-          s = p.read_text()
+          text = p.read_text()
 
-          jitpack = 'maven { url "https://jitpack.io" }'
-
-          if "jitpack.io" not in s:
-
-              allprojects_pos = s.find("allprojects")
-
-              if allprojects_pos == -1:
-                  raise SystemExit(
-                      "ERROR: allprojects block not found"
-                  )
-
-              repositories_pos = s.find(
-                  "repositories {",
-                  allprojects_pos
+          if "https://jitpack.io" not in text:
+              text = text.replace(
+                  "allprojects {",
+                  "allprojects {\n    repositories {\n        google()\n        mavenCentral()\n        maven { url 'https://jitpack.io' }\n    }"
               )
 
-              if repositories_pos == -1:
-                  raise SystemExit(
-                      "ERROR: repositories block not found"
-                  )
-
-              insert_pos = repositories_pos + len(
-                  "repositories {"
-              )
-
-              s = (
-                  s[:insert_pos]
-                  + "\n        "
-                  + jitpack
-                  + s[insert_pos:]
-              )
-
-          p.write_text(s)
-
-          print("===== android/build.gradle =====")
-          print(s)
-
-          if "jitpack.io" not in s:
-              raise SystemExit(
-                  "ERROR: JitPack was not added"
-              )
+          p.write_text(text)
           PY
 
+          echo "===== android/build.gradle ====="
+          cat android/build.gradle
 
-      # ==================================================
-      # 10. LIVEKIT
-      # ==================================================
+
+      # ============================================================
+      # 10. ADD LIVEKIT
+      # ============================================================
       - name: Add LiveKit dependency
-        shell: bash
         run: |
           set -e
 
-          python3 <<'PY'
+          python3 - <<'PY'
           from pathlib import Path
 
           p = Path("android/app/build.gradle")
-          s = p.read_text()
+          text = p.read_text()
 
-          dependency = (
-              'implementation("io.livekit:livekit-android:2.29.0")'
-          )
+          dependency = 'implementation "io.livekit:livekit-android:2.29.0"'
 
-          if "io.livekit:livekit-android" not in s:
-
+          if dependency not in text:
               marker = "dependencies {"
+              if marker not in text:
+                  raise SystemExit("dependencies block not found")
 
-              if marker not in s:
-                  raise SystemExit(
-                      "ERROR: dependencies block not found"
-                  )
-
-              s = s.replace(
+              text = text.replace(
                   marker,
                   marker + "\n    " + dependency,
                   1
               )
 
-          p.write_text(s)
-
-          print("===== LIVEKIT =====")
-          print(dependency)
+          p.write_text(text)
           PY
 
+          echo "===== LIVEKIT CHECK ====="
+          grep -n "livekit" android/app/build.gradle || true
 
-      # ==================================================
-      # 11. MAIN ACTIVITY
-      # ==================================================
-      - name: Create native MainActivity
-        shell: bash
+
+      # ============================================================
+      # 11. CREATE MAIN ACTIVITY
+      #
+      # IMPORTANT:
+      # LiveKit is NOT created in onCreate().
+      # Therefore the Capacitor website can start normally.
+      # ============================================================
+      - name: Create Native MainActivity
         run: |
           set -e
 
-          mkdir -p \
-            android/app/src/main/java/com/aimrelax/pubg
+          mkdir -p android/app/src/main/java/com/aimrelax/pubg
 
-          rm -f \
-            android/app/src/main/java/com/aimrelax/pubg/MainActivity.java
+          rm -f android/app/src/main/java/com/aimrelax/pubg/MainActivity.java
 
-          cat > \
-            android/app/src/main/java/com/aimrelax/pubg/MainActivity.kt \
-            <<'KOTLIN'
+          cat > android/app/src/main/java/com/aimrelax/pubg/MainActivity.kt <<'KOTLIN'
           package com.aimrelax.pubg
 
           import android.app.Activity
@@ -229,20 +187,36 @@ jobs:
 
           class MainActivity : BridgeActivity() {
 
-              private lateinit var room: Room
+              private var room: Room? = null
 
               private val SCREEN_CAPTURE_REQUEST = 9001
 
               override fun onCreate(savedInstanceState: Bundle?) {
                   super.onCreate(savedInstanceState)
 
-                  room = LiveKit.create(applicationContext)
+                  /*
+                   * IMPORTANT:
+                   * Do NOT create LiveKit here.
+                   *
+                   * Capacitor/WebView must start normally first.
+                   */
 
                   bridge.webView.addJavascriptInterface(
                       AndroidBridge(),
                       "AIMRELAX_NATIVE"
                   )
               }
+
+
+              private fun getLiveKitRoom(): Room {
+
+                  if (room == null) {
+                      room = LiveKit.create(applicationContext)
+                  }
+
+                  return room!!
+              }
+
 
               inner class AndroidBridge {
 
@@ -251,28 +225,47 @@ jobs:
                       return true
                   }
 
+
                   @JavascriptInterface
                   fun startLiveKit(
                       serverUrl: String,
                       token: String
                   ) {
+
                       Thread {
+
                           try {
-                              room.connect(
+
+                              val liveRoom = getLiveKitRoom()
+
+                              liveRoom.connect(
                                   serverUrl,
                                   token
                               )
+
                           } catch (e: Exception) {
+
                               e.printStackTrace()
+
                           }
+
                       }.start()
                   }
 
+
                   @JavascriptInterface
                   fun startScreenShare() {
+
                       runOnUiThread {
 
                           try {
+
+                              /*
+                               * Create LiveKit Room only when
+                               * screen sharing is actually requested.
+                               */
+
+                              getLiveKitRoom()
 
                               val manager =
                                   getSystemService(
@@ -288,40 +281,58 @@ jobs:
                               )
 
                           } catch (e: Exception) {
+
                               e.printStackTrace()
+
                           }
                       }
                   }
+
 
                   @JavascriptInterface
                   fun stopScreenShare() {
+
                       runOnUiThread {
+
                           try {
-                              room.localParticipant
-                                  .setScreenShareEnabled(false)
+
+                              room?.localParticipant
+                                  ?.setScreenShareEnabled(false)
+
                           } catch (e: Exception) {
+
                               e.printStackTrace()
+
                           }
                       }
                   }
 
+
                   @JavascriptInterface
                   fun disconnectLiveKit() {
+
                       runOnUiThread {
+
                           try {
-                              room.disconnect()
+
+                              room?.disconnect()
+
                           } catch (e: Exception) {
+
                               e.printStackTrace()
+
                           }
                       }
                   }
               }
+
 
               override fun onActivityResult(
                   requestCode: Int,
                   resultCode: Int,
                   data: Intent?
               ) {
+
                   super.onActivityResult(
                       requestCode,
                       resultCode,
@@ -336,27 +347,34 @@ jobs:
 
                       try {
 
+                          val liveRoom = getLiveKitRoom()
+
                           val params =
                               ScreenCaptureParams(
                                   mediaProjectionPermissionResultData = data
                               )
 
-                          room.localParticipant
+                          liveRoom.localParticipant
                               .setScreenShareEnabled(
                                   true,
                                   params
                               )
 
                       } catch (e: Exception) {
+
                           e.printStackTrace()
+
                       }
                   }
               }
 
+
               override fun onDestroy() {
 
                   try {
-                      room.disconnect()
+
+                      room?.disconnect()
+
                   } catch (_: Exception) {
                   }
 
@@ -366,233 +384,116 @@ jobs:
           KOTLIN
 
 
-      # ==================================================
-      # 12. SAFE MANIFEST EDIT
-      # ==================================================
+      # ============================================================
+      # 12. ANDROID MANIFEST
+      # ============================================================
       - name: Configure Android Manifest
-        shell: bash
         run: |
           set -e
 
-          python3 <<'PY'
+          python3 - <<'PY'
           from pathlib import Path
-          import re
-
-          p = Path(
-              "android/app/src/main/AndroidManifest.xml"
-          )
-
-          s = p.read_text()
-
-          print("===== ORIGINAL MANIFEST =====")
-          print(s)
-          print("=============================")
-
-          # ------------------------------------------------
-          # Find the complete opening <manifest ...> tag.
-          # This handles attributes spread over multiple lines.
-          # ------------------------------------------------
-          match = re.search(
-              r'<manifest\b[^>]*>',
-              s,
-              re.DOTALL
-          )
-
-          if not match:
-              raise SystemExit(
-                  "ERROR: <manifest> opening tag not found"
-              )
-
-          manifest_tag = match.group(0)
-
-          # ------------------------------------------------
-          # Guarantee Android namespace.
-          # ------------------------------------------------
-          if "xmlns:android=" not in manifest_tag:
-
-              manifest_tag = manifest_tag[:-1]
-
-              manifest_tag += (
-                  ' xmlns:android='
-                  '"http://schemas.android.com/apk/res/android">'
-              )
-
-          # ------------------------------------------------
-          # Remove our permissions if they somehow exist.
-          # ------------------------------------------------
-          permission_lines = [
-              '<uses-permission android:name="android.permission.INTERNET" />',
-              '<uses-permission android:name="android.permission.RECORD_AUDIO" />',
-              '<uses-permission android:name="android.permission.CAMERA" />'
-          ]
-
-          for line in permission_lines:
-              s = s.replace(line, "")
-
-          # ------------------------------------------------
-          # Replace only the opening manifest tag.
-          # ------------------------------------------------
-          s = (
-              s[:match.start()]
-              + manifest_tag
-              + s[match.end():]
-          )
-
-          # ------------------------------------------------
-          # Insert permissions AFTER the manifest opening tag.
-          # ------------------------------------------------
-          permissions = """
-              <uses-permission android:name="android.permission.INTERNET" />
-              <uses-permission android:name="android.permission.RECORD_AUDIO" />
-              <uses-permission android:name="android.permission.CAMERA" />
-          """.strip()
-
-          new_match = re.search(
-              r'<manifest\b[^>]*>',
-              s,
-              re.DOTALL
-          )
-
-          insert_position = new_match.end()
-
-          s = (
-              s[:insert_position]
-              + "\n"
-              + permissions
-              + "\n"
-              + s[insert_position:]
-          )
-
-          p.write_text(s)
-
-          print("")
-          print("===== FINAL MANIFEST =====")
-          print(s)
-          print("==========================")
-
-          # ------------------------------------------------
-          # Basic required checks
-          # ------------------------------------------------
-          if "xmlns:android=" not in s:
-              raise SystemExit(
-                  "ERROR: android namespace missing"
-              )
-
-          if "android.permission.INTERNET" not in s:
-              raise SystemExit(
-                  "ERROR: INTERNET permission missing"
-              )
-
-          if "android.permission.RECORD_AUDIO" not in s:
-              raise SystemExit(
-                  "ERROR: RECORD_AUDIO permission missing"
-              )
-
-          if "android.permission.CAMERA" not in s:
-              raise SystemExit(
-                  "ERROR: CAMERA permission missing"
-              )
-          PY
-
-
-      # ==================================================
-      # 13. VALIDATE MANIFEST XML
-      # ==================================================
-      - name: Validate AndroidManifest XML
-        shell: bash
-        run: |
-          set -e
-
-          python3 <<'PY'
           import xml.etree.ElementTree as ET
 
-          path = (
-              "android/app/src/main/AndroidManifest.xml"
-          )
+          p = Path("android/app/src/main/AndroidManifest.xml")
 
-          ET.parse(path)
+          text = p.read_text()
 
-          print(
-              "SUCCESS: AndroidManifest.xml is valid XML"
-          )
+          # --------------------------------------------------------
+          # Android namespace
+          # --------------------------------------------------------
+          if 'xmlns:android=' not in text:
+              text = text.replace(
+                  '<manifest',
+                  '<manifest xmlns:android="http://schemas.android.com/apk/res/android"',
+                  1
+              )
+
+          # --------------------------------------------------------
+          # Permissions
+          # --------------------------------------------------------
+          permissions = [
+              '<uses-permission android:name="android.permission.INTERNET" />',
+              '<uses-permission android:name="android.permission.RECORD_AUDIO" />',
+              '<uses-permission android:name="android.permission.CAMERA" />',
+              '<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />',
+              '<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />',
+              '<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />'
+          ]
+
+          for perm in permissions:
+              if perm not in text:
+                  text = text.replace(
+                      '>',
+                      '>\n    ' + perm,
+                      1
+                  )
+
+          p.write_text(text)
+
+          # --------------------------------------------------------
+          # Validate XML
+          # --------------------------------------------------------
+          ET.parse(p)
+
+          print("AndroidManifest.xml XML validation: OK")
           PY
 
+          echo "===== ANDROID MANIFEST ====="
+          cat android/app/src/main/AndroidManifest.xml
 
-      # ==================================================
-      # 14. CAPACITOR SYNC
-      # ==================================================
+
+      # ============================================================
+      # 13. SYNC CAPACITOR
+      # ============================================================
       - name: Sync Android
         run: |
           npx cap sync android
 
 
-      # ==================================================
-      # 15. VERIFY
-      # ==================================================
-      - name: Verify configuration
-        shell: bash
+      # ============================================================
+      # 14. VERIFY WEBSITE INSIDE APK
+      # ============================================================
+      - name: Verify Web Assets
         run: |
           set -e
 
-          echo ""
-          echo "======================================"
-          echo "JITPACK"
-          echo "======================================"
+          echo "===== CAPACITOR WEB ASSETS ====="
 
-          grep -Rni "jitpack.io" \
-            android/build.gradle \
-            android/settings.gradle \
-            android/capacitor.settings.gradle \
-            2>/dev/null || true
+          test -f android/app/src/main/assets/public/index.html
+
+          ls -lh android/app/src/main/assets/public/
+
+          echo "index.html exists inside Android assets."
 
 
-          echo ""
-          echo "======================================"
-          echo "LIVEKIT"
-          echo "======================================"
+      # ============================================================
+      # 15. VERIFY MAIN ACTIVITY
+      # ============================================================
+      - name: Verify MainActivity
+        run: |
+          set -e
 
-          grep -Rni "io.livekit" \
-            android/app/build.gradle \
-            2>/dev/null || true
+          test -f android/app/src/main/java/com/aimrelax/pubg/MainActivity.kt
 
-
-          echo ""
-          echo "======================================"
-          echo "MAIN ACTIVITY"
-          echo "======================================"
-
-          test -f \
+          echo "===== MAIN ACTIVITY ====="
+          sed -n '1,240p' \
             android/app/src/main/java/com/aimrelax/pubg/MainActivity.kt
 
-          echo "MainActivity.kt OK"
 
-
-          echo ""
-          echo "======================================"
-          echo "MANIFEST"
-          echo "======================================"
-
-          grep -n "uses-permission" \
-            android/app/src/main/AndroidManifest.xml
-
-          grep -n "xmlns:android" \
-            android/app/src/main/AndroidManifest.xml
-
-
-      # ==================================================
-      # 16. BUILD
-      # ==================================================
+      # ============================================================
+      # 16. BUILD APK
+      # ============================================================
       - name: Build APK
         working-directory: android
         run: |
           chmod +x gradlew
+          ./gradlew assembleDebug
 
-          ./gradlew clean assembleDebug --stacktrace
 
-
-      # ==================================================
-      # 17. UPLOAD
-      # ==================================================
+      # ============================================================
+      # 17. UPLOAD APK
+      # ============================================================
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
