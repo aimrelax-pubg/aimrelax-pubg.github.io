@@ -1,0 +1,1009 @@
+name: Build AIMRELAX LIVE APK
+
+on:
+workflow_dispatch:
+push:
+paths:
+- ".github/workflows/build-live-apk.yml"
+
+permissions:
+contents: read
+
+jobs:
+build:
+runs-on: ubuntu-latest
+
+steps:
+  - name: Checkout
+    uses: actions/checkout@v4
+
+  - name: Setup JDK 17
+    uses: actions/setup-java@v5
+    with:
+      distribution: temurin
+      java-version: "17"
+
+  - name: Create Android project
+    shell: bash
+    run: |
+      set -e
+
+      mkdir -p app/src/main/java/com/aimrelax/live
+      mkdir -p app/src/main/res/values
+
+      cat > settings.gradle <<'EOF'
+
+pluginManagement {
+repositories {
+google()
+mavenCentral()
+gradlePluginPortal()
+}
+}
+
+dependencyResolutionManagement {
+repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+repositories {
+google()
+mavenCentral()
+maven { url = uri("https://jitpack.io") }
+}
+}
+
+rootProject.name = "AIMRELAX-LIVE"
+include(":app")
+EOF
+
+      cat > build.gradle <<'EOF'
+
+plugins {
+id 'com.android.application' version '8.7.3' apply false
+id 'org.jetbrains.kotlin.android' version '2.0.21' apply false
+}
+EOF
+
+      cat > gradle.properties <<'EOF'
+
+org.gradle.jvmargs=-Xmx4096m -Dfile.encoding=UTF-8
+android.useAndroidX=true
+kotlin.code.style=official
+EOF
+
+      cat > app/build.gradle <<'EOF'
+
+plugins {
+id 'com.android.application'
+id 'org.jetbrains.kotlin.android'
+}
+
+android {
+namespace 'com.aimrelax.live'
+compileSdk 35
+
+defaultConfig {
+    applicationId 'com.aimrelax.live'
+    minSdk 26
+    targetSdk 35
+    versionCode 1
+    versionName '1.0'
+}
+
+}
+
+dependencies {
+implementation 'androidx.core:core-ktx:1.15.0'
+implementation 'androidx.activity:activity-ktx:1.10.1'
+implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.7'
+
+implementation 'io.livekit:livekit-android:2.29.0'
+
+}
+EOF
+
+      cat > app/src/main/res/values/strings.xml <<'EOF'
+
+<resources>
+    <string name="app_name">AIMRELAX LIVE</string>
+</resources>
+EOF      cat > app/src/main/res/values/colors.xml <<'EOF'
+
+<resources>
+    <color name="black">#070707</color>
+    <color name="orange">#FF7200</color>
+    <color name="white">#FFFFFF</color>
+</resources>
+EOF      cat > app/src/main/res/values/themes.xml <<'EOF'
+
+<resources>
+    <style name="AppTheme" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#FF7200</item>
+        <item name="android:navigationBarColor">#070707</item>
+        <item name="android:statusBarColor">#070707</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>
+EOF      cat > app/src/main/AndroidManifest.xml <<'EOF'
+
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"><uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.RECORD_AUDIO" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+<application
+    android:allowBackup="false"
+    android:label="@string/app_name"
+    android:theme="@style/AppTheme"
+    android:usesCleartextTraffic="false">
+
+    <activity
+        android:name=".MainActivity"
+        android:exported="true">
+
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+
+    </activity>
+
+    <service
+        android:name="io.livekit.android.room.track.screencapture.ScreenCaptureService"
+        android:enabled="true"
+        android:exported="false"
+        android:foregroundServiceType="mediaProjection" />
+
+</application>
+
+</manifest>
+EOF      cat > app/src/main/java/com/aimrelax/live/MainActivity.kt <<'EOF'
+
+package com.aimrelax.live
+
+import android.Manifest
+import android.app.Activity
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.media.projection.MediaProjectionManager
+import android.os.Build
+import android.os.Bundle
+import android.widget.Button
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.activity.ComponentActivity
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import io.livekit.android.LiveKit
+import io.livekit.android.room.Room
+import io.livekit.android.room.track.LocalAudioTrack
+import io.livekit.android.room.track.LocalVideoTrack
+import io.livekit.android.room.track.Track
+import io.livekit.android.room.track.screencapture.ScreenCaptureParams
+import io.livekit.android.audio.ScreenAudioCapturer
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
+import java.util.UUID
+
+class MainActivity : ComponentActivity() {
+
+companion object {
+    private const val SUPABASE_URL =
+        "https://hvhlrbfjloiahbqmnrly.supabase.co"
+
+    private const val SUPABASE_ANON_KEY =
+        "sb_publishable_EcZUkLdUCvV3qWDD7jlvhg_OjTYu1jA"
+
+    private const val TOKEN_URL =
+        "$SUPABASE_URL/functions/v1/live-token"
+
+    private const val STREAMS_URL =
+        "$SUPABASE_URL/rest/v1/live_streams"
+
+    private const val REQUEST_NOTIFICATION = 9001
+}
+
+private lateinit var emailInput: EditText
+private lateinit var passwordInput: EditText
+private lateinit var titleInput: EditText
+private lateinit var statusText: TextView
+
+private lateinit var loginButton: Button
+private lateinit var startButton: Button
+private lateinit var shareButton: Button
+private lateinit var micButton: Button
+private lateinit var stopButton: Button
+
+private lateinit var room: Room
+
+private var accessToken: String? = null
+private var userId: String? = null
+private var roomName: String? = null
+private var streamId: String? = null
+
+private var screenAudioCapturer: ScreenAudioCapturer? = null
+private var micEnabled = false
+private var liveStarted = false
+
+private val screenCaptureLauncher =
+    registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+
+        val data = result.data
+
+        if (
+            result.resultCode != Activity.RESULT_OK ||
+            data == null
+        ) {
+            setStatus("Screen sharing-ը չեղարկվեց։")
+            return@registerForActivityResult
+        }
+
+        startScreenShare(data)
+    }
+
+override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+
+    createUi()
+
+    room = LiveKit.create(applicationContext)
+
+    if (
+        Build.VERSION.SDK_INT >= 33 &&
+        ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) != PackageManager.PERMISSION_GRANTED
+    ) {
+        requestPermissions(
+            arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+            REQUEST_NOTIFICATION
+        )
+    }
+
+    loginButton.setOnClickListener {
+        login()
+    }
+
+    startButton.setOnClickListener {
+        startLive()
+    }
+
+    shareButton.setOnClickListener {
+        requestScreenShare()
+    }
+
+    micButton.setOnClickListener {
+        toggleMic()
+    }
+
+    stopButton.setOnClickListener {
+        stopLive()
+    }
+}
+
+private fun createUi() {
+
+    val root = LinearLayout(this)
+
+    root.orientation = LinearLayout.VERTICAL
+    root.setPadding(28, 28, 28, 28)
+    root.setBackgroundColor(
+        android.graphics.Color.rgb(7, 7, 7)
+    )
+
+    fun edit(
+        hint: String,
+        password: Boolean = false
+    ): EditText {
+
+        val e = EditText(this)
+
+        e.hint = hint
+        e.setTextColor(android.graphics.Color.WHITE)
+        e.setHintTextColor(
+            android.graphics.Color.rgb(130,130,130)
+        )
+
+        if (password) {
+            e.inputType =
+                android.text.InputType.TYPE_CLASS_TEXT or
+                android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+        }
+
+        e.setPadding(18, 14, 18, 14)
+
+        root.addView(
+            e,
+            LinearLayout.LayoutParams(
+                -1,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                setMargins(0, 8, 0, 8)
+            }
+        )
+
+        return e
+    }
+
+    val logo = TextView(this)
+
+    logo.text = "AIMRELAX LIVE"
+    logo.textSize = 28f
+    logo.setTextColor(
+        android.graphics.Color.rgb(255,114,0)
+    )
+    logo.setPadding(0, 0, 0, 20)
+
+    root.addView(logo)
+
+    emailInput =
+        edit("E-mail")
+
+    passwordInput =
+        edit("Password", true)
+
+    titleInput =
+        edit("LIVE title")
+
+    titleInput.setText(
+        "AIMRELAX PUBG LIVE"
+    )
+
+    loginButton =
+        button("🔐 LOGIN")
+
+    startButton =
+        button("🔴 START LIVE")
+
+    shareButton =
+        button("📱 SHARE SCREEN")
+
+    micButton =
+        button("🎙️ MIC ON")
+
+    stopButton =
+        button("⛔ STOP LIVE")
+
+    statusText = TextView(this)
+
+    statusText.textSize = 15f
+    statusText.setTextColor(
+        android.graphics.Color.rgb(255,145,40)
+    )
+    statusText.setPadding(0, 20, 0, 10)
+
+    root.addView(statusText)
+
+    startButton.isEnabled = false
+    shareButton.isEnabled = false
+    micButton.isEnabled = false
+    stopButton.isEnabled = false
+
+    setContentView(root)
+}
+
+private fun button(text: String): Button {
+
+    val b = Button(this)
+
+    b.text = text
+    b.setTextColor(
+        android.graphics.Color.BLACK
+    )
+    b.setBackgroundColor(
+        android.graphics.Color.rgb(255,114,0)
+    )
+
+    val p =
+        LinearLayout.LayoutParams(
+            -1,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+
+    p.setMargins(0, 8, 0, 8)
+
+    (findViewById<LinearLayout>(
+        android.R.id.content
+    ))
+
+    return b.also {
+        val parent =
+            window.decorView
+                .findViewById<LinearLayout>(
+                    android.R.id.content
+                )
+
+        // Actual parent is assigned later by createUi.
+        // The button is returned and then inserted below.
+    }
+}
+
+private fun setStatus(text: String) {
+
+    runOnUiThread {
+        statusText.text = text
+    }
+}
+
+private fun login() {
+
+    val email =
+        emailInput.text.toString().trim()
+
+    val password =
+        passwordInput.text.toString()
+
+    if (email.isEmpty() || password.isEmpty()) {
+        setStatus("Գրիր E-mail և Password։")
+        return
+    }
+
+    lifecycleScope.launch(Dispatchers.IO) {
+
+        try {
+
+            val body =
+                JSONObject()
+                    .put("email", email)
+                    .put("password", password)
+
+            val response =
+                postJson(
+                    "$SUPABASE_URL/auth/v1/token?grant_type=password",
+                    body,
+                    mapOf(
+                        "apikey" to SUPABASE_ANON_KEY
+                    )
+                )
+
+            accessToken =
+                response.getString(
+                    "access_token"
+                )
+
+            val user =
+                response.getJSONObject("user")
+
+            userId =
+                user.getString("id")
+
+            withContext(Dispatchers.Main) {
+
+                startButton.isEnabled = true
+                setStatus(
+                    "🟢 Մուտքը հաջողվեց։"
+                )
+            }
+
+        } catch (e: Exception) {
+
+            setStatus(
+                "Login error: ${e.message}"
+            )
+        }
+    }
+}
+
+private fun startLive() {
+
+    val token =
+        accessToken
+
+    val uid =
+        userId
+
+    if (token == null || uid == null) {
+        setStatus("Նախ LOGIN արա։")
+        return
+    }
+
+    lifecycleScope.launch(Dispatchers.IO) {
+
+        try {
+
+            val cleanUid =
+                uid.replace("-", "")
+
+            val generatedRoom =
+                "aimrelax_${cleanUid}_${System.currentTimeMillis()}"
+
+            val title =
+                titleInput.text.toString()
+                    .trim()
+                    .ifEmpty {
+                        "AIMRELAX PUBG LIVE"
+                    }
+
+            val stream =
+                JSONObject()
+                    .put("host_id", uid)
+                    .put("title", title)
+                    .put("room_name", generatedRoom)
+                    .put("status", "live")
+
+            val created =
+                postJson(
+                    STREAMS_URL,
+                    stream,
+                    mapOf(
+                        "apikey" to SUPABASE_ANON_KEY,
+                        "Authorization" to "Bearer $token",
+                        "Content-Type" to "application/json",
+                        "Prefer" to "return=representation"
+                    )
+                )
+
+            streamId =
+                created
+                    .getJSONArray("array")
+                    .getJSONObject(0)
+                    .getString("id")
+
+            val tokenBody =
+                JSONObject()
+                    .put("room_name", generatedRoom)
+                    .put(
+                        "participant_name",
+                        "AIMRELAX PUBG"
+                    )
+                    .put("role", "host")
+
+            val tokenResponse =
+                postJson(
+                    TOKEN_URL,
+                    tokenBody,
+                    mapOf(
+                        "apikey" to SUPABASE_ANON_KEY,
+                        "Authorization" to "Bearer $token"
+                    )
+                )
+
+            val serverUrl =
+                tokenResponse
+                    .getString("server_url")
+
+            val participantToken =
+                tokenResponse
+                    .getString(
+                        "participant_token"
+                    )
+
+            roomName =
+                generatedRoom
+
+            room.connect(
+                serverUrl,
+                participantToken
+            )
+
+            liveStarted = true
+
+            withContext(Dispatchers.Main) {
+
+                shareButton.isEnabled = true
+                micButton.isEnabled = true
+                stopButton.isEnabled = true
+                startButton.isEnabled = false
+
+                setStatus(
+                    "🔴 LIVE-ը սկսված է։ Սեղմիր SHARE SCREEN։"
+                )
+            }
+
+        } catch (e: Exception) {
+
+            setStatus(
+                "LIVE error: ${e.message}"
+            )
+        }
+    }
+}
+
+private fun requestScreenShare() {
+
+    val manager =
+        getSystemService(
+            MEDIA_PROJECTION_SERVICE
+        ) as MediaProjectionManager
+
+    val intent =
+        manager.createScreenCaptureIntent()
+
+    screenCaptureLauncher.launch(intent)
+}
+
+private fun startScreenShare(
+    data: Intent
+) {
+
+    lifecycleScope.launch(Dispatchers.IO) {
+
+        try {
+
+            room.localParticipant
+                .setScreenShareEnabled(
+                    true,
+                    ScreenCaptureParams(data)
+                )
+
+            val screenTrack =
+                room.localParticipant
+                    .getTrackPublication(
+                        Track.Source.SCREEN_SHARE
+                    )
+                    ?.track as? LocalVideoTrack
+
+            if (screenTrack != null) {
+
+                if (
+                    Build.VERSION.SDK_INT >= 29 &&
+                    ActivityCompat.checkSelfPermission(
+                        this@MainActivity,
+                        Manifest.permission.RECORD_AUDIO
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+
+                    screenAudioCapturer =
+                        ScreenAudioCapturer
+                            .createFromScreenShareTrack(
+                                screenTrack
+                            )
+
+                    if (
+                        screenAudioCapturer != null
+                    ) {
+
+                        room.localParticipant
+                            .setMicrophoneEnabled(true)
+
+                        val micTrack =
+                            room.localParticipant
+                                .getTrackPublication(
+                                    Track.Source.MICROPHONE
+                                )
+                                ?.track as? LocalAudioTrack
+
+                        micTrack?.setAudioBufferCallback(
+                            screenAudioCapturer!!
+                        )
+
+                        micEnabled = true
+                    }
+                }
+            }
+
+            withContext(Dispatchers.Main) {
+
+                shareButton.text =
+                    "🛑 SCREEN SHARING"
+
+                setStatus(
+                    "🔴 PUBG screen-ը LIVE է։ Կարող ես բացել PUBG Mobile-ը։"
+                )
+            }
+
+        } catch (e: Exception) {
+
+            setStatus(
+                "Screen share error: ${e.message}"
+            )
+        }
+    }
+}
+
+private fun toggleMic() {
+
+    if (!liveStarted) return
+
+    lifecycleScope.launch(Dispatchers.IO) {
+
+        micEnabled =
+            !micEnabled
+
+        room.localParticipant
+            .setMicrophoneEnabled(
+                micEnabled
+            )
+
+        withContext(Dispatchers.Main) {
+
+            micButton.text =
+                if (micEnabled)
+                    "🎙️ MIC OFF"
+                else
+                    "🎙️ MIC ON"
+        }
+    }
+}
+
+private fun stopLive() {
+
+    lifecycleScope.launch(Dispatchers.IO) {
+
+        try {
+
+            screenAudioCapturer
+                ?.releaseAudioResources()
+
+            screenAudioCapturer = null
+
+            room.localParticipant
+                .setScreenShareEnabled(false)
+
+            room.localParticipant
+                .setMicrophoneEnabled(false)
+
+            room.disconnect()
+
+            val token =
+                accessToken
+
+            val id =
+                streamId
+
+            if (token != null && id != null) {
+
+                patchJson(
+                    "$STREAMS_URL?id=eq.$id",
+                    JSONObject()
+                        .put(
+                            "status",
+                            "ended"
+                        )
+                        .put(
+                            "ended_at",
+                            java.time.Instant
+                                .now()
+                                .toString()
+                        ),
+                    mapOf(
+                        "apikey" to SUPABASE_ANON_KEY,
+                        "Authorization" to "Bearer $token"
+                    )
+                )
+            }
+
+        } catch (e: Exception) {
+
+            e.printStackTrace()
+
+        } finally {
+
+            liveStarted = false
+            roomName = null
+            streamId = null
+            micEnabled = false
+
+            withContext(Dispatchers.Main) {
+
+                startButton.isEnabled = true
+                shareButton.isEnabled = false
+                micButton.isEnabled = false
+                stopButton.isEnabled = false
+
+                shareButton.text =
+                    "📱 SHARE SCREEN"
+
+                micButton.text =
+                    "🎙️ MIC ON"
+
+                setStatus(
+                    "LIVE-ը ավարտվեց։"
+                )
+            }
+        }
+    }
+}
+
+private fun postJson(
+    urlString: String,
+    body: JSONObject,
+    headers: Map<String,String>
+): JSONObject {
+
+    val connection =
+        URL(urlString)
+            .openConnection() as HttpURLConnection
+
+    connection.requestMethod = "POST"
+    connection.doOutput = true
+
+    headers.forEach {
+        connection.setRequestProperty(
+            it.key,
+            it.value
+        )
+    }
+
+    connection.outputStream.use {
+        it.write(
+            body.toString()
+                .toByteArray()
+        )
+    }
+
+    val code =
+        connection.responseCode
+
+    val stream =
+        if (code in 200..299)
+            connection.inputStream
+        else
+            connection.errorStream
+
+    val text =
+        stream.bufferedReader()
+            .use { it.readText() }
+
+    if (code !in 200..299) {
+        throw Exception(
+            "HTTP $code: $text"
+        )
+    }
+
+    return JSONObject(
+        if (text.trim().startsWith("["))
+            JSONObject()
+                .put("array",
+                    org.json.JSONArray(text))
+                .toString()
+        else
+            text
+    )
+}
+
+private fun patchJson(
+    urlString: String,
+    body: JSONObject,
+    headers: Map<String,String>
+) {
+
+    val connection =
+        URL(urlString)
+            .openConnection() as HttpURLConnection
+
+    connection.requestMethod = "PATCH"
+    connection.doOutput = true
+
+    headers.forEach {
+        connection.setRequestProperty(
+            it.key,
+            it.value
+        )
+    }
+
+    connection.setRequestProperty(
+        "Content-Type",
+        "application/json"
+    )
+
+    connection.outputStream.use {
+        it.write(
+            body.toString()
+                .toByteArray()
+        )
+    }
+
+    val code =
+        connection.responseCode
+
+    if (code !in 200..299) {
+
+        val error =
+            connection.errorStream
+                ?.bufferedReader()
+                ?.use { it.readText() }
+
+        throw Exception(
+            "HTTP $code: $error"
+        )
+    }
+}
+
+override fun onDestroy() {
+
+    lifecycleScope.launch(
+        Dispatchers.IO
+    ) {
+        try {
+            screenAudioCapturer
+                ?.releaseAudioResources()
+            room.disconnect()
+        } catch (_: Exception) {}
+    }
+
+    super.onDestroy()
+}
+
+}
+EOF
+
+      # Fix button insertion: replace the helper-created buttons
+      python3 - <<'PY'
+      p = "app/src/main/java/com/aimrelax/live/MainActivity.kt"
+      s = open(p, encoding="utf-8").read()
+
+      old = '''        startButton =
+        button("🔴 START LIVE")
+
+    shareButton =
+        button("📱 SHARE SCREEN")
+
+    micButton =
+        button("🎙️ MIC ON")
+
+    stopButton =
+        button("⛔ STOP LIVE")
+
+    statusText = TextView(this)
+
+'''
+
+      new = '''        startButton =
+        button("🔴 START LIVE")
+    root.addView(startButton)
+
+    shareButton =
+        button("📱 SHARE SCREEN")
+    root.addView(shareButton)
+
+    micButton =
+        button("🎙️ MIC ON")
+    root.addView(micButton)
+
+    stopButton =
+        button("⛔ STOP LIVE")
+    root.addView(stopButton)
+
+    statusText = TextView(this)
+
+'''
+
+      s = s.replace(old, new)
+
+      old2 = '''        return b.also {
+        val parent =
+            window.decorView
+                .findViewById<LinearLayout>(
+                    android.R.id.content
+                )
+
+        // Actual parent is assigned later by createUi.
+        // The button is returned and then inserted below.
+    }
+
+'''
+
+      new2 = '''        return b
+
+'''
+
+      s = s.replace(old2, new2)
+
+      open(p, "w", encoding="utf-8").write(s)
+      PY
+
+  - name: Generate Gradle wrapper
+    run: |
+      gradle wrapper --gradle-version 8.9
+
+  - name: Build debug APK
+    run: |
+      ./gradlew :app:assembleDebug --stacktrace
+
+  - name: Upload APK
+    uses: actions/upload-artifact@v4
+    with:
+      name: AIMRELAX-LIVE-APK
+      path: app/build/outputs/apk/debug/app-debug.apk
+      if-no-files-found: error
