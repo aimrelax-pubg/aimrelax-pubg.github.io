@@ -1,4 +1,4 @@
-name: Build AIMRELAX LIVE APK
+name: Build AIMRELAX Android APK
 
 on:
   workflow_dispatch:
@@ -8,14 +8,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+      # --------------------------------------------------
+      # CHECKOUT
+      # --------------------------------------------------
+
       - name: Checkout
         uses: actions/checkout@v4
+
+
+      # --------------------------------------------------
+      # JAVA 17
+      # --------------------------------------------------
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
+
+
+      # --------------------------------------------------
+      # CREATE ANDROID PROJECT
+      # --------------------------------------------------
 
       - name: Create Android project
         shell: bash
@@ -24,13 +39,22 @@ jobs:
 
           mkdir -p android-app/app/src/main/java/com/aimrelax/live
           mkdir -p android-app/app/src/main/res/values
-          mkdir -p android-app/app/src/main/res/xml
+
+
+          # ------------------------------------------------
+          # GRADLE PROPERTIES
+          # ------------------------------------------------
 
           cat > android-app/gradle.properties <<'EOF'
           android.useAndroidX=true
           android.enableJetifier=true
           org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
           EOF
+
+
+          # ------------------------------------------------
+          # SETTINGS
+          # ------------------------------------------------
 
           cat > android-app/settings.gradle <<'EOF'
           pluginManagement {
@@ -43,16 +67,26 @@ jobs:
 
           dependencyResolutionManagement {
               repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+
               repositories {
                   google()
                   mavenCentral()
-                  maven { url = uri("https://jitpack.io") }
+
+                  maven {
+                      url = uri("https://jitpack.io")
+                  }
               }
           }
 
-          rootProject.name = "AIMRELAX-LIVE"
+          rootProject.name = "AIMRELAX"
+
           include(":app")
           EOF
+
+
+          # ------------------------------------------------
+          # ROOT BUILD
+          # ------------------------------------------------
 
           cat > android-app/build.gradle <<'EOF'
           plugins {
@@ -61,6 +95,11 @@ jobs:
           }
           EOF
 
+
+          # ------------------------------------------------
+          # APP BUILD
+          # ------------------------------------------------
+
           cat > android-app/app/build.gradle <<'EOF'
           plugins {
               id 'com.android.application'
@@ -68,44 +107,64 @@ jobs:
           }
 
           android {
+
               namespace 'com.aimrelax.live'
+
               compileSdk 35
 
               defaultConfig {
+
                   applicationId 'com.aimrelax.live'
+
                   minSdk 26
+
                   targetSdk 35
+
                   versionCode 1
+
                   versionName '1.0'
               }
 
               buildTypes {
-                  release {
-                      minifyEnabled false
-                      proguardFiles(
-                          getDefaultProguardFile('proguard-android-optimize.txt'),
-                          'proguard-rules.pro'
-                      )
-                  }
 
                   debug {
+
                       minifyEnabled false
+                  }
+
+                  release {
+
+                      minifyEnabled false
+
+                      proguardFiles(
+                          getDefaultProguardFile(
+                              'proguard-android-optimize.txt'
+                          ),
+                          'proguard-rules.pro'
+                      )
                   }
               }
 
               compileOptions {
+
                   sourceCompatibility JavaVersion.VERSION_17
+
                   targetCompatibility JavaVersion.VERSION_17
               }
 
               kotlinOptions {
+
                   jvmTarget = '17'
               }
           }
 
+
           dependencies {
+
               implementation 'androidx.core:core-ktx:1.15.0'
+
               implementation 'androidx.appcompat:appcompat:1.7.0'
+
               implementation 'androidx.activity:activity-ktx:1.10.0'
 
               implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0'
@@ -114,75 +173,167 @@ jobs:
           }
           EOF
 
+
+          # ------------------------------------------------
+          # PROGUARD
+          # ------------------------------------------------
+
           cat > android-app/app/proguard-rules.pro <<'EOF'
-          # AIMRELAX LIVE
+          # AIMRELAX
           EOF
+
+
+          # ------------------------------------------------
+          # STRINGS
+          # ------------------------------------------------
 
           cat > android-app/app/src/main/res/values/strings.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+
           <resources>
+
               <string name="app_name">AIMRELAX</string>
+
           </resources>
           EOF
+
+
+          # ------------------------------------------------
+          # COLORS
+          # ------------------------------------------------
 
           cat > android-app/app/src/main/res/values/colors.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+
           <resources>
+
               <color name="black">#000000</color>
+
           </resources>
           EOF
 
+
+          # ------------------------------------------------
+          # THEME
+          # ------------------------------------------------
+
           cat > android-app/app/src/main/res/values/themes.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+
           <resources>
-              <style name="Theme.AIMRELAX" parent="android:style/Theme.Material.Light.NoActionBar">
+
+              <style
+                  name="Theme.AIMRELAX"
+                  parent="android:style/Theme.Material.Light.NoActionBar">
+
                   <item name="android:fontFamily">sans</item>
-                  <item name="android:windowLightStatusBar">false</item>
-                  <item name="android:statusBarColor">#050505</item>
-                  <item name="android:navigationBarColor">#050505</item>
-                  <item name="android:colorAccent">#ff7200</item>
+
+                  <item name="android:windowLightStatusBar">
+                      false
+                  </item>
+
+                  <item name="android:statusBarColor">
+                      #050505
+                  </item>
+
+                  <item name="android:navigationBarColor">
+                      #050505
+                  </item>
+
+                  <item name="android:colorAccent">
+                      #ff7200
+                  </item>
+
               </style>
+
           </resources>
           EOF
+
+
+          # ------------------------------------------------
+          # ANDROID MANIFEST
+          # ------------------------------------------------
 
           cat > android-app/app/src/main/AndroidManifest.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
-          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-              <uses-permission android:name="android.permission.INTERNET" />
-              <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+          <manifest
+              xmlns:android="http://schemas.android.com/apk/res/android">
 
-              <uses-permission android:name="android.permission.CAMERA" />
-              <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
-              <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+              <uses-permission
+                  android:name="android.permission.INTERNET" />
 
-              <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-              <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+              <uses-permission
+                  android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+
+              <uses-permission
+                  android:name="android.permission.CAMERA" />
+
+              <uses-permission
+                  android:name="android.permission.RECORD_AUDIO" />
+
+
+              <uses-permission
+                  android:name="android.permission.POST_NOTIFICATIONS" />
+
+
+              <uses-permission
+                  android:name="android.permission.FOREGROUND_SERVICE" />
+
+              <uses-permission
+                  android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+
 
               <application
+
                   android:allowBackup="true"
+
                   android:usesCleartextTraffic="false"
+
+                  android:hardwareAccelerated="true"
+
                   android:label="@string/app_name"
-                  android:theme="@style/Theme.AIMRELAX"
-                  android:hardwareAccelerated="true">
+
+                  android:theme="@style/Theme.AIMRELAX">
+
 
                   <activity
+
                       android:name=".MainActivity"
+
                       android:exported="true"
+
                       android:screenOrientation="portrait">
 
+
                       <intent-filter>
-                          <action android:name="android.intent.action.MAIN" />
-                          <category android:name="android.intent.category.LAUNCHER" />
+
+                          <action
+                              android:name="android.intent.action.MAIN" />
+
+                          <category
+                              android:name="android.intent.category.LAUNCHER" />
+
                       </intent-filter>
 
                   </activity>
+
 
               </application>
 
           </manifest>
           EOF
 
+
+          # ------------------------------------------------
+          # MAIN ACTIVITY
+          # ------------------------------------------------
+
           cat > android-app/app/src/main/java/com/aimrelax/live/MainActivity.kt <<'EOF'
           package com.aimrelax.live
+
 
           import android.Manifest
           import android.annotation.SuppressLint
@@ -190,100 +341,283 @@ jobs:
           import android.content.Intent
           import android.content.pm.PackageManager
           import android.graphics.Color
+          import android.media.projection.MediaProjectionManager
           import android.os.Bundle
-          import android.view.View
           import android.webkit.CookieManager
+          import android.webkit.JavascriptInterface
           import android.webkit.WebChromeClient
           import android.webkit.WebResourceRequest
           import android.webkit.WebSettings
           import android.webkit.WebView
           import android.webkit.WebViewClient
           import android.widget.FrameLayout
+
           import androidx.activity.result.contract.ActivityResultContracts
           import androidx.appcompat.app.AppCompatActivity
           import androidx.core.content.ContextCompat
+
+          import io.livekit.android.LiveKit
           import io.livekit.android.room.Room
-          import io.livekit.android.room.track.ScreenCaptureParams
+
           import kotlinx.coroutines.CoroutineScope
           import kotlinx.coroutines.Dispatchers
           import kotlinx.coroutines.SupervisorJob
+          import kotlinx.coroutines.cancel
           import kotlinx.coroutines.launch
+
 
           class MainActivity : AppCompatActivity() {
 
+
               private lateinit var webView: WebView
-              private var room: Room? = null
+
+              private lateinit var room: Room
+
 
               private val scope =
-                  CoroutineScope(SupervisorJob() + Dispatchers.Main)
+                  CoroutineScope(
+                      SupervisorJob() +
+                      Dispatchers.Main
+                  )
 
-              private val permissionLauncher =
-                  registerForActivityResult(
-                      ActivityResultContracts.RequestMultiplePermissions()
-                  ) {
-                      // Permissions are requested before native LIVE use.
-                  }
+
+              // ------------------------------------------------
+              // SCREEN CAPTURE RESULT
+              // ------------------------------------------------
 
               private val screenCaptureLauncher =
+
                   registerForActivityResult(
+
                       ActivityResultContracts.StartActivityForResult()
+
                   ) { result ->
 
-                      if (result.resultCode != Activity.RESULT_OK) {
+
+                      if (
+                          result.resultCode != Activity.RESULT_OK
+                      ) {
+
                           sendToWebsite(
-                              "window.dispatchEvent(new CustomEvent('aimrelax-screen-share-cancelled'));"
+                              """
+                              window.dispatchEvent(
+                                  new CustomEvent(
+                                      'aimrelax-screen-share-cancelled'
+                                  )
+                              );
+                              """.trimIndent()
                           )
+
                           return@registerForActivityResult
                       }
 
-                      val data = result.data ?: return@registerForActivityResult
 
-                      startNativeScreenShare(data)
+                      val data =
+                          result.data
+
+
+                      if (data == null) {
+
+                          sendToWebsite(
+                              """
+                              window.dispatchEvent(
+                                  new CustomEvent(
+                                      'aimrelax-live-error',
+                                      {
+                                          detail:
+                                          'Screen capture data missing'
+                                      }
+                                  )
+                              );
+                              """.trimIndent()
+                          )
+
+                          return@registerForActivityResult
+                      }
+
+
+                      publishScreen(data)
                   }
 
+
+              // ------------------------------------------------
+              // ANDROID JS BRIDGE
+              // ------------------------------------------------
+
+              inner class AIMRELAXBridge {
+
+
+                  @JavascriptInterface
+                  fun startLiveKit(
+                      serverUrl: String,
+                      token: String
+                  ) {
+
+                      connectLiveKit(
+                          serverUrl,
+                          token
+                      )
+                  }
+
+
+                  @JavascriptInterface
+                  fun startScreenShare() {
+
+                      openScreenCapture()
+                  }
+
+
+                  @JavascriptInterface
+                  fun stopScreenShare() {
+
+                      scope.launch {
+
+                          try {
+
+                              room
+                                  .localParticipant
+                                  .setScreenShareEnabled(
+                                      false
+                                  )
+
+                              sendToWebsite(
+                                  """
+                                  window.dispatchEvent(
+                                      new CustomEvent(
+                                          'aimrelax-screen-share-stopped'
+                                      )
+                                  );
+                                  """.trimIndent()
+                              )
+
+                          } catch (e: Exception) {
+
+                              e.printStackTrace()
+                          }
+                      }
+                  }
+
+
+                  @JavascriptInterface
+                  fun disconnectLiveKit() {
+
+                      try {
+
+                          room.disconnect()
+
+                      } catch (_: Exception) {
+                      }
+                  }
+              }
+
+
+              // ------------------------------------------------
+              // ON CREATE
+              // ------------------------------------------------
+
               @SuppressLint("SetJavaScriptEnabled")
-              override fun onCreate(savedInstanceState: Bundle?) {
-                  super.onCreate(savedInstanceState)
+              override fun onCreate(
+                  savedInstanceState: Bundle?
+              ) {
 
-                  window.statusBarColor = Color.BLACK
-                  window.navigationBarColor = Color.BLACK
+                  super.onCreate(
+                      savedInstanceState
+                  )
 
-                  val root = FrameLayout(this)
 
-                  webView = WebView(this)
+                  window.statusBarColor =
+                      Color.BLACK
+
+                  window.navigationBarColor =
+                      Color.BLACK
+
+
+                  // --------------------------------------------
+                  // LIVEKIT ROOM
+                  // --------------------------------------------
+
+                  room =
+                      LiveKit.create(
+                          applicationContext
+                      )
+
+
+                  // --------------------------------------------
+                  // WEBVIEW
+                  // --------------------------------------------
+
+                  val root =
+                      FrameLayout(this)
+
+
+                  webView =
+                      WebView(this)
+
 
                   root.addView(
+
                       webView,
+
                       FrameLayout.LayoutParams(
+
                           FrameLayout.LayoutParams.MATCH_PARENT,
+
                           FrameLayout.LayoutParams.MATCH_PARENT
                       )
                   )
 
+
                   setContentView(root)
+
 
                   setupWebView()
 
-                  requestMediaPermissions()
+
+                  requestPermissions()
+
+
+                  // --------------------------------------------
+                  // REAL AIMRELAX WEBSITE
+                  // --------------------------------------------
 
                   webView.loadUrl(
                       "https://aimrelax-pubg.github.io/"
                   )
               }
 
+
+              // ------------------------------------------------
+              // WEBVIEW
+              // ------------------------------------------------
+
+              @SuppressLint("SetJavaScriptEnabled")
               private fun setupWebView() {
 
-                  webView.setBackgroundColor(Color.BLACK)
+
+                  webView.setBackgroundColor(
+                      Color.BLACK
+                  )
+
 
                   webView.settings.apply {
-                      javaScriptEnabled = true
-                      domStorageEnabled = true
-                      databaseEnabled = true
 
-                      mediaPlaybackRequiresUserGesture = false
+                      javaScriptEnabled =
+                          true
 
-                      allowFileAccess = false
-                      allowContentAccess = true
+                      domStorageEnabled =
+                          true
+
+                      databaseEnabled =
+                          true
+
+                      mediaPlaybackRequiresUserGesture =
+                          false
+
+                      allowContentAccess =
+                          true
+
+                      allowFileAccess =
+                          false
 
                       mixedContentMode =
                           WebSettings.MIXED_CONTENT_NEVER_ALLOW
@@ -292,9 +626,11 @@ jobs:
                           "$userAgentString AIMRELAX-Android"
                   }
 
+
                   CookieManager
                       .getInstance()
                       .setAcceptCookie(true)
+
 
                   CookieManager
                       .getInstance()
@@ -303,13 +639,33 @@ jobs:
                           true
                       )
 
+
+                  // --------------------------------------------
+                  // JS BRIDGE
+                  // --------------------------------------------
+
+                  webView.addJavascriptInterface(
+                      AIMRELAXBridge(),
+                      "AIMRELAX_NATIVE"
+                  )
+
+
+                  // --------------------------------------------
+                  // WEB CHROME
+                  // --------------------------------------------
+
                   webView.webChromeClient =
+
                       object : WebChromeClient() {
 
+
                           override fun onPermissionRequest(
-                              request: android.webkit.PermissionRequest
+                              request:
+                              android.webkit.PermissionRequest
                           ) {
+
                               runOnUiThread {
+
                                   request.grant(
                                       request.resources
                                   )
@@ -317,70 +673,66 @@ jobs:
                           }
                       }
 
+
+                  // --------------------------------------------
+                  // WEBVIEW CLIENT
+                  // --------------------------------------------
+
                   webView.webViewClient =
+
                       object : WebViewClient() {
 
+
                           override fun shouldOverrideUrlLoading(
+
                               view: WebView,
+
                               request: WebResourceRequest
+
                           ): Boolean {
 
-                              val url =
-                                  request.url.toString()
-
-                              return if (
-                                  url.startsWith(
-                                      "https://aimrelax-pubg.github.io/"
-                                  ) ||
-                                  url.startsWith(
-                                      "https://hvhlrbfjloiahbqmnrly.supabase.co/"
-                                  )
-                              ) {
-                                  false
-                              } else {
-                                  false
-                              }
+                              return false
                           }
 
+
                           override fun onPageFinished(
+
                               view: WebView,
+
                               url: String
+
                           ) {
+
                               super.onPageFinished(
                                   view,
                                   url
                               )
 
-                              injectNativeBridge()
+
+                              injectNativeReady()
                           }
                       }
               }
 
-              private fun injectNativeBridge() {
 
-                  val js = """
-                      (function(){
-                          window.AIMRELAX_NATIVE = {
-                              isAndroid: true,
+              // ------------------------------------------------
+              // NATIVE READY EVENT
+              // ------------------------------------------------
 
-                              startScreenShare: function(){
-                                  window.location.href =
-                                      'aimrelax-native://start-screen-share';
-                              },
+              private fun injectNativeReady() {
 
-                              stopScreenShare: function(){
-                                  window.location.href =
-                                      'aimrelax-native://stop-screen-share';
-                              }
-                          };
+                  val js =
 
-                          window.dispatchEvent(
-                              new CustomEvent(
-                                  'aimrelax-native-ready'
-                              )
-                          );
-                      })();
-                  """.trimIndent()
+                      """
+                      window.AIMRELAX_ANDROID = true;
+
+                      window.dispatchEvent(
+                          new CustomEvent(
+                              'aimrelax-native-ready'
+                          )
+                      );
+                      """.trimIndent()
+
 
                   webView.evaluateJavascript(
                       js,
@@ -388,124 +740,297 @@ jobs:
                   )
               }
 
-              private fun requestMediaPermissions() {
+
+              // ------------------------------------------------
+              // PERMISSIONS
+              // ------------------------------------------------
+
+              private fun requestPermissions() {
+
 
                   val permissions =
                       mutableListOf<String>()
 
+
                   if (
+
                       ContextCompat.checkSelfPermission(
+
                           this,
+
                           Manifest.permission.RECORD_AUDIO
+
                       ) != PackageManager.PERMISSION_GRANTED
+
                   ) {
+
                       permissions.add(
                           Manifest.permission.RECORD_AUDIO
                       )
                   }
 
+
                   if (
+
                       ContextCompat.checkSelfPermission(
+
                           this,
+
                           Manifest.permission.CAMERA
+
                       ) != PackageManager.PERMISSION_GRANTED
+
                   ) {
+
                       permissions.add(
                           Manifest.permission.CAMERA
                       )
                   }
 
-                  if (permissions.isNotEmpty()) {
-                      permissionLauncher.launch(
+
+                  if (
+                      permissions.isNotEmpty()
+                  ) {
+
+                      registerForActivityResult(
+
+                          ActivityResultContracts
+                              .RequestMultiplePermissions()
+
+                      ) {
+
+                      }.launch(
                           permissions.toTypedArray()
                       )
                   }
               }
 
-              private fun startNativeScreenShare() {
 
-                  val manager =
-                      getSystemService(
-                          MEDIA_PROJECTION_SERVICE
-                      ) as android.media.projection.MediaProjectionManager
+              // ------------------------------------------------
+              // CONNECT LIVEKIT
+              // ------------------------------------------------
 
-                  screenCaptureLauncher.launch(
-                      manager.createScreenCaptureIntent()
-                  )
-              }
+              private fun connectLiveKit(
 
-              private fun startNativeScreenShare(
-                  permissionData: Intent
+                  serverUrl: String,
+
+                  token: String
+
               ) {
 
-                  if (room == null) {
+
+                  if (
+                      serverUrl.isBlank() ||
+                      token.isBlank()
+                  ) {
+
                       sendToWebsite(
-                          "window.dispatchEvent(new CustomEvent('aimrelax-live-error',{detail:'LiveKit room is not connected'}));"
+
+                          """
+                          window.dispatchEvent(
+                              new CustomEvent(
+                                  'aimrelax-live-error',
+                                  {
+                                      detail:
+                                      'LiveKit token missing'
+                                  }
+                              )
+                          );
+                          """.trimIndent()
                       )
+
                       return
                   }
 
+
                   scope.launch {
 
                       try {
 
-                          val params =
-                              ScreenCaptureParams(
-                                  mediaProjectionPermissionResultData =
-                                      permissionData
+
+                          // Disconnect old room
+                          try {
+
+                              room.disconnect()
+
+                          } catch (_: Exception) {
+                          }
+
+
+                          // Create fresh Room
+                          room =
+                              LiveKit.create(
+                                  applicationContext
                               )
 
+
+                          // Connect
+                          room.connect(
+                              serverUrl,
+                              token
+                          )
+
+
+                          sendToWebsite(
+
+                              """
+                              window.dispatchEvent(
+                                  new CustomEvent(
+                                      'aimrelax-livekit-connected'
+                                  )
+                              );
+                              """.trimIndent()
+                          )
+
+
+                      } catch (e: Exception) {
+
+
+                          val message =
+                              org.json.JSONObject.quote(
+                                  e.message
+                                      ?: "LiveKit connection failed"
+                              )
+
+
+                          sendToWebsite(
+
+                              """
+                              window.dispatchEvent(
+                                  new CustomEvent(
+                                      'aimrelax-live-error',
+                                      {
+                                          detail:
+                                          $message
+                                      }
+                                  )
+                              );
+                              """.trimIndent()
+                          )
+                      }
+                  }
+              }
+
+
+              // ------------------------------------------------
+              // OPEN ANDROID SCREEN CAPTURE
+              // ------------------------------------------------
+
+              private fun openScreenCapture() {
+
+
+                  val manager =
+
+                      getSystemService(
+                          MEDIA_PROJECTION_SERVICE
+                      ) as MediaProjectionManager
+
+
+                  val intent =
+
+                      manager.createScreenCaptureIntent()
+
+
+                  screenCaptureLauncher.launch(
+                      intent
+                  )
+              }
+
+
+              // ------------------------------------------------
+              // PUBLISH SCREEN
+              // ------------------------------------------------
+
+              private fun publishScreen(
+                  data: Intent
+              ) {
+
+
+                  scope.launch {
+
+
+                      try {
+
+
                           val success =
-                              room!!
+
+                              room
                                   .localParticipant
                                   .setScreenShareEnabled(
                                       true,
-                                      params
+                                      data
                                   )
+
 
                           if (success) {
 
+
                               sendToWebsite(
-                                  "window.dispatchEvent(new CustomEvent('aimrelax-screen-share-started'));"
+
+                                  """
+                                  window.dispatchEvent(
+                                      new CustomEvent(
+                                          'aimrelax-screen-share-started'
+                                      )
+                                  );
+                                  """.trimIndent()
                               )
+
 
                           } else {
 
+
                               sendToWebsite(
-                                  "window.dispatchEvent(new CustomEvent('aimrelax-live-error',{detail:'Screen share failed'}));"
+
+                                  """
+                                  window.dispatchEvent(
+                                      new CustomEvent(
+                                          'aimrelax-live-error',
+                                          {
+                                              detail:
+                                              'Screen share failed'
+                                          }
+                                      )
+                                  );
+                                  """.trimIndent()
                               )
                           }
 
+
                       } catch (e: Exception) {
 
-                          sendToWebsite(
-                              "window.dispatchEvent(new CustomEvent('aimrelax-live-error',{detail:${org.json.JSONObject.quote(e.message ?: "Screen share error")}}));"
-                          )
-                      }
-                  }
-              }
 
-              private fun stopNativeScreenShare() {
+                          val message =
 
-                  scope.launch {
+                              org.json.JSONObject.quote(
 
-                      try {
-
-                          room
-                              ?.localParticipant
-                              ?.setScreenShareEnabled(
-                                  false
+                                  e.message
+                                      ?: "Screen share error"
                               )
 
-                          sendToWebsite(
-                              "window.dispatchEvent(new CustomEvent('aimrelax-screen-share-stopped'));"
-                          )
 
-                      } catch (e: Exception) {
-                          e.printStackTrace()
+                          sendToWebsite(
+
+                              """
+                              window.dispatchEvent(
+                                  new CustomEvent(
+                                      'aimrelax-live-error',
+                                      {
+                                          detail:
+                                          $message
+                                      }
+                                  )
+                              );
+                              """.trimIndent()
+                          )
                       }
                   }
               }
+
+
+              // ------------------------------------------------
+              // SEND EVENT TO WEBSITE
+              // ------------------------------------------------
 
               private fun sendToWebsite(
                   javascript: String
@@ -520,157 +1045,93 @@ jobs:
                   }
               }
 
+
+              // ------------------------------------------------
+              // BACK BUTTON
+              // ------------------------------------------------
+
+              @Deprecated(
+                  "Deprecated in Java"
+              )
               override fun onBackPressed() {
 
-                  if (webView.canGoBack()) {
+
+                  if (
+                      webView.canGoBack()
+                  ) {
+
                       webView.goBack()
+
                   } else {
+
                       super.onBackPressed()
                   }
               }
 
+
+              // ------------------------------------------------
+              // DESTROY
+              // ------------------------------------------------
+
               override fun onDestroy() {
 
+
                   try {
-                      room?.disconnect()
+
+                      room.disconnect()
+
                   } catch (_: Exception) {
                   }
 
+
                   scope.cancel()
+
 
                   webView.destroy()
 
+
                   super.onDestroy()
-              }
-
-              private fun handleNativeUrl(
-                  url: String
-              ): Boolean {
-
-                  return when {
-
-                      url ==
-                          "aimrelax-native://start-screen-share" -> {
-
-                          startNativeScreenShare()
-
-                          webView.loadUrl(
-                              "javascript:void(0)"
-                          )
-
-                          true
-                      }
-
-                      url ==
-                          "aimrelax-native://stop-screen-share" -> {
-
-                          stopNativeScreenShare()
-
-                          webView.loadUrl(
-                              "javascript:void(0)"
-                          )
-
-                          true
-                      }
-
-                      else -> false
-                  }
               }
           }
           EOF
 
-      - name: Fix native URL bridge
-        shell: bash
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
 
-          p = Path(
-              "android-app/app/src/main/java/com/aimrelax/live/MainActivity.kt"
-          )
-
-          s = p.read_text()
-
-          old = """override fun shouldOverrideUrlLoading(
-                              view: WebView,
-                              request: WebResourceRequest
-                          ): Boolean {
-
-                              val url =
-                                  request.url.toString()
-
-                              return if (
-                                  url.startsWith(
-                                      "https://aimrelax-pubg.github.io/"
-                                  ) ||
-                                  url.startsWith(
-                                      "https://hvhlrbfjloiahbqmnrly.supabase.co/"
-                                  )
-                              ) {
-                                  false
-                              } else {
-                                  false
-                              }
-                          }"""
-
-          new = """override fun shouldOverrideUrlLoading(
-                              view: WebView,
-                              request: WebResourceRequest
-                          ): Boolean {
-
-                              val url =
-                                  request.url.toString()
-
-                              if (handleNativeUrl(url)) {
-                                  return true
-                              }
-
-                              return false
-                          }"""
-
-          if old not in s:
-              raise SystemExit(
-                  "WebView URL bridge block not found"
-              )
-
-          p.write_text(
-              s.replace(old, new)
-          )
-          PY
-
-      - name: Add missing coroutine import
-        shell: bash
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-
-          p = Path(
-              "android-app/app/src/main/java/com/aimrelax/live/MainActivity.kt"
-          )
-
-          s = p.read_text()
-
-          if "import kotlinx.coroutines.cancel" not in s:
-              s = s.replace(
-                  "import kotlinx.coroutines.launch",
-                  "import kotlinx.coroutines.launch\nimport kotlinx.coroutines.cancel"
-              )
-
-          p.write_text(s)
-          PY
+      # ------------------------------------------------------
+      # GRADLE
+      # ------------------------------------------------------
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build Debug APK
+
+      # ------------------------------------------------------
+      # BUILD
+      # ------------------------------------------------------
+
+      - name: Build APK
         working-directory: android-app
         run: |
-          gradle wrapper --gradle-version 8.10.2
-          ./gradlew assembleDebug --stacktrace
+
+          gradle wrapper \
+            --gradle-version 8.10.2
+
+          ./gradlew \
+            assembleDebug \
+            --stacktrace
+
+
+      # ------------------------------------------------------
+      # APK ARTIFACT
+      # ------------------------------------------------------
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
+
         with:
-          name: AIMRELAX-LIVE-APK
-          path: android-app/app/build/outputs/apk/debug/app-debug.apk
+
+          name: AIMRELAX-Android-APK
+
+          path:
+            android-app/app/build/outputs/apk/debug/app-debug.apk
+
           if-no-files-found: error
