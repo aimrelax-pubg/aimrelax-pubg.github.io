@@ -36,9 +36,7 @@ jobs:
           mkdir -p www
 
           cp index.html www/
-
           cp sw.js www/ 2>/dev/null || true
-
           cp manifest.json www/ 2>/dev/null || true
 
       - name: Remove old Capacitor configs
@@ -61,45 +59,44 @@ jobs:
           npx cap add android
 
       # --------------------------------------------------
-      # FIX: Capacitor creates its own settings.gradle.
-      # We replace it completely so JitPack is guaranteed
-      # to be inside dependencyResolutionManagement.
+      # ADD JITPACK WITHOUT REPLACING CAPACITOR BUILD FILES
       # --------------------------------------------------
 
-      - name: Configure Android repositories
+      - name: Add JitPack repository
         shell: bash
         run: |
           set -e
 
-          cat > android/settings.gradle <<'EOF'
-          pluginManagement {
-              repositories {
-                  google()
-                  mavenCentral()
-                  gradlePluginPortal()
-                  maven { url = uri("https://jitpack.io") }
-              }
-          }
+          python3 - <<'PY'
+          from pathlib import Path
 
-          dependencyResolutionManagement {
-              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+          p = Path("android/settings.gradle")
+          s = p.read_text()
 
-              repositories {
-                  google()
-                  mavenCentral()
-                  maven { url = uri("https://jitpack.io") }
-              }
-          }
+          if "jitpack.io" not in s:
 
-          rootProject.name = "AIMRELAX"
-          include(":app")
-          EOF
+              if "repositories {" in s:
+                  first = s.find("repositories {")
+
+                  position = first + len("repositories {")
+
+                  s = (
+                      s[:position]
+                      + '\n        maven { url = uri("https://jitpack.io") }'
+                      + s[position:]
+                  )
+
+          p.write_text(s)
+
+          print("===== settings.gradle =====")
+          print(p.read_text())
+          PY
 
       # --------------------------------------------------
-      # Add LiveKit
+      # ADD LIVEKIT DEPENDENCY
       # --------------------------------------------------
 
-      - name: Configure LiveKit Android
+      - name: Add LiveKit dependency
         shell: bash
         run: |
           set -e
@@ -113,13 +110,17 @@ jobs:
           dependency = 'implementation("io.livekit:livekit-android:2.29.0")'
 
           if dependency not in s:
+
               if "dependencies {" in s:
+
                   s = s.replace(
                       "dependencies {",
                       "dependencies {\n    " + dependency,
                       1
                   )
+
               else:
+
                   s += """
 
           dependencies {
@@ -128,13 +129,19 @@ jobs:
           """
 
           p.write_text(s)
+
+          print("===== app/build.gradle LiveKit check =====")
+
+          for line in p.read_text().splitlines():
+              if "livekit" in line.lower():
+                  print(line)
           PY
 
       # --------------------------------------------------
-      # Android permissions
+      # ANDROID MANIFEST
       # --------------------------------------------------
 
-      - name: Configure Android permissions
+      - name: Add LiveKit permissions
         shell: bash
         run: |
           set -e
@@ -155,7 +162,9 @@ jobs:
           ]
 
           for permission in permissions:
+
               if permission not in s:
+
                   s = s.replace(
                       "<application",
                       "    " + permission + "\n\n    <application",
@@ -171,6 +180,7 @@ jobs:
           """
 
           if "ScreenCaptureService" not in s:
+
               s = s.replace(
                   "</application>",
                   service + "\n    </application>",
@@ -181,13 +191,10 @@ jobs:
           PY
 
       # --------------------------------------------------
-      # Native Capacitor MainActivity
-      # IMPORTANT:
-      # The Capacitor website remains the main UI.
-      # No READY / SHARE SCREEN native page.
+      # NATIVE CAPACITOR ACTIVITY
       # --------------------------------------------------
 
-      - name: Configure AIMRELAX native bridge
+      - name: Add AIMRELAX LiveKit native bridge
         shell: bash
         run: |
           set -e
@@ -224,24 +231,10 @@ jobs:
                   ) { result ->
 
                       if (result.resultCode != Activity.RESULT_OK) {
-
-                          sendToWebsite(
-                              "window.dispatchEvent(new CustomEvent('aimrelax-screen-share-error',{detail:{message:'Screen capture permission denied'}}));"
-                          )
-
                           return@registerForActivityResult
                       }
 
-                      val data = result.data
-
-                      if (data == null) {
-
-                          sendToWebsite(
-                              "window.dispatchEvent(new CustomEvent('aimrelax-screen-share-error',{detail:{message:'Screen capture data missing'}}));"
-                          )
-
-                          return@registerForActivityResult
-                      }
+                      val data = result.data ?: return@registerForActivityResult
 
                       publishScreen(data)
                   }
@@ -312,30 +305,24 @@ jobs:
                                   mediaProjectionPermissionResultData = data
                               )
 
-                          val result =
+                          val success =
                               room.localParticipant
                                   .setScreenShareEnabled(
                                       true,
                                       params
                                   )
 
-                          if (result) {
+                          if (success) {
 
                               sendToWebsite(
                                   "window.dispatchEvent(new CustomEvent('aimrelax-screen-share-started'));"
-                              )
-
-                          } else {
-
-                              sendToWebsite(
-                                  "window.dispatchEvent(new CustomEvent('aimrelax-screen-share-error',{detail:{message:'Unable to start screen sharing'}}));"
                               )
                           }
 
                       } catch (e: Exception) {
 
                           sendToWebsite(
-                              "window.dispatchEvent(new CustomEvent('aimrelax-screen-share-error',{detail:{message:${jsString(e.message ?: "Screen sharing failed")}}}));"
+                              "window.dispatchEvent(new CustomEvent('aimrelax-screen-share-error',{detail:{message:${jsString(e.message ?: "Screen share failed")}}}));"
                           )
                       }
                   }
@@ -354,11 +341,7 @@ jobs:
                               "window.dispatchEvent(new CustomEvent('aimrelax-screen-share-stopped'));"
                           )
 
-                      } catch (e: Exception) {
-
-                          sendToWebsite(
-                              "window.dispatchEvent(new CustomEvent('aimrelax-screen-share-error',{detail:{message:${jsString(e.message ?: "Unable to stop screen sharing")}}}));"
-                          )
+                      } catch (_: Exception) {
                       }
                   }
               }
@@ -370,10 +353,6 @@ jobs:
                       try {
 
                           room.disconnect()
-
-                          sendToWebsite(
-                              "window.dispatchEvent(new CustomEvent('aimrelax-livekit-disconnected'));"
-                          )
 
                       } catch (_: Exception) {
                       }
@@ -476,7 +455,7 @@ jobs:
           rm -f android/app/src/main/java/com/aimrelax/pubg/MainActivity.java
 
       # --------------------------------------------------
-      # Sync Capacitor
+      # SYNC
       # --------------------------------------------------
 
       - name: Sync Android
@@ -484,19 +463,7 @@ jobs:
           npx cap sync android
 
       # --------------------------------------------------
-      # Verify repositories before Gradle
-      # --------------------------------------------------
-
-      - name: Verify LiveKit repository
-        run: |
-          echo "===== android/settings.gradle ====="
-          cat android/settings.gradle
-
-          echo "===== LiveKit dependency ====="
-          grep -n "livekit-android" android/app/build.gradle || true
-
-      # --------------------------------------------------
-      # Build
+      # BUILD
       # --------------------------------------------------
 
       - name: Build APK
@@ -506,7 +473,7 @@ jobs:
           ./gradlew clean assembleDebug --stacktrace
 
       # --------------------------------------------------
-      # Upload
+      # UPLOAD
       # --------------------------------------------------
 
       - name: Upload APK
