@@ -23,6 +23,11 @@ jobs:
         run: |
           mkdir -p android-app/app/src/main/java/com/aimrelax/live
           mkdir -p android-app/app/src/main/res/values
+          
+                    printf '%s\n' \
+            'android.useAndroidX=true' \
+            'android.enableJetifier=true' \
+            > android-app/gradle.properties
 
           printf '%s\n' \
             'pluginManagement {' \
