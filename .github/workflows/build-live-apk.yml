@@ -23,171 +23,183 @@ jobs:
         run: |
           mkdir -p android-app/app/src/main/java/com/aimrelax/live
           mkdir -p android-app/app/src/main/res/values
-          
-                    printf '%s\n' \
-            'android.useAndroidX=true' \
-            'android.enableJetifier=true' \
-            > android-app/gradle.properties
-          printf '%s\n' \
-            'pluginManagement {' \
-            '    repositories {' \
-            '        google()' \
-            '        mavenCentral()' \
-            '        gradlePluginPortal()' \
-            '    }' \
-            '}' \
-            '' \
-            'dependencyResolutionManagement {' \
-            '    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)' \
-            '    repositories {' \
-            '        google()' \
-            '        mavenCentral()' \
-            '        maven { url = uri("https://jitpack.io") }' \
-            '    }' \
-            '}' \
-            '' \
-            'rootProject.name = "AIMRELAX-LIVE"' \
-            'include(":app")' \
-            > android-app/settings.gradle
-          
-            '' \
-            'rootProject.name = "AIMRELAX-LIVE"' \
-            'include(":app")' \
-            > android-app/settings.gradle
 
-          printf '%s\n' \
-            'plugins {' \
-            '    id "com.android.application" version "8.7.3" apply false' \
-            '    id "org.jetbrains.kotlin.android" version "2.0.21" apply false' \
-            '}' \
-            > android-app/build.gradle
+          cat > android-app/gradle.properties <<'EOF'
+          android.useAndroidX=true
+          android.enableJetifier=true
+          EOF
 
-          printf '%s\n' \
-            'plugins {' \
-            '    id "com.android.application"' \
-            '    id "org.jetbrains.kotlin.android"' \
-            '}' \
-            '' \
-            'android {' \
-            '    namespace "com.aimrelax.live"' \
-            '    compileSdk 35' \
-            '' \
-            '    defaultConfig {' \
-            '        applicationId "com.aimrelax.live"' \
-            '        minSdk 26' \
-            '        targetSdk 35' \
-            '        versionCode 1' \
-            '        versionName "1.0"' \
-            '    }' \
-            '}' \
-            '' \
-            'dependencies {' \
-            '    implementation "io.livekit:livekit-android:2.29.0"' \
-            '}' \
-            > android-app/app/build.gradle
+          cat > android-app/settings.gradle <<'EOF'
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
 
-          printf '%s\n' \
-            '<?xml version="1.0" encoding="utf-8"?>' \
-            '<manifest xmlns:android="http://schemas.android.com/apk/res/android">' \
-            '' \
-            '    <uses-permission android:name="android.permission.INTERNET" />' \
-            '    <uses-permission android:name="android.permission.RECORD_AUDIO" />' \
-            '    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />' \
-            '    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />' \
-            '    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />' \
-            '' \
-            '    <application' \
-            '        android:allowBackup="true"' \
-            '        android:label="AIMRELAX LIVE"' \
-            '        android:theme="@style/AppTheme">' \
-            '' \
-            '        <activity' \
-            '            android:name=".MainActivity"' \
-            '            android:exported="true">' \
-            '            <intent-filter>' \
-            '                <action android:name="android.intent.action.MAIN" />' \
-            '                <category android:name="android.intent.category.LAUNCHER" />' \
-            '            </intent-filter>' \
-            '        </activity>' \
-            '' \
-            '    </application>' \
-            '</manifest>' \
-            > android-app/app/src/main/AndroidManifest.xml
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+                  maven { url = uri("https://jitpack.io") }
+              }
+          }
 
-          printf '%s\n' \
-            '<resources>' \
-            '    <style name="AppTheme" parent="android:style/Theme.Material.Light.NoActionBar">' \
-            '        <item name="android:fontFamily">sans</item>' \
-            '        <item name="android:colorAccent">#ff6600</item>' \
-            '    </style>' \
-            '</resources>' \
-            > android-app/app/src/main/res/values/styles.xml
+          rootProject.name = "AIMRELAX-LIVE"
+          include(":app")
+          EOF
 
-          printf '%s\n' \
-            'package com.aimrelax.live' \
-            '' \
-            'import android.app.Activity' \
-            'import android.content.Context' \
-            'import android.content.Intent' \
-            'import android.media.projection.MediaProjectionManager' \
-            'import android.os.Bundle' \
-            'import android.widget.Button' \
-            'import android.widget.LinearLayout' \
-            'import android.widget.TextView' \
-            '' \
-            'class MainActivity : Activity() {' \
-            '' \
-            '    private val requestCode = 5001' \
-            '    private lateinit var status: TextView' \
-            '' \
-            '    override fun onCreate(savedInstanceState: Bundle?) {' \
-            '        super.onCreate(savedInstanceState)' \
-            '' \
-            '        val layout = LinearLayout(this)' \
-            '        layout.orientation = LinearLayout.VERTICAL' \
-            '        layout.setPadding(40, 60, 40, 40)' \
-            '' \
-            '        val title = TextView(this)' \
-            '        title.text = "AIMRELAX LIVE"' \
-            '        title.textSize = 28f' \
-            '' \
-            '        status = TextView(this)' \
-            '        status.text = "Ready to start screen capture"' \
-            '        status.textSize = 18f' \
-            '' \
-            '        val button = Button(this)' \
-            '        button.text = "Share Screen"' \
-            '' \
-            '        button.setOnClickListener {' \
-            '            requestScreenCapture()' \
-            '        }' \
-            '' \
-            '        layout.addView(title)' \
-            '        layout.addView(status)' \
-            '        layout.addView(button)' \
-            '' \
-            '        setContentView(layout)' \
-            '    }' \
-            '' \
-            '    private fun requestScreenCapture() {' \
-            '        val manager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager' \
-            '        val intent: Intent = manager.createScreenCaptureIntent()' \
-            '        startActivityForResult(intent, requestCode)' \
-            '    }' \
-            '' \
-            '    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {' \
-            '        super.onActivityResult(requestCode, resultCode, data)' \
-            '' \
-            '        if (requestCode == this.requestCode) {' \
-            '            if (resultCode == RESULT_OK) {' \
-            '                status.text = "Screen capture permission granted"' \
-            '            } else {' \
-            '                status.text = "Screen capture cancelled"' \
-            '            }' \
-            '        }' \
-            '    }' \
-            '}' \
-            > android-app/app/src/main/java/com/aimrelax/live/MainActivity.kt
+          cat > android-app/build.gradle <<'EOF'
+          plugins {
+              id "com.android.application" version "8.7.3" apply false
+              id "org.jetbrains.kotlin.android" version "2.0.21" apply false
+          }
+          EOF
+
+          cat > android-app/app/build.gradle <<'EOF'
+          plugins {
+              id "com.android.application"
+              id "org.jetbrains.kotlin.android"
+          }
+
+          android {
+              namespace "com.aimrelax.live"
+              compileSdk 35
+
+              defaultConfig {
+                  applicationId "com.aimrelax.live"
+                  minSdk 26
+                  targetSdk 35
+                  versionCode 1
+                  versionName "1.0"
+              }
+          }
+
+          dependencies {
+              implementation "io.livekit:livekit-android:2.29.0"
+          }
+          EOF
+
+          mkdir -p android-app/app/src/main
+
+          cat > android-app/app/src/main/AndroidManifest.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+              <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.RECORD_AUDIO" />
+              <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+              <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+              <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+              <application
+                  android:allowBackup="true"
+                  android:label="AIMRELAX LIVE"
+                  android:theme="@style/AppTheme">
+
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true">
+
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+
+                  </activity>
+
+              </application>
+
+          </manifest>
+          EOF
+
+          cat > android-app/app/src/main/res/values/styles.xml <<'EOF'
+          <resources>
+              <style name="AppTheme" parent="android:style/Theme.Material.Light.NoActionBar">
+                  <item name="android:fontFamily">sans</item>
+                  <item name="android:colorAccent">#ff6600</item>
+              </style>
+          </resources>
+          EOF
+
+          cat > android-app/app/src/main/java/com/aimrelax/live/MainActivity.kt <<'EOF'
+          package com.aimrelax.live
+
+          import android.app.Activity
+          import android.content.Context
+          import android.content.Intent
+          import android.media.projection.MediaProjectionManager
+          import android.os.Bundle
+          import android.widget.Button
+          import android.widget.LinearLayout
+          import android.widget.TextView
+
+          class MainActivity : Activity() {
+
+              private val requestCode = 5001
+              private lateinit var status: TextView
+
+              override fun onCreate(savedInstanceState: Bundle?) {
+                  super.onCreate(savedInstanceState)
+
+                  val layout = LinearLayout(this)
+                  layout.orientation = LinearLayout.VERTICAL
+                  layout.setPadding(40, 60, 40, 40)
+
+                  val title = TextView(this)
+                  title.text = "AIMRELAX LIVE"
+                  title.textSize = 28f
+
+                  status = TextView(this)
+                  status.text = "Ready to start screen capture"
+                  status.textSize = 18f
+
+                  val button = Button(this)
+                  button.text = "Share Screen"
+
+                  button.setOnClickListener {
+                      requestScreenCapture()
+                  }
+
+                  layout.addView(title)
+                  layout.addView(status)
+                  layout.addView(button)
+
+                  setContentView(layout)
+              }
+
+              private fun requestScreenCapture() {
+                  val manager =
+                      getSystemService(Context.MEDIA_PROJECTION_SERVICE)
+                          as MediaProjectionManager
+
+                  val intent: Intent =
+                      manager.createScreenCaptureIntent()
+
+                  startActivityForResult(intent, requestCode)
+              }
+
+              override fun onActivityResult(
+                  requestCode: Int,
+                  resultCode: Int,
+                  data: Intent?
+              ) {
+                  super.onActivityResult(requestCode, resultCode, data)
+
+                  if (requestCode == this.requestCode) {
+                      if (resultCode == RESULT_OK) {
+                          status.text =
+                              "Screen capture permission granted"
+                      } else {
+                          status.text =
+                              "Screen capture cancelled"
+                      }
+                  }
+              }
+          }
+          EOF
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
