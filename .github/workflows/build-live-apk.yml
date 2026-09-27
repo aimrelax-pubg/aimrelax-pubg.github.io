@@ -90,6 +90,10 @@ jobs:
 
           dependencies {
               implementation "io.livekit:livekit-android:2.29.0"
+
+              implementation "androidx.core:core-ktx:1.15.0"
+
+              implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0"
           }
           EOF
 
@@ -98,10 +102,12 @@ jobs:
               <style
                   name="AppTheme"
                   parent="android:style/Theme.Material.Light.NoActionBar">
+
                   <item name="android:fontFamily">sans</item>
                   <item name="android:colorAccent">#ff6600</item>
                   <item name="android:navigationBarColor">#080808</item>
                   <item name="android:statusBarColor">#080808</item>
+
               </style>
           </resources>
           EOF
@@ -112,8 +118,10 @@ jobs:
 
               <uses-permission android:name="android.permission.INTERNET" />
               <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
               <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
               <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+
               <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
               <application
@@ -155,17 +163,23 @@ jobs:
           import android.widget.LinearLayout
           import android.widget.ScrollView
           import android.widget.TextView
+
           import androidx.core.app.ActivityCompat
           import androidx.core.content.ContextCompat
+
           import io.livekit.android.LiveKit
           import io.livekit.android.room.Room
           import io.livekit.android.room.track.screencapture.ScreenCaptureParams
+
           import kotlinx.coroutines.CoroutineScope
           import kotlinx.coroutines.Dispatchers
           import kotlinx.coroutines.SupervisorJob
+          import kotlinx.coroutines.cancel
           import kotlinx.coroutines.launch
           import kotlinx.coroutines.withContext
+
           import org.json.JSONObject
+
           import java.net.HttpURLConnection
           import java.net.URL
           import java.util.UUID
@@ -173,6 +187,7 @@ jobs:
           class MainActivity : Activity() {
 
               companion object {
+
                   private const val SUPABASE_URL =
                       "https://hvhlrbfjloiahbqmnrly.supabase.co"
 
@@ -188,12 +203,15 @@ jobs:
               }
 
               private val scope =
-                  CoroutineScope(SupervisorJob() + Dispatchers.Main)
+                  CoroutineScope(
+                      SupervisorJob() + Dispatchers.Main
+                  )
 
               private lateinit var emailInput: EditText
               private lateinit var passwordInput: EditText
               private lateinit var titleInput: EditText
               private lateinit var statusText: TextView
+
               private lateinit var loginButton: Button
               private lateinit var startButton: Button
               private lateinit var stopButton: Button
@@ -201,10 +219,10 @@ jobs:
               private var accessToken: String? = null
               private var room: Room? = null
               private var roomName: String? = null
-              private var liveRowId: String? = null
-              private var isLive = false
 
-              override fun onCreate(savedInstanceState: Bundle?) {
+              override fun onCreate(
+                  savedInstanceState: Bundle?
+              ) {
                   super.onCreate(savedInstanceState)
 
                   buildUi()
@@ -218,7 +236,9 @@ jobs:
                   ) {
                       ActivityCompat.requestPermissions(
                           this,
-                          arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                          arrayOf(
+                              Manifest.permission.POST_NOTIFICATIONS
+                          ),
                           REQUEST_NOTIFICATION
                       )
                   }
@@ -227,82 +247,168 @@ jobs:
               private fun buildUi() {
 
                   val root = LinearLayout(this)
-                  root.orientation = LinearLayout.VERTICAL
-                  root.setPadding(35, 45, 35, 35)
+
+                  root.orientation =
+                      LinearLayout.VERTICAL
+
+                  root.setPadding(
+                      35,
+                      45,
+                      35,
+                      35
+                  )
+
                   root.setBackgroundColor(
-                      android.graphics.Color.rgb(8, 8, 8)
+                      android.graphics.Color.rgb(
+                          8,
+                          8,
+                          8
+                      )
                   )
 
                   val scroll = ScrollView(this)
+
                   scroll.addView(root)
 
                   val title = TextView(this)
-                  title.text = "AIMRELAX LIVE"
+
+                  title.text =
+                      "AIMRELAX LIVE"
+
                   title.textSize = 30f
+
                   title.setTextColor(
-                      android.graphics.Color.rgb(255, 102, 0)
+                      android.graphics.Color.rgb(
+                          255,
+                          102,
+                          0
+                      )
                   )
-                  title.gravity = Gravity.CENTER
-                  title.setPadding(0, 0, 0, 35)
+
+                  title.gravity =
+                      Gravity.CENTER
+
+                  title.setPadding(
+                      0,
+                      0,
+                      0,
+                      35
+                  )
 
                   root.addView(title)
 
-                  emailInput = EditText(this)
-                  emailInput.hint = "Email"
-                  emailInput.setTextColor(android.graphics.Color.WHITE)
+                  emailInput =
+                      EditText(this)
+
+                  emailInput.hint =
+                      "Email"
+
+                  emailInput.setTextColor(
+                      android.graphics.Color.WHITE
+                  )
+
                   emailInput.setHintTextColor(
                       android.graphics.Color.GRAY
                   )
+
                   emailInput.inputType =
                       android.text.InputType.TYPE_CLASS_TEXT or
                       android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
 
                   root.addView(emailInput)
 
-                  passwordInput = EditText(this)
-                  passwordInput.hint = "Password"
-                  passwordInput.setTextColor(android.graphics.Color.WHITE)
+                  passwordInput =
+                      EditText(this)
+
+                  passwordInput.hint =
+                      "Password"
+
+                  passwordInput.setTextColor(
+                      android.graphics.Color.WHITE
+                  )
+
                   passwordInput.setHintTextColor(
                       android.graphics.Color.GRAY
                   )
+
                   passwordInput.inputType =
                       android.text.InputType.TYPE_CLASS_TEXT or
                       android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
 
                   root.addView(passwordInput)
 
-                  loginButton = Button(this)
-                  loginButton.text = "LOGIN"
+                  loginButton =
+                      Button(this)
+
+                  loginButton.text =
+                      "LOGIN"
+
                   root.addView(loginButton)
 
-                  titleInput = EditText(this)
-                  titleInput.hint = "LIVE title"
-                  titleInput.setText("AIMRELAX PUBG LIVE")
-                  titleInput.setTextColor(android.graphics.Color.WHITE)
+                  titleInput =
+                      EditText(this)
+
+                  titleInput.hint =
+                      "LIVE title"
+
+                  titleInput.setText(
+                      "AIMRELAX PUBG LIVE"
+                  )
+
+                  titleInput.setTextColor(
+                      android.graphics.Color.WHITE
+                  )
+
                   titleInput.setHintTextColor(
                       android.graphics.Color.GRAY
                   )
-                  titleInput.visibility = View.GONE
+
+                  titleInput.visibility =
+                      View.GONE
+
                   root.addView(titleInput)
 
-                  startButton = Button(this)
-                  startButton.text = "🟢 START LIVE"
-                  startButton.visibility = View.GONE
+                  startButton =
+                      Button(this)
+
+                  startButton.text =
+                      "🟢 START LIVE"
+
+                  startButton.visibility =
+                      View.GONE
+
                   root.addView(startButton)
 
-                  stopButton = Button(this)
-                  stopButton.text = "⛔ STOP LIVE"
-                  stopButton.visibility = View.GONE
+                  stopButton =
+                      Button(this)
+
+                  stopButton.text =
+                      "⛔ STOP LIVE"
+
+                  stopButton.visibility =
+                      View.GONE
+
                   root.addView(stopButton)
 
-                  statusText = TextView(this)
+                  statusText =
+                      TextView(this)
+
                   statusText.text =
                       "Մուտք գործիր AIMRELAX account-ով"
-                  statusText.textSize = 17f
+
+                  statusText.textSize =
+                      17f
+
                   statusText.setTextColor(
                       android.graphics.Color.WHITE
                   )
-                  statusText.setPadding(0, 30, 0, 10)
+
+                  statusText.setPadding(
+                      0,
+                      30,
+                      0,
+                      10
+                  )
 
                   root.addView(statusText)
 
@@ -324,20 +430,30 @@ jobs:
               private fun login() {
 
                   val email =
-                      emailInput.text.toString().trim()
+                      emailInput.text
+                          .toString()
+                          .trim()
 
                   val password =
-                      passwordInput.text.toString()
+                      passwordInput.text
+                          .toString()
 
-                  if (email.isEmpty() || password.isEmpty()) {
+                  if (
+                      email.isEmpty() ||
+                      password.isEmpty()
+                  ) {
+
                       statusText.text =
                           "Մուտքագրիր email-ը և password-ը"
+
                       return
                   }
 
-                  loginButton.isEnabled = false
+                  loginButton.isEnabled =
+                      false
 
-                  statusText.text = "Մուտք..."
+                  statusText.text =
+                      "Մուտք..."
 
                   scope.launch {
 
@@ -349,14 +465,23 @@ jobs:
                                   password
                               )
 
-                          accessToken = token
+                          accessToken =
+                              token
 
-                          loginButton.visibility = View.GONE
-                          emailInput.visibility = View.GONE
-                          passwordInput.visibility = View.GONE
+                          loginButton.visibility =
+                              View.GONE
 
-                          titleInput.visibility = View.VISIBLE
-                          startButton.visibility = View.VISIBLE
+                          emailInput.visibility =
+                              View.GONE
+
+                          passwordInput.visibility =
+                              View.GONE
+
+                          titleInput.visibility =
+                              View.VISIBLE
+
+                          startButton.visibility =
+                              View.VISIBLE
 
                           statusText.text =
                               "✅ Մուտքը հաջող է։ Կարող ես սկսել LIVE-ը։"
@@ -366,7 +491,8 @@ jobs:
                           statusText.text =
                               "❌ Մուտքի սխալ: ${e.message}"
 
-                          loginButton.isEnabled = true
+                          loginButton.isEnabled =
+                              true
                       }
                   }
               }
@@ -374,78 +500,99 @@ jobs:
               private suspend fun supabaseLogin(
                   email: String,
                   password: String
-              ): String = withContext(Dispatchers.IO) {
+              ): String =
+                  withContext(Dispatchers.IO) {
 
-                  val url =
-                      URL(
-                          "$SUPABASE_URL/auth/v1/token?grant_type=password"
+                      val url =
+                          URL(
+                              "$SUPABASE_URL/auth/v1/token?grant_type=password"
+                          )
+
+                      val connection =
+                          url.openConnection()
+                              as HttpURLConnection
+
+                      connection.requestMethod =
+                          "POST"
+
+                      connection.doOutput =
+                          true
+
+                      connection.setRequestProperty(
+                          "Content-Type",
+                          "application/json"
                       )
 
-                  val connection =
-                      url.openConnection()
-                          as HttpURLConnection
+                      connection.setRequestProperty(
+                          "apikey",
+                          SUPABASE_ANON_KEY
+                      )
 
-                  connection.requestMethod = "POST"
-                  connection.doOutput = true
+                      val body =
+                          JSONObject()
+                              .put(
+                                  "email",
+                                  email
+                              )
+                              .put(
+                                  "password",
+                                  password
+                              )
+                              .toString()
 
-                  connection.setRequestProperty(
-                      "Content-Type",
-                      "application/json"
-                  )
-
-                  connection.setRequestProperty(
-                      "apikey",
-                      SUPABASE_ANON_KEY
-                  )
-
-                  val body =
-                      JSONObject()
-                          .put("email", email)
-                          .put("password", password)
-                          .toString()
-
-                  connection.outputStream.use {
-                      it.write(body.toByteArray())
-                  }
-
-                  val code =
-                      connection.responseCode
-
-                  val stream =
-                      if (code in 200..299)
-                          connection.inputStream
-                      else
-                          connection.errorStream
-
-                  val response =
-                      stream.bufferedReader().use {
-                          it.readText()
+                      connection.outputStream.use {
+                          it.write(
+                              body.toByteArray()
+                          )
                       }
 
-                  if (code !in 200..299) {
-                      throw Exception(
-                          JSONObject(response)
-                              .optString(
-                                  "error_description",
-                                  "Login failed"
-                              )
-                      )
-                  }
+                      val code =
+                          connection.responseCode
 
-                  JSONObject(response)
-                      .getString("access_token")
-              }
+                      val stream =
+                          if (code in 200..299)
+                              connection.inputStream
+                          else
+                              connection.errorStream
+
+                      val response =
+                          stream.bufferedReader()
+                              .use {
+                                  it.readText()
+                              }
+
+                      if (code !in 200..299) {
+
+                          throw Exception(
+                              JSONObject(response)
+                                  .optString(
+                                      "error_description",
+                                      "Login failed"
+                                  )
+                          )
+                      }
+
+                      JSONObject(response)
+                          .getString(
+                              "access_token"
+                          )
+                  }
 
               private fun startLive() {
 
                   val token =
-                      accessToken ?: run {
-                          statusText.text =
-                              "Նախ մուտք գործիր"
-                          return
-                      }
+                      accessToken
 
-                  if (ContextCompat.checkSelfPermission(
+                  if (token == null) {
+
+                      statusText.text =
+                          "Նախ մուտք գործիր"
+
+                      return
+                  }
+
+                  if (
+                      ContextCompat.checkSelfPermission(
                           this,
                           Manifest.permission.RECORD_AUDIO
                       ) != PackageManager.PERMISSION_GRANTED
@@ -453,7 +600,9 @@ jobs:
 
                       ActivityCompat.requestPermissions(
                           this,
-                          arrayOf(Manifest.permission.RECORD_AUDIO),
+                          arrayOf(
+                              Manifest.permission.RECORD_AUDIO
+                          ),
                           REQUEST_MIC
                       )
 
@@ -473,7 +622,9 @@ jobs:
 
                       try {
 
-                          createLiveRow(token)
+                          createLiveRow(
+                              token
+                          )
 
                           val tokenData =
                               requestLiveKitToken(
@@ -481,33 +632,30 @@ jobs:
                                   roomName!!
                               )
 
-                          val serverUrl =
-                              tokenData.first
-
-                          val participantToken =
-                              tokenData.second
-
                           room =
                               LiveKit.create(
                                   applicationContext
                               )
 
                           room!!.connect(
-                              serverUrl,
-                              participantToken
+                              tokenData.first,
+                              tokenData.second
                           )
 
-                          room!!.localParticipant
-                              .setMicrophoneEnabled(true)
+                          room!!
+                              .localParticipant
+                              .setMicrophoneEnabled(
+                                  true
+                              )
 
-                          isLive = true
+                          startButton.visibility =
+                              View.GONE
 
-                          titleInput.isEnabled = false
-                          startButton.visibility = View.GONE
-                          stopButton.visibility = View.VISIBLE
+                          stopButton.visibility =
+                              View.VISIBLE
 
                           statusText.text =
-                              "🟢 LIVE պատրաստ է։ Հիմա Share Screen-ը հաստատիր։"
+                              "🟢 LIVE պատրաստ է։ Ընտրիր Share Screen-ը։"
 
                           requestScreenCapture()
 
@@ -516,7 +664,9 @@ jobs:
                           statusText.text =
                               "❌ LIVE error: ${e.message}"
 
-                          deleteLiveRow(token)
+                          deleteLiveRow(
+                              token
+                          )
                       }
                   }
               }
@@ -550,7 +700,8 @@ jobs:
                   )
 
                   if (
-                      requestCode != REQUEST_SCREEN_CAPTURE
+                      requestCode !=
+                      REQUEST_SCREEN_CAPTURE
                   ) {
                       return
                   }
@@ -566,18 +717,25 @@ jobs:
                       return
                   }
 
-                  val projectionData =
+                  val permissionData =
                       data
 
                   scope.launch {
 
                       try {
 
+                          val params =
+                              ScreenCaptureParams(
+                                  mediaProjectionPermissionResultData =
+                                      permissionData
+                              )
+
                           val success =
-                              room!!.localParticipant
+                              room!!
+                                  .localParticipant
                                   .setScreenShareEnabled(
                                       true,
-                                      projectionData
+                                      params
                                   )
 
                           if (success) {
@@ -603,6 +761,12 @@ jobs:
                   token: String
               ) = withContext(Dispatchers.IO) {
 
+                  val roomValue =
+                      roomName
+                          ?: throw Exception(
+                              "Room name missing"
+                          )
+
                   val url =
                       URL(
                           "$SUPABASE_URL/rest/v1/live_streams"
@@ -612,8 +776,11 @@ jobs:
                       url.openConnection()
                           as HttpURLConnection
 
-                  connection.requestMethod = "POST"
-                  connection.doOutput = true
+                  connection.requestMethod =
+                      "POST"
+
+                  connection.doOutput =
+                      true
 
                   connection.setRequestProperty(
                       "Content-Type",
@@ -639,7 +806,8 @@ jobs:
                       JSONObject()
                           .put(
                               "title",
-                              titleInput.text.toString()
+                              titleInput.text
+                                  .toString()
                                   .trim()
                                   .ifEmpty {
                                       "AIMRELAX PUBG LIVE"
@@ -647,17 +815,17 @@ jobs:
                           )
                           .put(
                               "room_name",
-                              roomName
+                              roomValue
                           )
                           .put(
                               "status",
                               "live"
                           )
+                          .toString()
 
                   connection.outputStream.use {
                       it.write(
-                          body.toString()
-                              .toByteArray()
+                          body.toByteArray()
                       )
                   }
 
@@ -671,25 +839,13 @@ jobs:
                           connection.errorStream
 
                   val response =
-                      stream.bufferedReader().use {
-                          it.readText()
-                      }
+                      stream.bufferedReader()
+                          .use {
+                              it.readText()
+                          }
 
                   if (code !in 200..299) {
                       throw Exception(response)
-                  }
-
-                  try {
-                      val array =
-                          org.json.JSONArray(response)
-
-                      if (array.length() > 0) {
-                          liveRowId =
-                              array
-                                  .getJSONObject(0)
-                                  .optString("id")
-                      }
-                  } catch (_: Exception) {
                   }
               }
 
@@ -706,8 +862,11 @@ jobs:
                           url.openConnection()
                               as HttpURLConnection
 
-                      connection.requestMethod = "POST"
-                      connection.doOutput = true
+                      connection.requestMethod =
+                          "POST"
+
+                      connection.doOutput =
+                          true
 
                       connection.setRequestProperty(
                           "Content-Type",
@@ -726,12 +885,18 @@ jobs:
 
                       val body =
                           JSONObject()
-                              .put("room_name", room)
+                              .put(
+                                  "room_name",
+                                  room
+                              )
                               .put(
                                   "participant_name",
                                   "AIMRELAX LIVE"
                               )
-                              .put("role", "host")
+                              .put(
+                                  "role",
+                                  "host"
+                              )
                               .toString()
 
                       connection.outputStream.use {
@@ -750,9 +915,10 @@ jobs:
                               connection.errorStream
 
                       val response =
-                          stream.bufferedReader().use {
-                              it.readText()
-                          }
+                          stream.bufferedReader()
+                              .use {
+                                  it.readText()
+                              }
 
                       if (code !in 200..299) {
                           throw Exception(response)
@@ -762,7 +928,9 @@ jobs:
                           JSONObject(response)
 
                       Pair(
-                          json.getString("server_url"),
+                          json.getString(
+                              "server_url"
+                          ),
                           json.getString(
                               "participant_token"
                           )
@@ -772,14 +940,17 @@ jobs:
               private fun stopLive() {
 
                   val token =
-                      accessToken ?: return
+                      accessToken
 
                   scope.launch {
 
                       try {
 
-                          room?.localParticipant
-                              ?.setScreenShareEnabled(false)
+                          room
+                              ?.localParticipant
+                              ?.setScreenShareEnabled(
+                                  false
+                              )
 
                       } catch (_: Exception) {
                       }
@@ -790,17 +961,22 @@ jobs:
                       }
 
                       room = null
-                      isLive = false
 
-                      updateLiveRow(token)
+                      if (token != null) {
+                          updateLiveRow(token)
+                      }
 
-                      titleInput.isEnabled = true
-                      stopButton.visibility = View.GONE
-                      startButton.visibility = View.VISIBLE
+                      stopButton.visibility =
+                          View.GONE
+
+                      startButton.visibility =
+                          View.VISIBLE
+
+                      titleInput.isEnabled =
+                          true
 
                       statusText.text =
                           "⛔ LIVE ավարտվեց"
-
                   }
               }
 
@@ -809,7 +985,8 @@ jobs:
               ) = withContext(Dispatchers.IO) {
 
                   val roomValue =
-                      roomName ?: return@withContext
+                      roomName
+                          ?: return@withContext
 
                   val url =
                       URL(
@@ -821,8 +998,11 @@ jobs:
                       url.openConnection()
                           as HttpURLConnection
 
-                  connection.requestMethod = "PATCH"
-                  connection.doOutput = true
+                  connection.requestMethod =
+                      "PATCH"
+
+                  connection.doOutput =
+                      true
 
                   connection.setRequestProperty(
                       "Content-Type",
@@ -839,18 +1019,23 @@ jobs:
                       "Bearer $token"
                   )
 
+                  val body =
+                      JSONObject()
+                          .put(
+                              "status",
+                              "ended"
+                          )
+                          .put(
+                              "ended_at",
+                              java.time.Instant
+                                  .now()
+                                  .toString()
+                          )
+                          .toString()
+
                   connection.outputStream.use {
                       it.write(
-                          JSONObject()
-                              .put("status", "ended")
-                              .put(
-                                  "ended_at",
-                                  java.time.Instant
-                                      .now()
-                                      .toString()
-                              )
-                              .toString()
-                              .toByteArray()
+                          body.toByteArray()
                       )
                   }
 
@@ -862,7 +1047,8 @@ jobs:
               ) = withContext(Dispatchers.IO) {
 
                   val roomValue =
-                      roomName ?: return@withContext
+                      roomName
+                          ?: return@withContext
 
                   try {
 
@@ -870,13 +1056,14 @@ jobs:
                           URL(
                               "$SUPABASE_URL/rest/v1/live_streams" +
                                   "?room_name=eq.$roomValue"
-                          )
+                      )
 
                       val connection =
                           url.openConnection()
                               as HttpURLConnection
 
-                      connection.requestMethod = "DELETE"
+                      connection.requestMethod =
+                          "DELETE"
 
                       connection.setRequestProperty(
                           "apikey",
@@ -898,10 +1085,11 @@ jobs:
 
                   try {
                       room?.disconnect()
+                      room?.release()
                   } catch (_: Exception) {
                   }
 
-                  scope.coroutineContext.cancel()
+                  scope.cancel()
 
                   super.onDestroy()
               }
