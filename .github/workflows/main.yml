@@ -9,49 +9,29 @@ jobs:
 
     steps:
 
-      # ============================================================
-      # 1. CHECKOUT
-      # ============================================================
       - name: Checkout
         uses: actions/checkout@v4
 
-
-      # ============================================================
-      # 2. NODE
-      # ============================================================
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-
-      # ============================================================
-      # 3. JAVA
-      # ============================================================
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
 
-
-      # ============================================================
-      # 4. NPM
-      # ============================================================
       - name: Initialize npm
         run: npm init -y
 
-
-      # ============================================================
-      # 5. CAPACITOR
-      # ============================================================
       - name: Install Capacitor
         run: |
           npm install @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
 
-
       # ============================================================
-      # 6. PREPARE WEB FILES
+      # WEB FILES
       # ============================================================
       - name: Prepare web files
         run: |
@@ -61,16 +41,14 @@ jobs:
           mkdir -p www
 
           cp index.html www/
-
           cp sw.js www/ 2>/dev/null || true
           cp manifest.json www/ 2>/dev/null || true
 
           echo "===== WWW FILES ====="
           find www -maxdepth 1 -type f -print
 
-
       # ============================================================
-      # 7. CAPACITOR CONFIG
+      # CAPACITOR CONFIG
       # ============================================================
       - name: Create Capacitor config
         run: |
@@ -85,19 +63,15 @@ jobs:
           }
           EOF
 
-          cat capacitor.config.json
-
-
       # ============================================================
-      # 8. ADD ANDROID
+      # ANDROID
       # ============================================================
       - name: Add Android
         run: |
           npx cap add android
 
-
       # ============================================================
-      # 9. ADD JITPACK
+      # JITPACK
       # ============================================================
       - name: Add JitPack repository
         run: |
@@ -110,20 +84,34 @@ jobs:
           text = p.read_text()
 
           if "https://jitpack.io" not in text:
-              text = text.replace(
-                  "allprojects {",
-                  "allprojects {\n    repositories {\n        google()\n        mavenCentral()\n        maven { url 'https://jitpack.io' }\n    }"
-              )
+
+              if "allprojects {" in text:
+                  text = text.replace(
+                      "allprojects {",
+                      """allprojects {
+              repositories {
+                  google()
+                  mavenCentral()
+                  maven { url 'https://jitpack.io' }
+              }""",
+                      1
+                  )
+              else:
+                  text += """
+          allprojects {
+              repositories {
+                  google()
+                  mavenCentral()
+                  maven { url 'https://jitpack.io' }
+              }
+          }
+          """
 
           p.write_text(text)
           PY
 
-          echo "===== android/build.gradle ====="
-          cat android/build.gradle
-
-
       # ============================================================
-      # 10. ADD LIVEKIT
+      # LIVEKIT
       # ============================================================
       - name: Add LiveKit dependency
         run: |
@@ -138,29 +126,21 @@ jobs:
           dependency = 'implementation "io.livekit:livekit-android:2.29.0"'
 
           if dependency not in text:
-              marker = "dependencies {"
-              if marker not in text:
+
+              if "dependencies {" not in text:
                   raise SystemExit("dependencies block not found")
 
               text = text.replace(
-                  marker,
-                  marker + "\n    " + dependency,
+                  "dependencies {",
+                  "dependencies {\n    " + dependency,
                   1
               )
 
           p.write_text(text)
           PY
 
-          echo "===== LIVEKIT CHECK ====="
-          grep -n "livekit" android/app/build.gradle || true
-
-
       # ============================================================
-      # 11. CREATE MAIN ACTIVITY
-      #
-      # IMPORTANT:
-      # LiveKit is NOT created in onCreate().
-      # Therefore the Capacitor website can start normally.
+      # MAIN ACTIVITY
       # ============================================================
       - name: Create Native MainActivity
         run: |
@@ -195,10 +175,8 @@ jobs:
                   super.onCreate(savedInstanceState)
 
                   /*
-                   * IMPORTANT:
-                   * Do NOT create LiveKit here.
-                   *
-                   * Capacitor/WebView must start normally first.
+                   * Do NOT initialize LiveKit here.
+                   * Capacitor must start the website normally.
                    */
 
                   bridge.webView.addJavascriptInterface(
@@ -206,7 +184,6 @@ jobs:
                       "AIMRELAX_NATIVE"
                   )
               }
-
 
               private fun getLiveKitRoom(): Room {
 
@@ -217,14 +194,12 @@ jobs:
                   return room!!
               }
 
-
               inner class AndroidBridge {
 
                   @JavascriptInterface
                   fun isAndroidApp(): Boolean {
                       return true
                   }
-
 
                   @JavascriptInterface
                   fun startLiveKit(
@@ -244,14 +219,11 @@ jobs:
                               )
 
                           } catch (e: Exception) {
-
                               e.printStackTrace()
-
                           }
 
                       }.start()
                   }
-
 
                   @JavascriptInterface
                   fun startScreenShare() {
@@ -259,11 +231,6 @@ jobs:
                       runOnUiThread {
 
                           try {
-
-                              /*
-                               * Create LiveKit Room only when
-                               * screen sharing is actually requested.
-                               */
 
                               getLiveKitRoom()
 
@@ -281,13 +248,10 @@ jobs:
                               )
 
                           } catch (e: Exception) {
-
                               e.printStackTrace()
-
                           }
                       }
                   }
-
 
                   @JavascriptInterface
                   fun stopScreenShare() {
@@ -300,13 +264,10 @@ jobs:
                                   ?.setScreenShareEnabled(false)
 
                           } catch (e: Exception) {
-
                               e.printStackTrace()
-
                           }
                       }
                   }
-
 
                   @JavascriptInterface
                   fun disconnectLiveKit() {
@@ -314,18 +275,14 @@ jobs:
                       runOnUiThread {
 
                           try {
-
                               room?.disconnect()
-
                           } catch (e: Exception) {
-
                               e.printStackTrace()
-
                           }
+
                       }
                   }
               }
-
 
               override fun onActivityResult(
                   requestCode: Int,
@@ -361,20 +318,15 @@ jobs:
                               )
 
                       } catch (e: Exception) {
-
                           e.printStackTrace()
-
                       }
                   }
               }
 
-
               override fun onDestroy() {
 
                   try {
-
                       room?.disconnect()
-
                   } catch (_: Exception) {
                   }
 
@@ -383,9 +335,8 @@ jobs:
           }
           KOTLIN
 
-
       # ============================================================
-      # 12. ANDROID MANIFEST
+      # MANIFEST — FIXED
       # ============================================================
       - name: Configure Android Manifest
         run: |
@@ -393,82 +344,120 @@ jobs:
 
           python3 - <<'PY'
           from pathlib import Path
+          import re
           import xml.etree.ElementTree as ET
 
           p = Path("android/app/src/main/AndroidManifest.xml")
-
           text = p.read_text()
 
           # --------------------------------------------------------
-          # Android namespace
+          # Ensure Android namespace is on the REAL manifest tag
           # --------------------------------------------------------
           if 'xmlns:android=' not in text:
-              text = text.replace(
-                  '<manifest',
+
+              text = re.sub(
+                  r'<manifest\b',
                   '<manifest xmlns:android="http://schemas.android.com/apk/res/android"',
-                  1
+                  text,
+                  count=1
               )
 
           # --------------------------------------------------------
-          # Permissions
+          # Remove previously inserted duplicate permissions
           # --------------------------------------------------------
-          permissions = [
-              '<uses-permission android:name="android.permission.INTERNET" />',
-              '<uses-permission android:name="android.permission.RECORD_AUDIO" />',
-              '<uses-permission android:name="android.permission.CAMERA" />',
-              '<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />',
-              '<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />',
-              '<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />'
+          permission_names = [
+              "android.permission.INTERNET",
+              "android.permission.RECORD_AUDIO",
+              "android.permission.CAMERA",
+              "android.permission.POST_NOTIFICATIONS",
+              "android.permission.FOREGROUND_SERVICE",
+              "android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION"
           ]
 
-          for perm in permissions:
-              if perm not in text:
-                  text = text.replace(
-                      '>',
-                      '>\n    ' + perm,
-                      1
-                  )
+          for name in permission_names:
+              pattern = (
+                  r'\s*<uses-permission\s+'
+                  r'android:name="' +
+                  re.escape(name) +
+                  r'"\s*/>'
+              )
+
+              text = re.sub(
+                  pattern,
+                  "",
+                  text
+              )
+
+          # --------------------------------------------------------
+          # Find REAL opening <manifest ...> tag
+          # --------------------------------------------------------
+          match = re.search(
+              r'<manifest\b[^>]*>',
+              text,
+              flags=re.DOTALL
+          )
+
+          if not match:
+              raise SystemExit("Manifest opening tag not found")
+
+          manifest_tag = match.group(0)
+
+          # --------------------------------------------------------
+          # Add permissions AFTER manifest opening tag
+          # --------------------------------------------------------
+          permissions = """
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+          """.strip()
+
+          text = (
+              text[:match.end()]
+              + "\n"
+              + permissions
+              + "\n"
+              + text[match.end():]
+          )
 
           p.write_text(text)
 
           # --------------------------------------------------------
-          # Validate XML
+          # XML VALIDATION
           # --------------------------------------------------------
           ET.parse(p)
 
-          print("AndroidManifest.xml XML validation: OK")
+          print("AndroidManifest.xml validation: OK")
           PY
 
-          echo "===== ANDROID MANIFEST ====="
+          echo "===== FINAL MANIFEST ====="
           cat android/app/src/main/AndroidManifest.xml
 
-
       # ============================================================
-      # 13. SYNC CAPACITOR
+      # CAPACITOR SYNC
       # ============================================================
       - name: Sync Android
         run: |
           npx cap sync android
 
-
       # ============================================================
-      # 14. VERIFY WEBSITE INSIDE APK
+      # VERIFY WEBSITE
       # ============================================================
       - name: Verify Web Assets
         run: |
           set -e
 
-          echo "===== CAPACITOR WEB ASSETS ====="
-
           test -f android/app/src/main/assets/public/index.html
 
+          echo "===== WEBSITE INSIDE APK ====="
           ls -lh android/app/src/main/assets/public/
 
-          echo "index.html exists inside Android assets."
-
+          echo "index.html exists."
 
       # ============================================================
-      # 15. VERIFY MAIN ACTIVITY
+      # VERIFY MAIN ACTIVITY
       # ============================================================
       - name: Verify MainActivity
         run: |
@@ -476,13 +465,10 @@ jobs:
 
           test -f android/app/src/main/java/com/aimrelax/pubg/MainActivity.kt
 
-          echo "===== MAIN ACTIVITY ====="
-          sed -n '1,240p' \
-            android/app/src/main/java/com/aimrelax/pubg/MainActivity.kt
-
+          echo "MainActivity exists."
 
       # ============================================================
-      # 16. BUILD APK
+      # BUILD
       # ============================================================
       - name: Build APK
         working-directory: android
@@ -490,9 +476,8 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug
 
-
       # ============================================================
-      # 17. UPLOAD APK
+      # APK
       # ============================================================
       - name: Upload APK
         uses: actions/upload-artifact@v4
