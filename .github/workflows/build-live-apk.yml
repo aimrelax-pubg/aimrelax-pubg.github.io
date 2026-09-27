@@ -5,18 +5,17 @@ on:
 
 jobs:
   build:
-    name: Build AIMRELAX LIVE
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Java 17
+      - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
 
       - name: Create Android project
         shell: bash
@@ -25,10 +24,12 @@ jobs:
 
           mkdir -p android-app/app/src/main/java/com/aimrelax/live
           mkdir -p android-app/app/src/main/res/values
+          mkdir -p android-app/app/src/main/res/xml
 
           cat > android-app/gradle.properties <<'EOF'
           android.useAndroidX=true
           android.enableJetifier=true
+          org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
           EOF
 
           cat > android-app/settings.gradle <<'EOF'
@@ -55,27 +56,41 @@ jobs:
 
           cat > android-app/build.gradle <<'EOF'
           plugins {
-              id "com.android.application" version "8.7.3" apply false
-              id "org.jetbrains.kotlin.android" version "2.0.21" apply false
+              id 'com.android.application' version '8.7.3' apply false
+              id 'org.jetbrains.kotlin.android' version '2.0.21' apply false
           }
           EOF
 
           cat > android-app/app/build.gradle <<'EOF'
           plugins {
-              id "com.android.application"
-              id "org.jetbrains.kotlin.android"
+              id 'com.android.application'
+              id 'org.jetbrains.kotlin.android'
           }
 
           android {
-              namespace "com.aimrelax.live"
+              namespace 'com.aimrelax.live'
               compileSdk 35
 
               defaultConfig {
-                  applicationId "com.aimrelax.live"
+                  applicationId 'com.aimrelax.live'
                   minSdk 26
                   targetSdk 35
-                  versionCode 2
-                  versionName "1.1"
+                  versionCode 1
+                  versionName '1.0'
+              }
+
+              buildTypes {
+                  release {
+                      minifyEnabled false
+                      proguardFiles(
+                          getDefaultProguardFile('proguard-android-optimize.txt'),
+                          'proguard-rules.pro'
+                      )
+                  }
+
+                  debug {
+                      minifyEnabled false
+                  }
               }
 
               compileOptions {
@@ -84,30 +99,45 @@ jobs:
               }
 
               kotlinOptions {
-                  jvmTarget = "17"
+                  jvmTarget = '17'
               }
           }
 
           dependencies {
-              implementation "io.livekit:livekit-android:2.29.0"
+              implementation 'androidx.core:core-ktx:1.15.0'
+              implementation 'androidx.appcompat:appcompat:1.7.0'
+              implementation 'androidx.activity:activity-ktx:1.10.0'
 
-              implementation "androidx.core:core-ktx:1.15.0"
+              implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0'
 
-              implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0"
+              implementation 'io.livekit:livekit-android:2.29.0'
           }
           EOF
 
-          cat > android-app/app/src/main/res/values/styles.xml <<'EOF'
+          cat > android-app/app/proguard-rules.pro <<'EOF'
+          # AIMRELAX LIVE
+          EOF
+
+          cat > android-app/app/src/main/res/values/strings.xml <<'EOF'
           <resources>
-              <style
-                  name="AppTheme"
-                  parent="android:style/Theme.Material.Light.NoActionBar">
+              <string name="app_name">AIMRELAX</string>
+          </resources>
+          EOF
 
+          cat > android-app/app/src/main/res/values/colors.xml <<'EOF'
+          <resources>
+              <color name="black">#000000</color>
+          </resources>
+          EOF
+
+          cat > android-app/app/src/main/res/values/themes.xml <<'EOF'
+          <resources>
+              <style name="Theme.AIMRELAX" parent="android:style/Theme.Material.Light.NoActionBar">
                   <item name="android:fontFamily">sans</item>
-                  <item name="android:colorAccent">#ff6600</item>
-                  <item name="android:navigationBarColor">#080808</item>
-                  <item name="android:statusBarColor">#080808</item>
-
+                  <item name="android:windowLightStatusBar">false</item>
+                  <item name="android:statusBarColor">#050505</item>
+                  <item name="android:navigationBarColor">#050505</item>
+                  <item name="android:colorAccent">#ff7200</item>
               </style>
           </resources>
           EOF
@@ -117,22 +147,27 @@ jobs:
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
               <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+              <uses-permission android:name="android.permission.CAMERA" />
               <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+              <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
               <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
               <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
 
-              <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-
               <application
                   android:allowBackup="true"
-                  android:label="AIMRELAX LIVE"
-                  android:theme="@style/AppTheme">
+                  android:usesCleartextTraffic="false"
+                  android:label="@string/app_name"
+                  android:theme="@style/Theme.AIMRELAX"
+                  android:hardwareAccelerated="true">
 
                   <activity
                       android:name=".MainActivity"
-                      android:screenOrientation="portrait"
-                      android:exported="true">
+                      android:exported="true"
+                      android:screenOrientation="portrait">
 
                       <intent-filter>
                           <action android:name="android.intent.action.MAIN" />
@@ -150,446 +185,213 @@ jobs:
           package com.aimrelax.live
 
           import android.Manifest
+          import android.annotation.SuppressLint
           import android.app.Activity
-          import android.content.Context
           import android.content.Intent
           import android.content.pm.PackageManager
-          import android.media.projection.MediaProjectionManager
+          import android.graphics.Color
           import android.os.Bundle
-          import android.view.Gravity
           import android.view.View
-          import android.widget.Button
-          import android.widget.EditText
-          import android.widget.LinearLayout
-          import android.widget.ScrollView
-          import android.widget.TextView
-
-          import androidx.core.app.ActivityCompat
+          import android.webkit.CookieManager
+          import android.webkit.WebChromeClient
+          import android.webkit.WebResourceRequest
+          import android.webkit.WebSettings
+          import android.webkit.WebView
+          import android.webkit.WebViewClient
+          import android.widget.FrameLayout
+          import androidx.activity.result.contract.ActivityResultContracts
+          import androidx.appcompat.app.AppCompatActivity
           import androidx.core.content.ContextCompat
-
-          import io.livekit.android.LiveKit
           import io.livekit.android.room.Room
-          import io.livekit.android.room.track.screencapture.ScreenCaptureParams
-
+          import io.livekit.android.room.track.ScreenCaptureParams
           import kotlinx.coroutines.CoroutineScope
           import kotlinx.coroutines.Dispatchers
           import kotlinx.coroutines.SupervisorJob
-          import kotlinx.coroutines.cancel
           import kotlinx.coroutines.launch
-          import kotlinx.coroutines.withContext
 
-          import org.json.JSONObject
+          class MainActivity : AppCompatActivity() {
 
-          import java.net.HttpURLConnection
-          import java.net.URL
-          import java.util.UUID
-
-          class MainActivity : Activity() {
-
-              companion object {
-
-                  private const val SUPABASE_URL =
-                      "https://hvhlrbfjloiahbqmnrly.supabase.co"
-
-                  private const val SUPABASE_ANON_KEY =
-                      "sb_publishable_EcZUkLdUCVv3qWDD7jlvhg_OjTYu1jA"
-
-                  private const val TOKEN_URL =
-                      "$SUPABASE_URL/functions/v1/live-token"
-
-                  private const val REQUEST_SCREEN_CAPTURE = 5001
-                  private const val REQUEST_MIC = 5002
-                  private const val REQUEST_NOTIFICATION = 5003
-              }
+              private lateinit var webView: WebView
+              private var room: Room? = null
 
               private val scope =
-                  CoroutineScope(
-                      SupervisorJob() + Dispatchers.Main
-                  )
+                  CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
-              private lateinit var emailInput: EditText
-              private lateinit var passwordInput: EditText
-              private lateinit var titleInput: EditText
-              private lateinit var statusText: TextView
+              private val permissionLauncher =
+                  registerForActivityResult(
+                      ActivityResultContracts.RequestMultiplePermissions()
+                  ) {
+                      // Permissions are requested before native LIVE use.
+                  }
 
-              private lateinit var loginButton: Button
-              private lateinit var startButton: Button
-              private lateinit var stopButton: Button
+              private val screenCaptureLauncher =
+                  registerForActivityResult(
+                      ActivityResultContracts.StartActivityForResult()
+                  ) { result ->
 
-              private var accessToken: String? = null
-              private var room: Room? = null
-              private var roomName: String? = null
+                      if (result.resultCode != Activity.RESULT_OK) {
+                          sendToWebsite(
+                              "window.dispatchEvent(new CustomEvent('aimrelax-screen-share-cancelled'));"
+                          )
+                          return@registerForActivityResult
+                      }
 
-              override fun onCreate(
-                  savedInstanceState: Bundle?
-              ) {
+                      val data = result.data ?: return@registerForActivityResult
+
+                      startNativeScreenShare(data)
+                  }
+
+              @SuppressLint("SetJavaScriptEnabled")
+              override fun onCreate(savedInstanceState: Bundle?) {
                   super.onCreate(savedInstanceState)
 
-                  buildUi()
+                  window.statusBarColor = Color.BLACK
+                  window.navigationBarColor = Color.BLACK
 
-                  if (
-                      android.os.Build.VERSION.SDK_INT >= 33 &&
-                      ContextCompat.checkSelfPermission(
-                          this,
-                          Manifest.permission.POST_NOTIFICATIONS
-                      ) != PackageManager.PERMISSION_GRANTED
-                  ) {
-                      ActivityCompat.requestPermissions(
-                          this,
-                          arrayOf(
-                              Manifest.permission.POST_NOTIFICATIONS
-                          ),
-                          REQUEST_NOTIFICATION
-                      )
-                  }
-              }
+                  val root = FrameLayout(this)
 
-              private fun buildUi() {
+                  webView = WebView(this)
 
-                  val root = LinearLayout(this)
-
-                  root.orientation =
-                      LinearLayout.VERTICAL
-
-                  root.setPadding(
-                      35,
-                      45,
-                      35,
-                      35
-                  )
-
-                  root.setBackgroundColor(
-                      android.graphics.Color.rgb(
-                          8,
-                          8,
-                          8
+                  root.addView(
+                      webView,
+                      FrameLayout.LayoutParams(
+                          FrameLayout.LayoutParams.MATCH_PARENT,
+                          FrameLayout.LayoutParams.MATCH_PARENT
                       )
                   )
 
-                  val scroll = ScrollView(this)
+                  setContentView(root)
 
-                  scroll.addView(root)
+                  setupWebView()
 
-                  val title = TextView(this)
+                  requestMediaPermissions()
 
-                  title.text =
-                      "AIMRELAX LIVE"
-
-                  title.textSize = 30f
-
-                  title.setTextColor(
-                      android.graphics.Color.rgb(
-                          255,
-                          102,
-                          0
-                      )
+                  webView.loadUrl(
+                      "https://aimrelax-pubg.github.io/"
                   )
-
-                  title.gravity =
-                      Gravity.CENTER
-
-                  title.setPadding(
-                      0,
-                      0,
-                      0,
-                      35
-                  )
-
-                  root.addView(title)
-
-                  emailInput =
-                      EditText(this)
-
-                  emailInput.hint =
-                      "Email"
-
-                  emailInput.setTextColor(
-                      android.graphics.Color.WHITE
-                  )
-
-                  emailInput.setHintTextColor(
-                      android.graphics.Color.GRAY
-                  )
-
-                  emailInput.inputType =
-                      android.text.InputType.TYPE_CLASS_TEXT or
-                      android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
-
-                  root.addView(emailInput)
-
-                  passwordInput =
-                      EditText(this)
-
-                  passwordInput.hint =
-                      "Password"
-
-                  passwordInput.setTextColor(
-                      android.graphics.Color.WHITE
-                  )
-
-                  passwordInput.setHintTextColor(
-                      android.graphics.Color.GRAY
-                  )
-
-                  passwordInput.inputType =
-                      android.text.InputType.TYPE_CLASS_TEXT or
-                      android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
-
-                  root.addView(passwordInput)
-
-                  loginButton =
-                      Button(this)
-
-                  loginButton.text =
-                      "LOGIN"
-
-                  root.addView(loginButton)
-
-                  titleInput =
-                      EditText(this)
-
-                  titleInput.hint =
-                      "LIVE title"
-
-                  titleInput.setText(
-                      "AIMRELAX PUBG LIVE"
-                  )
-
-                  titleInput.setTextColor(
-                      android.graphics.Color.WHITE
-                  )
-
-                  titleInput.setHintTextColor(
-                      android.graphics.Color.GRAY
-                  )
-
-                  titleInput.visibility =
-                      View.GONE
-
-                  root.addView(titleInput)
-
-                  startButton =
-                      Button(this)
-
-                  startButton.text =
-                      "🟢 START LIVE"
-
-                  startButton.visibility =
-                      View.GONE
-
-                  root.addView(startButton)
-
-                  stopButton =
-                      Button(this)
-
-                  stopButton.text =
-                      "⛔ STOP LIVE"
-
-                  stopButton.visibility =
-                      View.GONE
-
-                  root.addView(stopButton)
-
-                  statusText =
-                      TextView(this)
-
-                  statusText.text =
-                      "Մուտք գործիր AIMRELAX account-ով"
-
-                  statusText.textSize =
-                      17f
-
-                  statusText.setTextColor(
-                      android.graphics.Color.WHITE
-                  )
-
-                  statusText.setPadding(
-                      0,
-                      30,
-                      0,
-                      10
-                  )
-
-                  root.addView(statusText)
-
-                  setContentView(scroll)
-
-                  loginButton.setOnClickListener {
-                      login()
-                  }
-
-                  startButton.setOnClickListener {
-                      startLive()
-                  }
-
-                  stopButton.setOnClickListener {
-                      stopLive()
-                  }
               }
 
-              private fun login() {
+              private fun setupWebView() {
 
-                  val email =
-                      emailInput.text
-                          .toString()
-                          .trim()
+                  webView.setBackgroundColor(Color.BLACK)
 
-                  val password =
-                      passwordInput.text
-                          .toString()
+                  webView.settings.apply {
+                      javaScriptEnabled = true
+                      domStorageEnabled = true
+                      databaseEnabled = true
 
-                  if (
-                      email.isEmpty() ||
-                      password.isEmpty()
-                  ) {
+                      mediaPlaybackRequiresUserGesture = false
 
-                      statusText.text =
-                          "Մուտքագրիր email-ը և password-ը"
+                      allowFileAccess = false
+                      allowContentAccess = true
 
-                      return
+                      mixedContentMode =
+                          WebSettings.MIXED_CONTENT_NEVER_ALLOW
+
+                      userAgentString =
+                          "$userAgentString AIMRELAX-Android"
                   }
 
-                  loginButton.isEnabled =
-                      false
+                  CookieManager
+                      .getInstance()
+                      .setAcceptCookie(true)
 
-                  statusText.text =
-                      "Մուտք..."
-
-                  scope.launch {
-
-                      try {
-
-                          val token =
-                              supabaseLogin(
-                                  email,
-                                  password
-                              )
-
-                          accessToken =
-                              token
-
-                          loginButton.visibility =
-                              View.GONE
-
-                          emailInput.visibility =
-                              View.GONE
-
-                          passwordInput.visibility =
-                              View.GONE
-
-                          titleInput.visibility =
-                              View.VISIBLE
-
-                          startButton.visibility =
-                              View.VISIBLE
-
-                          statusText.text =
-                              "✅ Մուտքը հաջող է։ Կարող ես սկսել LIVE-ը։"
-
-                      } catch (e: Exception) {
-
-                          statusText.text =
-                              "❌ Մուտքի սխալ: ${e.message}"
-
-                          loginButton.isEnabled =
-                              true
-                      }
-                  }
-              }
-
-              private suspend fun supabaseLogin(
-                  email: String,
-                  password: String
-              ): String =
-                  withContext(Dispatchers.IO) {
-
-                      val url =
-                          URL(
-                              "$SUPABASE_URL/auth/v1/token?grant_type=password"
-                          )
-
-                      val connection =
-                          url.openConnection()
-                              as HttpURLConnection
-
-                      connection.requestMethod =
-                          "POST"
-
-                      connection.doOutput =
+                  CookieManager
+                      .getInstance()
+                      .setAcceptThirdPartyCookies(
+                          webView,
                           true
-
-                      connection.setRequestProperty(
-                          "Content-Type",
-                          "application/json"
                       )
 
-                      connection.setRequestProperty(
-                          "apikey",
-                          SUPABASE_ANON_KEY
-                      )
+                  webView.webChromeClient =
+                      object : WebChromeClient() {
 
-                      val body =
-                          JSONObject()
-                              .put(
-                                  "email",
-                                  email
-                              )
-                              .put(
-                                  "password",
-                                  password
-                              )
-                              .toString()
-
-                      connection.outputStream.use {
-                          it.write(
-                              body.toByteArray()
-                          )
-                      }
-
-                      val code =
-                          connection.responseCode
-
-                      val stream =
-                          if (code in 200..299)
-                              connection.inputStream
-                          else
-                              connection.errorStream
-
-                      val response =
-                          stream.bufferedReader()
-                              .use {
-                                  it.readText()
-                              }
-
-                      if (code !in 200..299) {
-
-                          throw Exception(
-                              JSONObject(response)
-                                  .optString(
-                                      "error_description",
-                                      "Login failed"
+                          override fun onPermissionRequest(
+                              request: android.webkit.PermissionRequest
+                          ) {
+                              runOnUiThread {
+                                  request.grant(
+                                      request.resources
                                   )
-                          )
+                              }
+                          }
                       }
 
-                      JSONObject(response)
-                          .getString(
-                              "access_token"
-                          )
-                  }
+                  webView.webViewClient =
+                      object : WebViewClient() {
 
-              private fun startLive() {
+                          override fun shouldOverrideUrlLoading(
+                              view: WebView,
+                              request: WebResourceRequest
+                          ): Boolean {
 
-                  val token =
-                      accessToken
+                              val url =
+                                  request.url.toString()
 
-                  if (token == null) {
+                              return if (
+                                  url.startsWith(
+                                      "https://aimrelax-pubg.github.io/"
+                                  ) ||
+                                  url.startsWith(
+                                      "https://hvhlrbfjloiahbqmnrly.supabase.co/"
+                                  )
+                              ) {
+                                  false
+                              } else {
+                                  false
+                              }
+                          }
 
-                      statusText.text =
-                          "Նախ մուտք գործիր"
+                          override fun onPageFinished(
+                              view: WebView,
+                              url: String
+                          ) {
+                              super.onPageFinished(
+                                  view,
+                                  url
+                              )
 
-                      return
-                  }
+                              injectNativeBridge()
+                          }
+                      }
+              }
+
+              private fun injectNativeBridge() {
+
+                  val js = """
+                      (function(){
+                          window.AIMRELAX_NATIVE = {
+                              isAndroid: true,
+
+                              startScreenShare: function(){
+                                  window.location.href =
+                                      'aimrelax-native://start-screen-share';
+                              },
+
+                              stopScreenShare: function(){
+                                  window.location.href =
+                                      'aimrelax-native://stop-screen-share';
+                              }
+                          };
+
+                          window.dispatchEvent(
+                              new CustomEvent(
+                                  'aimrelax-native-ready'
+                              )
+                          );
+                      })();
+                  """.trimIndent()
+
+                  webView.evaluateJavascript(
+                      js,
+                      null
+                  )
+              }
+
+              private fun requestMediaPermissions() {
+
+                  val permissions =
+                      mutableListOf<String>()
 
                   if (
                       ContextCompat.checkSelfPermission(
@@ -597,128 +399,51 @@ jobs:
                           Manifest.permission.RECORD_AUDIO
                       ) != PackageManager.PERMISSION_GRANTED
                   ) {
-
-                      ActivityCompat.requestPermissions(
-                          this,
-                          arrayOf(
-                              Manifest.permission.RECORD_AUDIO
-                          ),
-                          REQUEST_MIC
+                      permissions.add(
+                          Manifest.permission.RECORD_AUDIO
                       )
-
-                      statusText.text =
-                          "Թույլ տուր microphone-ը և նորից սեղմիր START LIVE"
-
-                      return
                   }
 
-                  roomName =
-                      "aimrelax-${UUID.randomUUID()}"
+                  if (
+                      ContextCompat.checkSelfPermission(
+                          this,
+                          Manifest.permission.CAMERA
+                      ) != PackageManager.PERMISSION_GRANTED
+                  ) {
+                      permissions.add(
+                          Manifest.permission.CAMERA
+                      )
+                  }
 
-                  statusText.text =
-                      "LIVE room-ի ստեղծում..."
-
-                  scope.launch {
-
-                      try {
-
-                          createLiveRow(
-                              token
-                          )
-
-                          val tokenData =
-                              requestLiveKitToken(
-                                  token,
-                                  roomName!!
-                              )
-
-                          room =
-                              LiveKit.create(
-                                  applicationContext
-                              )
-
-                          room!!.connect(
-                              tokenData.first,
-                              tokenData.second
-                          )
-
-                          room!!
-                              .localParticipant
-                              .setMicrophoneEnabled(
-                                  true
-                              )
-
-                          startButton.visibility =
-                              View.GONE
-
-                          stopButton.visibility =
-                              View.VISIBLE
-
-                          statusText.text =
-                              "🟢 LIVE պատրաստ է։ Ընտրիր Share Screen-ը։"
-
-                          requestScreenCapture()
-
-                      } catch (e: Exception) {
-
-                          statusText.text =
-                              "❌ LIVE error: ${e.message}"
-
-                          deleteLiveRow(
-                              token
-                          )
-                      }
+                  if (permissions.isNotEmpty()) {
+                      permissionLauncher.launch(
+                          permissions.toTypedArray()
+                      )
                   }
               }
 
-              private fun requestScreenCapture() {
+              private fun startNativeScreenShare() {
 
                   val manager =
                       getSystemService(
-                          Context.MEDIA_PROJECTION_SERVICE
-                      ) as MediaProjectionManager
+                          MEDIA_PROJECTION_SERVICE
+                      ) as android.media.projection.MediaProjectionManager
 
-                  val intent =
+                  screenCaptureLauncher.launch(
                       manager.createScreenCaptureIntent()
-
-                  startActivityForResult(
-                      intent,
-                      REQUEST_SCREEN_CAPTURE
                   )
               }
 
-              override fun onActivityResult(
-                  requestCode: Int,
-                  resultCode: Int,
-                  data: Intent?
+              private fun startNativeScreenShare(
+                  permissionData: Intent
               ) {
 
-                  super.onActivityResult(
-                      requestCode,
-                      resultCode,
-                      data
-                  )
-
-                  if (
-                      requestCode !=
-                      REQUEST_SCREEN_CAPTURE
-                  ) {
+                  if (room == null) {
+                      sendToWebsite(
+                          "window.dispatchEvent(new CustomEvent('aimrelax-live-error',{detail:'LiveKit room is not connected'}));"
+                      )
                       return
                   }
-
-                  if (
-                      resultCode != RESULT_OK ||
-                      data == null
-                  ) {
-
-                      statusText.text =
-                          "❌ Screen sharing-ը չեղարկվեց"
-
-                      return
-                  }
-
-                  val permissionData =
-                      data
 
                   scope.launch {
 
@@ -740,207 +465,27 @@ jobs:
 
                           if (success) {
 
-                              statusText.text =
-                                  "🔴 LIVE — PUBG-ի էկրանը հեռարձակվում է"
+                              sendToWebsite(
+                                  "window.dispatchEvent(new CustomEvent('aimrelax-screen-share-started'));"
+                              )
 
                           } else {
 
-                              statusText.text =
-                                  "❌ Screen share-ը չհաջողվեց սկսել"
+                              sendToWebsite(
+                                  "window.dispatchEvent(new CustomEvent('aimrelax-live-error',{detail:'Screen share failed'}));"
+                              )
                           }
 
                       } catch (e: Exception) {
 
-                          statusText.text =
-                              "❌ Screen share error: ${e.message}"
+                          sendToWebsite(
+                              "window.dispatchEvent(new CustomEvent('aimrelax-live-error',{detail:${org.json.JSONObject.quote(e.message ?: "Screen share error")}}));"
+                          )
                       }
                   }
               }
 
-              private suspend fun createLiveRow(
-                  token: String
-              ) = withContext(Dispatchers.IO) {
-
-                  val roomValue =
-                      roomName
-                          ?: throw Exception(
-                              "Room name missing"
-                          )
-
-                  val url =
-                      URL(
-                          "$SUPABASE_URL/rest/v1/live_streams"
-                      )
-
-                  val connection =
-                      url.openConnection()
-                          as HttpURLConnection
-
-                  connection.requestMethod =
-                      "POST"
-
-                  connection.doOutput =
-                      true
-
-                  connection.setRequestProperty(
-                      "Content-Type",
-                      "application/json"
-                  )
-
-                  connection.setRequestProperty(
-                      "apikey",
-                      SUPABASE_ANON_KEY
-                  )
-
-                  connection.setRequestProperty(
-                      "Authorization",
-                      "Bearer $token"
-                  )
-
-                  connection.setRequestProperty(
-                      "Prefer",
-                      "return=representation"
-                  )
-
-                  val body =
-                      JSONObject()
-                          .put(
-                              "title",
-                              titleInput.text
-                                  .toString()
-                                  .trim()
-                                  .ifEmpty {
-                                      "AIMRELAX PUBG LIVE"
-                                  }
-                          )
-                          .put(
-                              "room_name",
-                              roomValue
-                          )
-                          .put(
-                              "status",
-                              "live"
-                          )
-                          .toString()
-
-                  connection.outputStream.use {
-                      it.write(
-                          body.toByteArray()
-                      )
-                  }
-
-                  val code =
-                      connection.responseCode
-
-                  val stream =
-                      if (code in 200..299)
-                          connection.inputStream
-                      else
-                          connection.errorStream
-
-                  val response =
-                      stream.bufferedReader()
-                          .use {
-                              it.readText()
-                          }
-
-                  if (code !in 200..299) {
-                      throw Exception(response)
-                  }
-              }
-
-              private suspend fun requestLiveKitToken(
-                  authToken: String,
-                  room: String
-              ): Pair<String, String> =
-                  withContext(Dispatchers.IO) {
-
-                      val url =
-                          URL(TOKEN_URL)
-
-                      val connection =
-                          url.openConnection()
-                              as HttpURLConnection
-
-                      connection.requestMethod =
-                          "POST"
-
-                      connection.doOutput =
-                          true
-
-                      connection.setRequestProperty(
-                          "Content-Type",
-                          "application/json"
-                      )
-
-                      connection.setRequestProperty(
-                          "Authorization",
-                          "Bearer $authToken"
-                      )
-
-                      connection.setRequestProperty(
-                          "apikey",
-                          SUPABASE_ANON_KEY
-                      )
-
-                      val body =
-                          JSONObject()
-                              .put(
-                                  "room_name",
-                                  room
-                              )
-                              .put(
-                                  "participant_name",
-                                  "AIMRELAX LIVE"
-                              )
-                              .put(
-                                  "role",
-                                  "host"
-                              )
-                              .toString()
-
-                      connection.outputStream.use {
-                          it.write(
-                              body.toByteArray()
-                          )
-                      }
-
-                      val code =
-                          connection.responseCode
-
-                      val stream =
-                          if (code in 200..299)
-                              connection.inputStream
-                          else
-                              connection.errorStream
-
-                      val response =
-                          stream.bufferedReader()
-                              .use {
-                                  it.readText()
-                              }
-
-                      if (code !in 200..299) {
-                          throw Exception(response)
-                      }
-
-                      val json =
-                          JSONObject(response)
-
-                      Pair(
-                          json.getString(
-                              "server_url"
-                          ),
-                          json.getString(
-                              "participant_token"
-                          )
-                      )
-                  }
-
-              private fun stopLive() {
-
-                  val token =
-                      accessToken
+              private fun stopNativeScreenShare() {
 
                   scope.launch {
 
@@ -952,132 +497,35 @@ jobs:
                                   false
                               )
 
-                      } catch (_: Exception) {
+                          sendToWebsite(
+                              "window.dispatchEvent(new CustomEvent('aimrelax-screen-share-stopped'));"
+                          )
+
+                      } catch (e: Exception) {
+                          e.printStackTrace()
                       }
-
-                      try {
-                          room?.disconnect()
-                      } catch (_: Exception) {
-                      }
-
-                      room = null
-
-                      if (token != null) {
-                          updateLiveRow(token)
-                      }
-
-                      stopButton.visibility =
-                          View.GONE
-
-                      startButton.visibility =
-                          View.VISIBLE
-
-                      titleInput.isEnabled =
-                          true
-
-                      statusText.text =
-                          "⛔ LIVE ավարտվեց"
                   }
               }
 
-              private suspend fun updateLiveRow(
-                  token: String
-              ) = withContext(Dispatchers.IO) {
+              private fun sendToWebsite(
+                  javascript: String
+              ) {
 
-                  val roomValue =
-                      roomName
-                          ?: return@withContext
+                  runOnUiThread {
 
-                  val url =
-                      URL(
-                          "$SUPABASE_URL/rest/v1/live_streams" +
-                              "?room_name=eq.$roomValue"
-                      )
-
-                  val connection =
-                      url.openConnection()
-                          as HttpURLConnection
-
-                  connection.requestMethod =
-                      "PATCH"
-
-                  connection.doOutput =
-                      true
-
-                  connection.setRequestProperty(
-                      "Content-Type",
-                      "application/json"
-                  )
-
-                  connection.setRequestProperty(
-                      "apikey",
-                      SUPABASE_ANON_KEY
-                  )
-
-                  connection.setRequestProperty(
-                      "Authorization",
-                      "Bearer $token"
-                  )
-
-                  val body =
-                      JSONObject()
-                          .put(
-                              "status",
-                              "ended"
-                          )
-                          .put(
-                              "ended_at",
-                              java.time.Instant
-                                  .now()
-                                  .toString()
-                          )
-                          .toString()
-
-                  connection.outputStream.use {
-                      it.write(
-                          body.toByteArray()
+                      webView.evaluateJavascript(
+                          javascript,
+                          null
                       )
                   }
-
-                  connection.responseCode
               }
 
-              private suspend fun deleteLiveRow(
-                  token: String
-              ) = withContext(Dispatchers.IO) {
+              override fun onBackPressed() {
 
-                  val roomValue =
-                      roomName
-                          ?: return@withContext
-
-                  try {
-
-                      val url =
-                          URL(
-                              "$SUPABASE_URL/rest/v1/live_streams" +
-                                  "?room_name=eq.$roomValue"
-                      )
-
-                      val connection =
-                          url.openConnection()
-                              as HttpURLConnection
-
-                      connection.requestMethod =
-                          "DELETE"
-
-                      connection.setRequestProperty(
-                          "apikey",
-                          SUPABASE_ANON_KEY
-                      )
-
-                      connection.setRequestProperty(
-                          "Authorization",
-                          "Bearer $token"
-                      )
-
-                      connection.responseCode
-
-                  } catch (_: Exception) {
+                  if (webView.canGoBack()) {
+                      webView.goBack()
+                  } else {
+                      super.onBackPressed()
                   }
               }
 
@@ -1085,27 +533,140 @@ jobs:
 
                   try {
                       room?.disconnect()
-                      room?.release()
                   } catch (_: Exception) {
                   }
 
                   scope.cancel()
 
+                  webView.destroy()
+
                   super.onDestroy()
+              }
+
+              private fun handleNativeUrl(
+                  url: String
+              ): Boolean {
+
+                  return when {
+
+                      url ==
+                          "aimrelax-native://start-screen-share" -> {
+
+                          startNativeScreenShare()
+
+                          webView.loadUrl(
+                              "javascript:void(0)"
+                          )
+
+                          true
+                      }
+
+                      url ==
+                          "aimrelax-native://stop-screen-share" -> {
+
+                          stopNativeScreenShare()
+
+                          webView.loadUrl(
+                              "javascript:void(0)"
+                          )
+
+                          true
+                      }
+
+                      else -> false
+                  }
               }
           }
           EOF
 
+      - name: Fix native URL bridge
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path(
+              "android-app/app/src/main/java/com/aimrelax/live/MainActivity.kt"
+          )
+
+          s = p.read_text()
+
+          old = """override fun shouldOverrideUrlLoading(
+                              view: WebView,
+                              request: WebResourceRequest
+                          ): Boolean {
+
+                              val url =
+                                  request.url.toString()
+
+                              return if (
+                                  url.startsWith(
+                                      "https://aimrelax-pubg.github.io/"
+                                  ) ||
+                                  url.startsWith(
+                                      "https://hvhlrbfjloiahbqmnrly.supabase.co/"
+                                  )
+                              ) {
+                                  false
+                              } else {
+                                  false
+                              }
+                          }"""
+
+          new = """override fun shouldOverrideUrlLoading(
+                              view: WebView,
+                              request: WebResourceRequest
+                          ): Boolean {
+
+                              val url =
+                                  request.url.toString()
+
+                              if (handleNativeUrl(url)) {
+                                  return true
+                              }
+
+                              return false
+                          }"""
+
+          if old not in s:
+              raise SystemExit(
+                  "WebView URL bridge block not found"
+              )
+
+          p.write_text(
+              s.replace(old, new)
+          )
+          PY
+
+      - name: Add missing coroutine import
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path(
+              "android-app/app/src/main/java/com/aimrelax/live/MainActivity.kt"
+          )
+
+          s = p.read_text()
+
+          if "import kotlinx.coroutines.cancel" not in s:
+              s = s.replace(
+                  "import kotlinx.coroutines.launch",
+                  "import kotlinx.coroutines.launch\nimport kotlinx.coroutines.cancel"
+              )
+
+          p.write_text(s)
+          PY
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Generate Gradle wrapper
+      - name: Build Debug APK
         working-directory: android-app
-        run: gradle wrapper --gradle-version 8.9
-
-      - name: Build APK
-        working-directory: android-app
-        run: ./gradlew assembleDebug --stacktrace
+        run: |
+          gradle wrapper --gradle-version 8.10.2
+          ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
