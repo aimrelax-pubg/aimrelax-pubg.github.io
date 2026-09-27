@@ -18,18 +18,16 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Initialize Gradle project
+      - name: Create Android project
         run: |
+          set -e
+
           mkdir -p android/app/src/main/java/com/aimrelax/pubg
-          mkdir -p android/app/src/main/res/mipmap-hdpi
-          mkdir -p android/app/src/main/res/mipmap-mdpi
-          mkdir -p android/app/src/main/res/mipmap-xhdpi
-          mkdir -p android/app/src/main/res/mipmap-xxhdpi
-          mkdir -p android/app/src/main/res/mipmap-xxxhdpi
+          mkdir -p android/app/src/main/res/values
 
       - name: Create settings.gradle
         run: |
-          cat > settings.gradle <<'EOF'
+          cat > android/settings.gradle <<'EOF'
           pluginManagement {
               repositories {
                   google()
@@ -40,6 +38,7 @@ jobs:
 
           dependencyResolutionManagement {
               repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+
               repositories {
                   google()
                   mavenCentral()
@@ -52,7 +51,7 @@ jobs:
 
       - name: Create root build.gradle
         run: |
-          cat > build.gradle <<'EOF'
+          cat > android/build.gradle <<'EOF'
           plugins {
               id 'com.android.application' version '8.7.3' apply false
           }
@@ -60,7 +59,7 @@ jobs:
 
       - name: Create gradle.properties
         run: |
-          cat > gradle.properties <<'EOF'
+          cat > android/gradle.properties <<'EOF'
           android.useAndroidX=true
           android.nonTransitiveRClass=true
           EOF
@@ -119,18 +118,16 @@ jobs:
 
       - name: Create styles.xml
         run: |
-          mkdir -p android/app/src/main/res/values
-
           cat > android/app/src/main/res/values/styles.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
 
           <resources>
 
-              <style name="AppTheme"
+              <style
+                  name="AppTheme"
                   parent="android:style/Theme.Material.Light.NoActionBar">
 
                   <item name="android:fontFamily">sans</item>
-                  <item name="android:windowActionModeOverlay">true</item>
                   <item name="android:colorAccent">#ff6a00</item>
 
               </style>
@@ -140,16 +137,16 @@ jobs:
 
       - name: Create MainActivity
         run: |
-          cat > android/app/src/main/java/com/aimrelax/pubg/MainActivity.java <<'JAVA'
+          cat > android/app/src/main/java/com/aimrelax/pubg/MainActivity.java <<'EOF'
           package com.aimrelax.pubg;
 
           import android.app.Activity;
           import android.os.Bundle;
+          import android.webkit.CookieManager;
+          import android.webkit.WebChromeClient;
           import android.webkit.WebSettings;
           import android.webkit.WebView;
           import android.webkit.WebViewClient;
-          import android.webkit.WebChromeClient;
-          import android.webkit.CookieManager;
 
           public class MainActivity extends Activity {
 
@@ -175,18 +172,23 @@ jobs:
 
                   settings.setMediaPlaybackRequiresUserGesture(false);
 
-                  CookieManager cookieManager =
+                  CookieManager cookies =
                       CookieManager.getInstance();
 
-                  cookieManager.setAcceptCookie(true);
-                  cookieManager.setAcceptThirdPartyCookies(
+                  cookies.setAcceptCookie(true);
+
+                  cookies.setAcceptThirdPartyCookies(
                       webView,
                       true
                   );
 
-                  webView.setWebViewClient(new WebViewClient());
+                  webView.setWebViewClient(
+                      new WebViewClient()
+                  );
 
-                  webView.setWebChromeClient(new WebChromeClient());
+                  webView.setWebChromeClient(
+                      new WebChromeClient()
+                  );
 
                   webView.loadUrl(
                       "https://aimrelax-pubg.github.io/"
@@ -198,18 +200,35 @@ jobs:
               @Override
               public void onBackPressed() {
 
-                  if (webView != null && webView.canGoBack()) {
+                  if (webView != null &&
+                      webView.canGoBack()) {
+
                       webView.goBack();
+
                   } else {
+
                       super.onBackPressed();
                   }
               }
           }
-          JAVA
+          EOF
 
-      - name: Setup Gradle
+      - name: Generate Gradle wrapper
+        working-directory: android
         run: |
           gradle wrapper --gradle-version 8.10.2
+
+      - name: Verify project
+        run: |
+          echo "===== PROJECT ====="
+
+          test -f android/settings.gradle
+          test -f android/build.gradle
+          test -f android/app/build.gradle
+          test -f android/app/src/main/AndroidManifest.xml
+          test -f android/app/src/main/java/com/aimrelax/pubg/MainActivity.java
+
+          echo "Android project OK"
 
       - name: Build APK
         working-directory: android
