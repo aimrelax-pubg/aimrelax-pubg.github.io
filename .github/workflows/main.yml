@@ -9,42 +9,76 @@ jobs:
 
     steps:
 
+      # --------------------------------------------------
+      # 1. CHECKOUT
+      # --------------------------------------------------
       - name: Checkout
         uses: actions/checkout@v4
 
+
+      # --------------------------------------------------
+      # 2. NODE
+      # --------------------------------------------------
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
+
+      # --------------------------------------------------
+      # 3. JAVA
+      # --------------------------------------------------
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
 
+
+      # --------------------------------------------------
+      # 4. INIT NPM
+      # --------------------------------------------------
       - name: Initialize npm
         run: npm init -y
 
+
+      # --------------------------------------------------
+      # 5. INSTALL CAPACITOR 7
+      # --------------------------------------------------
       - name: Install Capacitor
         run: |
           npm install @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
 
+
+      # --------------------------------------------------
+      # 6. PREPARE WEBSITE
+      # --------------------------------------------------
       - name: Prepare web files
         run: |
           rm -rf www
           mkdir -p www
 
           cp index.html www/
+
           cp sw.js www/ 2>/dev/null || true
           cp manifest.json www/ 2>/dev/null || true
 
+          echo "===== WWW FILES ====="
+          find www -maxdepth 1 -type f -print
+
+
+      # --------------------------------------------------
+      # 7. REMOVE OLD CAPACITOR CONFIG
+      # --------------------------------------------------
       - name: Remove old Capacitor configs
         run: |
           rm -f capacitor.config.json
           rm -f capacitor.config.js
-          true
 
+
+      # --------------------------------------------------
+      # 8. CREATE CAPACITOR CONFIG
+      # --------------------------------------------------
       - name: Create Capacitor config
         run: |
           printf '%s\n' \
@@ -54,54 +88,80 @@ jobs:
             '  "webDir": "www"' \
             '}' > capacitor.config.json
 
+          echo "===== capacitor.config.json ====="
+          cat capacitor.config.json
+
+
+      # --------------------------------------------------
+      # 9. ADD ANDROID
+      # --------------------------------------------------
       - name: Add Android
-        run: |
-          npx cap add android
+        run: npx cap add android
+
 
       # --------------------------------------------------
-      # ADD JITPACK WITHOUT REPLACING CAPACITOR BUILD FILES
+      # 10. ADD JITPACK CORRECTLY
       # --------------------------------------------------
-
       - name: Add JitPack repository
         shell: bash
         run: |
           set -e
 
-          python3 - <<'PY'
+          python3 <<'PY'
           from pathlib import Path
+          import re
 
           p = Path("android/settings.gradle")
           s = p.read_text()
 
-          if "jitpack.io" not in s:
+          jitpack = 'maven { url = uri("https://jitpack.io") }'
 
-              if "repositories {" in s:
-                  first = s.find("repositories {")
+          if "https://jitpack.io" not in s:
 
-                  position = first + len("repositories {")
+              pattern = r'(dependencyResolutionManagement\s*\{\s*repositories\s*\{)'
 
-                  s = (
-                      s[:position]
-                      + '\n        maven { url = uri("https://jitpack.io") }'
-                      + s[position:]
+              new_s, count = re.subn(
+                  pattern,
+                  r'\1\n        ' + jitpack,
+                  s,
+                  count=1
+              )
+
+              if count == 0:
+                  raise SystemExit(
+                      "ERROR: dependencyResolutionManagement repositories block was not found"
                   )
+
+              s = new_s
 
           p.write_text(s)
 
-          print("===== settings.gradle =====")
-          print(p.read_text())
+          print("")
+          print("========================================")
+          print("FINAL android/settings.gradle")
+          print("========================================")
+          print(s)
+          print("========================================")
+
+          if "https://jitpack.io" not in s:
+              raise SystemExit("ERROR: JitPack was NOT added")
+
+          if "dependencyResolutionManagement" not in s:
+              raise SystemExit(
+                  "ERROR: dependencyResolutionManagement missing"
+              )
           PY
 
-      # --------------------------------------------------
-      # ADD LIVEKIT DEPENDENCY
-      # --------------------------------------------------
 
+      # --------------------------------------------------
+      # 11. ADD LIVEKIT
+      # --------------------------------------------------
       - name: Add LiveKit dependency
         shell: bash
         run: |
           set -e
 
-          python3 - <<'PY'
+          python3 <<'PY'
           from pathlib import Path
 
           p = Path("android/app/build.gradle")
@@ -109,99 +169,45 @@ jobs:
 
           dependency = 'implementation("io.livekit:livekit-android:2.29.0")'
 
-          if dependency not in s:
+          if "io.livekit:livekit-android" not in s:
 
-              if "dependencies {" in s:
+              marker = "dependencies {"
 
-                  s = s.replace(
-                      "dependencies {",
-                      "dependencies {\n    " + dependency,
-                      1
+              if marker not in s:
+                  raise SystemExit(
+                      "ERROR: dependencies block not found in app/build.gradle"
                   )
-
-              else:
-
-                  s += """
-
-          dependencies {
-              implementation("io.livekit:livekit-android:2.29.0")
-          }
-          """
-
-          p.write_text(s)
-
-          print("===== app/build.gradle LiveKit check =====")
-
-          for line in p.read_text().splitlines():
-              if "livekit" in line.lower():
-                  print(line)
-          PY
-
-      # --------------------------------------------------
-      # ANDROID MANIFEST
-      # --------------------------------------------------
-
-      - name: Add LiveKit permissions
-        shell: bash
-        run: |
-          set -e
-
-          python3 - <<'PY'
-          from pathlib import Path
-
-          p = Path("android/app/src/main/AndroidManifest.xml")
-          s = p.read_text()
-
-          permissions = [
-              '<uses-permission android:name="android.permission.INTERNET" />',
-              '<uses-permission android:name="android.permission.CAMERA" />',
-              '<uses-permission android:name="android.permission.RECORD_AUDIO" />',
-              '<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />',
-              '<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />',
-              '<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />'
-          ]
-
-          for permission in permissions:
-
-              if permission not in s:
-
-                  s = s.replace(
-                      "<application",
-                      "    " + permission + "\n\n    <application",
-                      1
-                  )
-
-          service = """
-              <service
-                  android:name="io.livekit.android.room.track.screencapture.ScreenCaptureService"
-                  android:enabled="true"
-                  android:exported="false"
-                  android:foregroundServiceType="mediaProjection" />
-          """
-
-          if "ScreenCaptureService" not in s:
 
               s = s.replace(
-                  "</application>",
-                  service + "\n    </application>",
+                  marker,
+                  marker + "\n    " + dependency,
                   1
               )
 
           p.write_text(s)
+
+          print("")
+          print("========================================")
+          print("LIVEKIT DEPENDENCY")
+          print("========================================")
+          print(dependency)
+          print("========================================")
           PY
 
-      # --------------------------------------------------
-      # NATIVE CAPACITOR ACTIVITY
-      # --------------------------------------------------
 
-      - name: Add AIMRELAX LiveKit native bridge
+      # --------------------------------------------------
+      # 12. CREATE NATIVE MAIN ACTIVITY
+      # --------------------------------------------------
+      - name: Create native MainActivity
         shell: bash
         run: |
           set -e
 
           mkdir -p android/app/src/main/java/com/aimrelax/pubg
 
-          cat > android/app/src/main/java/com/aimrelax/pubg/MainActivity.kt <<'EOF'
+          rm -f android/app/src/main/java/com/aimrelax/pubg/MainActivity.java
+
+          cat > android/app/src/main/java/com/aimrelax/pubg/MainActivity.kt <<'KOTLIN'
           package com.aimrelax.pubg
 
           import android.app.Activity
@@ -210,93 +216,143 @@ jobs:
           import android.os.Bundle
           import android.webkit.JavascriptInterface
 
-          import androidx.activity.result.contract.ActivityResultContracts
-          import androidx.lifecycle.lifecycleScope
-
           import com.getcapacitor.BridgeActivity
 
           import io.livekit.android.LiveKit
           import io.livekit.android.room.Room
           import io.livekit.android.room.track.screencapture.ScreenCaptureParams
 
-          import kotlinx.coroutines.launch
-
           class MainActivity : BridgeActivity() {
 
               private lateinit var room: Room
 
-              private val screenCaptureLauncher =
-                  registerForActivityResult(
-                      ActivityResultContracts.StartActivityForResult()
-                  ) { result ->
+              private val SCREEN_CAPTURE_REQUEST = 9001
 
-                      if (result.resultCode != Activity.RESULT_OK) {
-                          return@registerForActivityResult
-                      }
-
-                      val data = result.data ?: return@registerForActivityResult
-
-                      publishScreen(data)
-                  }
-
-              override fun onCreate(
-                  savedInstanceState: Bundle?
-              ) {
-
+              override fun onCreate(savedInstanceState: Bundle?) {
                   super.onCreate(savedInstanceState)
 
                   room = LiveKit.create(applicationContext)
 
                   bridge.webView.addJavascriptInterface(
-                      NativeBridge(),
+                      AndroidBridge(),
                       "AIMRELAX_NATIVE"
                   )
               }
 
-              private fun connectLiveKit(
-                  serverUrl: String,
-                  token: String
-              ) {
 
-                  lifecycleScope.launch {
+              inner class AndroidBridge {
 
-                      try {
+                  @JavascriptInterface
+                  fun isAndroidApp(): Boolean {
+                      return true
+                  }
 
-                          room.connect(
-                              serverUrl,
-                              token
-                          )
 
-                          sendToWebsite(
-                              "window.dispatchEvent(new CustomEvent('aimrelax-livekit-connected'));"
-                          )
+                  @JavascriptInterface
+                  fun startLiveKit(
+                      serverUrl: String,
+                      token: String
+                  ) {
+                      runOnUiThread {
 
-                      } catch (e: Exception) {
+                          Thread {
+                              try {
 
-                          sendToWebsite(
-                              "window.dispatchEvent(new CustomEvent('aimrelax-native-error',{detail:{message:${jsString(e.message ?: "LiveKit connection failed")}}}));"
-                          )
+                                  room.connect(
+                                      serverUrl,
+                                      token
+                                  )
+
+                              } catch (e: Exception) {
+
+                                  e.printStackTrace()
+                              }
+                          }.start()
+                      }
+                  }
+
+
+                  @JavascriptInterface
+                  fun startScreenShare() {
+
+                      runOnUiThread {
+
+                          try {
+
+                              val manager =
+                                  getSystemService(
+                                      MEDIA_PROJECTION_SERVICE
+                                  ) as MediaProjectionManager
+
+                              val intent =
+                                  manager.createScreenCaptureIntent()
+
+                              startActivityForResult(
+                                  intent,
+                                  SCREEN_CAPTURE_REQUEST
+                              )
+
+                          } catch (e: Exception) {
+
+                              e.printStackTrace()
+                          }
+                      }
+                  }
+
+
+                  @JavascriptInterface
+                  fun stopScreenShare() {
+
+                      runOnUiThread {
+
+                          try {
+
+                              room.localParticipant
+                                  .setScreenShareEnabled(false)
+
+                          } catch (e: Exception) {
+
+                              e.printStackTrace()
+                          }
+                      }
+                  }
+
+
+                  @JavascriptInterface
+                  fun disconnectLiveKit() {
+
+                      runOnUiThread {
+
+                          try {
+
+                              room.disconnect()
+
+                          } catch (e: Exception) {
+
+                              e.printStackTrace()
+                          }
                       }
                   }
               }
 
-              private fun startScreenCapture() {
 
-                  val manager =
-                      getSystemService(
-                          MEDIA_PROJECTION_SERVICE
-                      ) as MediaProjectionManager
-
-                  screenCaptureLauncher.launch(
-                      manager.createScreenCaptureIntent()
-                  )
-              }
-
-              private fun publishScreen(
-                  data: Intent
+              override fun onActivityResult(
+                  requestCode: Int,
+                  resultCode: Int,
+                  data: Intent?
               ) {
 
-                  lifecycleScope.launch {
+                  super.onActivityResult(
+                      requestCode,
+                      resultCode,
+                      data
+                  )
+
+                  if (
+                      requestCode == SCREEN_CAPTURE_REQUEST &&
+                      resultCode == Activity.RESULT_OK &&
+                      data != null
+                  ) {
 
                       try {
 
@@ -305,140 +361,19 @@ jobs:
                                   mediaProjectionPermissionResultData = data
                               )
 
-                          val success =
-                              room.localParticipant
-                                  .setScreenShareEnabled(
-                                      true,
-                                      params
-                                  )
-
-                          if (success) {
-
-                              sendToWebsite(
-                                  "window.dispatchEvent(new CustomEvent('aimrelax-screen-share-started'));"
+                          room.localParticipant
+                              .setScreenShareEnabled(
+                                  true,
+                                  params
                               )
-                          }
 
                       } catch (e: Exception) {
 
-                          sendToWebsite(
-                              "window.dispatchEvent(new CustomEvent('aimrelax-screen-share-error',{detail:{message:${jsString(e.message ?: "Screen share failed")}}}));"
-                          )
+                          e.printStackTrace()
                       }
                   }
               }
 
-              private fun stopScreenCapture() {
-
-                  lifecycleScope.launch {
-
-                      try {
-
-                          room.localParticipant
-                              .setScreenShareEnabled(false)
-
-                          sendToWebsite(
-                              "window.dispatchEvent(new CustomEvent('aimrelax-screen-share-stopped'));"
-                          )
-
-                      } catch (_: Exception) {
-                      }
-                  }
-              }
-
-              private fun disconnectLiveKit() {
-
-                  lifecycleScope.launch {
-
-                      try {
-
-                          room.disconnect()
-
-                      } catch (_: Exception) {
-                      }
-                  }
-              }
-
-              private fun sendToWebsite(
-                  javascript: String
-              ) {
-
-                  runOnUiThread {
-
-                      try {
-
-                          bridge.webView.evaluateJavascript(
-                              javascript,
-                              null
-                          )
-
-                      } catch (_: Exception) {
-                      }
-                  }
-              }
-
-              private fun jsString(
-                  value: String
-              ): String {
-
-                  return "'" +
-                      value
-                          .replace("\\", "\\\\")
-                          .replace("'", "\\'")
-                          .replace("\n", "\\n")
-                          .replace("\r", "\\r") +
-                      "'"
-              }
-
-              inner class NativeBridge {
-
-                  @JavascriptInterface
-                  fun isAndroidApp(): Boolean {
-                      return true
-                  }
-
-                  @JavascriptInterface
-                  fun startLiveKit(
-                      serverUrl: String,
-                      token: String
-                  ) {
-
-                      runOnUiThread {
-
-                          connectLiveKit(
-                              serverUrl,
-                              token
-                          )
-                      }
-                  }
-
-                  @JavascriptInterface
-                  fun startScreenShare() {
-
-                      runOnUiThread {
-
-                          startScreenCapture()
-                      }
-                  }
-
-                  @JavascriptInterface
-                  fun stopScreenShare() {
-
-                      runOnUiThread {
-
-                          stopScreenCapture()
-                      }
-                  }
-
-                  @JavascriptInterface
-                  fun disconnectLiveKit() {
-
-                      runOnUiThread {
-
-                          disconnectLiveKit()
-                      }
-                  }
-              }
 
               override fun onDestroy() {
 
@@ -450,35 +385,90 @@ jobs:
                   super.onDestroy()
               }
           }
-          EOF
+          KOTLIN
 
-          rm -f android/app/src/main/java/com/aimrelax/pubg/MainActivity.java
 
       # --------------------------------------------------
-      # SYNC
+      # 13. ANDROID PERMISSIONS
       # --------------------------------------------------
-
-      - name: Sync Android
+      - name: Add Android permissions
+        shell: bash
         run: |
-          npx cap sync android
+          set -e
+
+          python3 <<'PY'
+          from pathlib import Path
+
+          p = Path("android/app/src/main/AndroidManifest.xml")
+          s = p.read_text()
+
+          permissions = [
+              '<uses-permission android:name="android.permission.INTERNET" />',
+              '<uses-permission android:name="android.permission.RECORD_AUDIO" />',
+              '<uses-permission android:name="android.permission.CAMERA" />'
+          ]
+
+          for permission in permissions:
+              if permission not in s:
+                  s = s.replace(
+                      "<manifest",
+                      "<manifest",
+                      1
+                  )
+
+                  pos = s.find(">")
+
+                  if pos != -1:
+                      s = (
+                          s[:pos + 1]
+                          + "\n    "
+                          + permission
+                          + s[pos + 1:]
+                      )
+
+          p.write_text(s)
+
+          print("===== AndroidManifest.xml =====")
+          print(s)
+          PY
+
 
       # --------------------------------------------------
-      # BUILD
+      # 14. SYNC CAPACITOR
       # --------------------------------------------------
+      - name: Sync Android
+        run: npx cap sync android
 
+
+      # --------------------------------------------------
+      # 15. VERIFY JITPACK
+      # --------------------------------------------------
+      - name: Verify Gradle repositories
+        run: |
+          echo "===== SEARCH JITPACK ====="
+          grep -Rni "jitpack.io" android/settings.gradle android/app/build.gradle || true
+
+          echo ""
+          echo "===== SEARCH LIVEKIT ====="
+          grep -Rni "io.livekit" android/app/build.gradle || true
+
+
+      # --------------------------------------------------
+      # 16. BUILD APK
+      # --------------------------------------------------
       - name: Build APK
         working-directory: android
         run: |
           chmod +x gradlew
+
           ./gradlew clean assembleDebug --stacktrace
 
-      # --------------------------------------------------
-      # UPLOAD
-      # --------------------------------------------------
 
+      # --------------------------------------------------
+      # 17. UPLOAD APK
+      # --------------------------------------------------
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: AIMRELAX-APK-LIVE
           path: android/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
