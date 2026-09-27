@@ -12,223 +12,66 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
 
-      - name: Create Android project
+
+      - name: Initialize npm
+        run: npm init -y
+
+
+      - name: Install Capacitor
         run: |
-          set -e
+          npm install @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
 
-          mkdir -p android/app/src/main/java/com/aimrelax/pubg
-          mkdir -p android/app/src/main/res/values
 
-      - name: Create settings.gradle
+      - name: Prepare web files
         run: |
-          cat > android/settings.gradle <<'EOF'
-          pluginManagement {
-              repositories {
-                  google()
-                  mavenCentral()
-                  gradlePluginPortal()
-              }
-          }
+          rm -rf www
+          mkdir -p www
 
-          dependencyResolutionManagement {
-              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+          cp index.html www/
 
-              repositories {
-                  google()
-                  mavenCentral()
-              }
-          }
+          cp sw.js www/ 2>/dev/null || true
+          cp manifest.json www/ 2>/dev/null || true
 
-          rootProject.name = "AIMRELAX"
-          include(":app")
-          EOF
 
-      - name: Create root build.gradle
+      - name: Remove old Capacitor configs
         run: |
-          cat > android/build.gradle <<'EOF'
-          plugins {
-              id 'com.android.application' version '8.7.3' apply false
-          }
-          EOF
+          rm -f capacitor.config.json
+          rm -f capacitor.config.js
+          true
 
-      - name: Create gradle.properties
+
+      - name: Create Capacitor config
         run: |
-          cat > android/gradle.properties <<'EOF'
-          android.useAndroidX=true
-          android.nonTransitiveRClass=true
-          EOF
+          printf '%s\n' \
+            '{' \
+            '  "appId": "com.aimrelax.pubg",' \
+            '  "appName": "AIMRELAX PUBG",' \
+            '  "webDir": "www"' \
+            '}' > capacitor.config.json
 
-      - name: Create app build.gradle
+
+      - name: Add Android
         run: |
-          cat > android/app/build.gradle <<'EOF'
-          plugins {
-              id 'com.android.application'
-          }
+          npx cap add android
 
-          android {
-              namespace 'com.aimrelax.pubg'
-              compileSdk 35
 
-              defaultConfig {
-                  applicationId 'com.aimrelax.pubg'
-                  minSdk 23
-                  targetSdk 35
-                  versionCode 1
-                  versionName '1.0'
-              }
-          }
-          EOF
-
-      - name: Create AndroidManifest.xml
+      - name: Sync Android
         run: |
-          cat > android/app/src/main/AndroidManifest.xml <<'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
+          npx cap sync android
 
-          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-
-              <uses-permission android:name="android.permission.INTERNET" />
-
-              <application
-                  android:allowBackup="true"
-                  android:label="AIMRELAX PUBG"
-                  android:usesCleartextTraffic="false"
-                  android:theme="@style/AppTheme">
-
-                  <activity
-                      android:name=".MainActivity"
-                      android:exported="true">
-
-                      <intent-filter>
-                          <action android:name="android.intent.action.MAIN" />
-                          <category android:name="android.intent.category.LAUNCHER" />
-                      </intent-filter>
-
-                  </activity>
-
-              </application>
-
-          </manifest>
-          EOF
-
-      - name: Create styles.xml
-        run: |
-          cat > android/app/src/main/res/values/styles.xml <<'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-
-          <resources>
-
-              <style
-                  name="AppTheme"
-                  parent="android:style/Theme.Material.Light.NoActionBar">
-
-                  <item name="android:fontFamily">sans</item>
-                  <item name="android:colorAccent">#ff6a00</item>
-
-              </style>
-
-          </resources>
-          EOF
-
-      - name: Create MainActivity
-        run: |
-          cat > android/app/src/main/java/com/aimrelax/pubg/MainActivity.java <<'EOF'
-          package com.aimrelax.pubg;
-
-          import android.app.Activity;
-          import android.os.Bundle;
-          import android.webkit.CookieManager;
-          import android.webkit.WebChromeClient;
-          import android.webkit.WebSettings;
-          import android.webkit.WebView;
-          import android.webkit.WebViewClient;
-
-          public class MainActivity extends Activity {
-
-              private WebView webView;
-
-              @Override
-              protected void onCreate(Bundle savedInstanceState) {
-                  super.onCreate(savedInstanceState);
-
-                  webView = new WebView(this);
-
-                  WebSettings settings = webView.getSettings();
-
-                  settings.setJavaScriptEnabled(true);
-                  settings.setDomStorageEnabled(true);
-                  settings.setDatabaseEnabled(true);
-
-                  settings.setAllowFileAccess(false);
-                  settings.setAllowContentAccess(true);
-
-                  settings.setJavaScriptCanOpenWindowsAutomatically(true);
-                  settings.setSupportMultipleWindows(true);
-
-                  settings.setMediaPlaybackRequiresUserGesture(false);
-
-                  CookieManager cookies =
-                      CookieManager.getInstance();
-
-                  cookies.setAcceptCookie(true);
-
-                  cookies.setAcceptThirdPartyCookies(
-                      webView,
-                      true
-                  );
-
-                  webView.setWebViewClient(
-                      new WebViewClient()
-                  );
-
-                  webView.setWebChromeClient(
-                      new WebChromeClient()
-                  );
-
-                  webView.loadUrl(
-                      "https://aimrelax-pubg.github.io/"
-                  );
-
-                  setContentView(webView);
-              }
-
-              @Override
-              public void onBackPressed() {
-
-                  if (webView != null &&
-                      webView.canGoBack()) {
-
-                      webView.goBack();
-
-                  } else {
-
-                      super.onBackPressed();
-                  }
-              }
-          }
-          EOF
-
-      - name: Generate Gradle wrapper
-        working-directory: android
-        run: |
-          gradle wrapper --gradle-version 8.10.2
-
-      - name: Verify project
-        run: |
-          echo "===== PROJECT ====="
-
-          test -f android/settings.gradle
-          test -f android/build.gradle
-          test -f android/app/build.gradle
-          test -f android/app/src/main/AndroidManifest.xml
-          test -f android/app/src/main/java/com/aimrelax/pubg/MainActivity.java
-
-          echo "Android project OK"
 
       - name: Build APK
         working-directory: android
@@ -236,8 +79,9 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug
 
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: AIMRELAX-APK-HTTPS
+          name: AIMRELAX-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
