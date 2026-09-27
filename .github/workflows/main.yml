@@ -9,25 +9,25 @@ jobs:
 
     steps:
 
-      # --------------------------------------------------
+      # ==================================================
       # 1. CHECKOUT
-      # --------------------------------------------------
+      # ==================================================
       - name: Checkout
         uses: actions/checkout@v4
 
 
-      # --------------------------------------------------
+      # ==================================================
       # 2. NODE
-      # --------------------------------------------------
+      # ==================================================
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
 
-      # --------------------------------------------------
+      # ==================================================
       # 3. JAVA
-      # --------------------------------------------------
+      # ==================================================
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
@@ -35,26 +35,29 @@ jobs:
           java-version: 21
 
 
-      # --------------------------------------------------
-      # 4. INIT NPM
-      # --------------------------------------------------
+      # ==================================================
+      # 4. NPM
+      # ==================================================
       - name: Initialize npm
         run: npm init -y
 
 
-      # --------------------------------------------------
-      # 5. INSTALL CAPACITOR 7
-      # --------------------------------------------------
+      # ==================================================
+      # 5. CAPACITOR 7
+      # ==================================================
       - name: Install Capacitor
         run: |
           npm install @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
 
 
-      # --------------------------------------------------
-      # 6. PREPARE WEBSITE
-      # --------------------------------------------------
+      # ==================================================
+      # 6. WEBSITE FILES
+      # ==================================================
       - name: Prepare web files
+        shell: bash
         run: |
+          set -e
+
           rm -rf www
           mkdir -p www
 
@@ -63,99 +66,114 @@ jobs:
           cp sw.js www/ 2>/dev/null || true
           cp manifest.json www/ 2>/dev/null || true
 
-          echo "===== WWW FILES ====="
+          echo "===== WWW ====="
           find www -maxdepth 1 -type f -print
 
 
-      # --------------------------------------------------
-      # 7. REMOVE OLD CAPACITOR CONFIG
-      # --------------------------------------------------
+      # ==================================================
+      # 7. CAPACITOR CONFIG
+      # ==================================================
       - name: Remove old Capacitor configs
         run: |
           rm -f capacitor.config.json
           rm -f capacitor.config.js
 
 
-      # --------------------------------------------------
-      # 8. CREATE CAPACITOR CONFIG
-      # --------------------------------------------------
       - name: Create Capacitor config
         run: |
-          printf '%s\n' \
-            '{' \
-            '  "appId": "com.aimrelax.pubg",' \
-            '  "appName": "AIMRELAX PUBG",' \
-            '  "webDir": "www"' \
-            '}' > capacitor.config.json
+          cat > capacitor.config.json <<'EOF'
+          {
+            "appId": "com.aimrelax.pubg",
+            "appName": "AIMRELAX PUBG",
+            "webDir": "www"
+          }
+          EOF
 
           echo "===== capacitor.config.json ====="
           cat capacitor.config.json
 
 
-      # --------------------------------------------------
-      # 9. ADD ANDROID
-      # --------------------------------------------------
+      # ==================================================
+      # 8. CREATE ANDROID
+      # ==================================================
       - name: Add Android
-        run: npx cap add android
+        run: |
+          npx cap add android
 
 
-      # --------------------------------------------------
-      # 10. ADD JITPACK CORRECTLY
-      # --------------------------------------------------
-      - name: Add JitPack repository
+      # ==================================================
+      # 9. ADD JITPACK TO THE REAL CAPACITOR
+      #    android/build.gradle
+      # ==================================================
+      - name: Configure JitPack
         shell: bash
         run: |
           set -e
 
           python3 <<'PY'
           from pathlib import Path
-          import re
 
-          p = Path("android/settings.gradle")
+          p = Path("android/build.gradle")
           s = p.read_text()
 
-          jitpack = 'maven { url = uri("https://jitpack.io") }'
+          jitpack = 'maven { url "https://jitpack.io" }'
 
-          if "https://jitpack.io" not in s:
+          print("")
+          print("===== ORIGINAL android/build.gradle =====")
+          print(s)
+          print("==========================================")
 
-              pattern = r'(dependencyResolutionManagement\s*\{\s*repositories\s*\{)'
+          # ------------------------------------------
+          # If JitPack already exists, don't duplicate
+          # ------------------------------------------
+          if "jitpack.io" not in s:
 
-              new_s, count = re.subn(
-                  pattern,
-                  r'\1\n        ' + jitpack,
-                  s,
-                  count=1
-              )
+              # --------------------------------------
+              # Find allprojects { repositories {
+              # --------------------------------------
+              allprojects_pos = s.find("allprojects")
 
-              if count == 0:
+              if allprojects_pos == -1:
                   raise SystemExit(
-                      "ERROR: dependencyResolutionManagement repositories block was not found"
+                      "ERROR: allprojects block not found in android/build.gradle"
                   )
 
-              s = new_s
+              repositories_pos = s.find(
+                  "repositories {",
+                  allprojects_pos
+              )
+
+              if repositories_pos == -1:
+                  raise SystemExit(
+                      "ERROR: allprojects repositories block not found"
+                  )
+
+              insert_pos = repositories_pos + len("repositories {")
+
+              s = (
+                  s[:insert_pos]
+                  + "\n        "
+                  + jitpack
+                  + s[insert_pos:]
+              )
 
           p.write_text(s)
 
           print("")
-          print("========================================")
-          print("FINAL android/settings.gradle")
-          print("========================================")
+          print("===== FINAL android/build.gradle =====")
           print(s)
-          print("========================================")
+          print("======================================")
 
-          if "https://jitpack.io" not in s:
-              raise SystemExit("ERROR: JitPack was NOT added")
-
-          if "dependencyResolutionManagement" not in s:
+          if "jitpack.io" not in s:
               raise SystemExit(
-                  "ERROR: dependencyResolutionManagement missing"
+                  "ERROR: JitPack was NOT added"
               )
           PY
 
 
-      # --------------------------------------------------
-      # 11. ADD LIVEKIT
-      # --------------------------------------------------
+      # ==================================================
+      # 10. ADD LIVEKIT
+      # ==================================================
       - name: Add LiveKit dependency
         shell: bash
         run: |
@@ -175,7 +193,7 @@ jobs:
 
               if marker not in s:
                   raise SystemExit(
-                      "ERROR: dependencies block not found in app/build.gradle"
+                      "ERROR: dependencies block not found in android/app/build.gradle"
                   )
 
               s = s.replace(
@@ -187,17 +205,15 @@ jobs:
           p.write_text(s)
 
           print("")
-          print("========================================")
-          print("LIVEKIT DEPENDENCY")
-          print("========================================")
+          print("===== LIVEKIT DEPENDENCY =====")
           print(dependency)
-          print("========================================")
+          print("==============================")
           PY
 
 
-      # --------------------------------------------------
-      # 12. CREATE NATIVE MAIN ACTIVITY
-      # --------------------------------------------------
+      # ==================================================
+      # 11. NATIVE MAIN ACTIVITY
+      # ==================================================
       - name: Create native MainActivity
         shell: bash
         run: |
@@ -388,9 +404,9 @@ jobs:
           KOTLIN
 
 
-      # --------------------------------------------------
-      # 13. ANDROID PERMISSIONS
-      # --------------------------------------------------
+      # ==================================================
+      # 12. ANDROID PERMISSIONS
+      # ==================================================
       - name: Add Android permissions
         shell: bash
         run: |
@@ -399,7 +415,10 @@ jobs:
           python3 <<'PY'
           from pathlib import Path
 
-          p = Path("android/app/src/main/AndroidManifest.xml")
+          p = Path(
+              "android/app/src/main/AndroidManifest.xml"
+          )
+
           s = p.read_text()
 
           permissions = [
@@ -408,54 +427,97 @@ jobs:
               '<uses-permission android:name="android.permission.CAMERA" />'
           ]
 
+          manifest_end = s.find(">")
+
+          if manifest_end == -1:
+              raise SystemExit(
+                  "ERROR: AndroidManifest.xml is invalid"
+              )
+
           for permission in permissions:
+
               if permission not in s:
-                  s = s.replace(
-                      "<manifest",
-                      "<manifest",
-                      1
+
+                  s = (
+                      s[:manifest_end + 1]
+                      + "\n    "
+                      + permission
+                      + s[manifest_end + 1:]
                   )
 
-                  pos = s.find(">")
-
-                  if pos != -1:
-                      s = (
-                          s[:pos + 1]
-                          + "\n    "
-                          + permission
-                          + s[pos + 1:]
-                      )
+                  manifest_end += (
+                      len(permission) + 5
+                  )
 
           p.write_text(s)
 
+          print("")
           print("===== AndroidManifest.xml =====")
           print(s)
+          print("===============================")
           PY
 
 
-      # --------------------------------------------------
-      # 14. SYNC CAPACITOR
-      # --------------------------------------------------
+      # ==================================================
+      # 13. CAPACITOR SYNC
+      # ==================================================
       - name: Sync Android
-        run: npx cap sync android
-
-
-      # --------------------------------------------------
-      # 15. VERIFY JITPACK
-      # --------------------------------------------------
-      - name: Verify Gradle repositories
         run: |
-          echo "===== SEARCH JITPACK ====="
-          grep -Rni "jitpack.io" android/settings.gradle android/app/build.gradle || true
+          npx cap sync android
+
+
+      # ==================================================
+      # 14. VERIFY EVERYTHING
+      # ==================================================
+      - name: Verify Android configuration
+        shell: bash
+        run: |
+          set -e
 
           echo ""
-          echo "===== SEARCH LIVEKIT ====="
-          grep -Rni "io.livekit" android/app/build.gradle || true
+          echo "=========================================="
+          echo "JITPACK"
+          echo "=========================================="
+
+          grep -Rni "jitpack.io" \
+            android/build.gradle \
+            android/settings.gradle \
+            android/capacitor.settings.gradle \
+            2>/dev/null || true
 
 
-      # --------------------------------------------------
-      # 16. BUILD APK
-      # --------------------------------------------------
+          echo ""
+          echo "=========================================="
+          echo "LIVEKIT"
+          echo "=========================================="
+
+          grep -Rni "io.livekit" \
+            android/app/build.gradle \
+            2>/dev/null || true
+
+
+          echo ""
+          echo "=========================================="
+          echo "MAIN ACTIVITY"
+          echo "=========================================="
+
+          test -f \
+            android/app/src/main/java/com/aimrelax/pubg/MainActivity.kt
+
+          echo "MainActivity.kt exists"
+
+
+          echo ""
+          echo "=========================================="
+          echo "ANDROID PROJECT"
+          echo "=========================================="
+
+          ls -la android
+
+
+      # ==================================================
+      # 15. BUILD APK
+      # ==================================================
       - name: Build APK
         working-directory: android
         run: |
@@ -464,9 +526,9 @@ jobs:
           ./gradlew clean assembleDebug --stacktrace
 
 
-      # --------------------------------------------------
-      # 17. UPLOAD APK
-      # --------------------------------------------------
+      # ==================================================
+      # 16. UPLOAD APK
+      # ==================================================
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
