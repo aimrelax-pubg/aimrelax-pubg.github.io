@@ -9,50 +9,27 @@ jobs:
 
     steps:
 
-      # --------------------------------------------------
-      # 1. DOWNLOAD WEBSITE
-      # --------------------------------------------------
       - name: Checkout
         uses: actions/checkout@v4
 
-
-      # --------------------------------------------------
-      # 2. NODE
-      # --------------------------------------------------
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-
-      # --------------------------------------------------
-      # 3. JAVA
-      # --------------------------------------------------
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
 
-
-      # --------------------------------------------------
-      # 4. CREATE NPM PROJECT
-      # --------------------------------------------------
       - name: Initialize npm
         run: npm init -y
 
-
-      # --------------------------------------------------
-      # 5. INSTALL CAPACITOR 7
-      # --------------------------------------------------
       - name: Install Capacitor
         run: |
           npm install @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
 
-
-      # --------------------------------------------------
-      # 6. PREPARE WEBSITE
-      # --------------------------------------------------
       - name: Prepare web files
         run: |
           rm -rf www
@@ -64,20 +41,12 @@ jobs:
 
           cp manifest.json www/ 2>/dev/null || true
 
-
-      # --------------------------------------------------
-      # 7. REMOVE OLD CAPACITOR CONFIG
-      # --------------------------------------------------
       - name: Remove old Capacitor configs
         run: |
           rm -f capacitor.config.json
           rm -f capacitor.config.js
           true
 
-
-      # --------------------------------------------------
-      # 8. CREATE CAPACITOR CONFIG
-      # --------------------------------------------------
       - name: Create Capacitor config
         run: |
           printf '%s\n' \
@@ -87,46 +56,49 @@ jobs:
             '  "webDir": "www"' \
             '}' > capacitor.config.json
 
-
-      # --------------------------------------------------
-      # 9. ADD ANDROID
-      # --------------------------------------------------
       - name: Add Android
         run: |
           npx cap add android
 
+      # --------------------------------------------------
+      # FIX: Capacitor creates its own settings.gradle.
+      # We replace it completely so JitPack is guaranteed
+      # to be inside dependencyResolutionManagement.
+      # --------------------------------------------------
 
-      # --------------------------------------------------
-      # 10. CONFIGURE ANDROID REPOSITORIES
-      # --------------------------------------------------
       - name: Configure Android repositories
         shell: bash
         run: |
           set -e
 
-          python3 - <<'PY'
-          from pathlib import Path
+          cat > android/settings.gradle <<'EOF'
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+                  maven { url = uri("https://jitpack.io") }
+              }
+          }
 
-          p = Path("android/settings.gradle")
-          s = p.read_text()
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
 
-          if "https://jitpack.io" not in s:
-              marker = "repositories {"
+              repositories {
+                  google()
+                  mavenCentral()
+                  maven { url = uri("https://jitpack.io") }
+              }
+          }
 
-              if marker in s:
-                  s = s.replace(
-                      marker,
-                      marker + '\n        maven { url = uri("https://jitpack.io") }',
-                      1
-                  )
-
-          p.write_text(s)
-          PY
-
+          rootProject.name = "AIMRELAX"
+          include(":app")
+          EOF
 
       # --------------------------------------------------
-      # 11. ADD LIVEKIT ANDROID
+      # Add LiveKit
       # --------------------------------------------------
+
       - name: Configure LiveKit Android
         shell: bash
         run: |
@@ -141,7 +113,6 @@ jobs:
           dependency = 'implementation("io.livekit:livekit-android:2.29.0")'
 
           if dependency not in s:
-
               if "dependencies {" in s:
                   s = s.replace(
                       "dependencies {",
@@ -159,10 +130,10 @@ jobs:
           p.write_text(s)
           PY
 
+      # --------------------------------------------------
+      # Android permissions
+      # --------------------------------------------------
 
-      # --------------------------------------------------
-      # 12. ADD ANDROID PERMISSIONS
-      # --------------------------------------------------
       - name: Configure Android permissions
         shell: bash
         run: |
@@ -175,19 +146,19 @@ jobs:
           s = p.read_text()
 
           permissions = [
-              '    <uses-permission android:name="android.permission.INTERNET" />',
-              '    <uses-permission android:name="android.permission.CAMERA" />',
-              '    <uses-permission android:name="android.permission.RECORD_AUDIO" />',
-              '    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />',
-              '    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />',
-              '    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />'
+              '<uses-permission android:name="android.permission.INTERNET" />',
+              '<uses-permission android:name="android.permission.CAMERA" />',
+              '<uses-permission android:name="android.permission.RECORD_AUDIO" />',
+              '<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />',
+              '<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />',
+              '<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />'
           ]
 
           for permission in permissions:
               if permission not in s:
                   s = s.replace(
                       "<application",
-                      permission + "\n\n    <application",
+                      "    " + permission + "\n\n    <application",
                       1
                   )
 
@@ -209,10 +180,13 @@ jobs:
           p.write_text(s)
           PY
 
+      # --------------------------------------------------
+      # Native Capacitor MainActivity
+      # IMPORTANT:
+      # The Capacitor website remains the main UI.
+      # No READY / SHARE SCREEN native page.
+      # --------------------------------------------------
 
-      # --------------------------------------------------
-      # 13. CREATE NATIVE MAIN ACTIVITY
-      # --------------------------------------------------
       - name: Configure AIMRELAX native bridge
         shell: bash
         run: |
@@ -223,17 +197,13 @@ jobs:
           cat > android/app/src/main/java/com/aimrelax/pubg/MainActivity.kt <<'EOF'
           package com.aimrelax.pubg
 
-          import android.Manifest
           import android.app.Activity
           import android.content.Intent
-          import android.content.pm.PackageManager
           import android.media.projection.MediaProjectionManager
-          import android.os.Build
           import android.os.Bundle
           import android.webkit.JavascriptInterface
 
           import androidx.activity.result.contract.ActivityResultContracts
-          import androidx.core.content.ContextCompat
           import androidx.lifecycle.lifecycleScope
 
           import com.getcapacitor.BridgeActivity
@@ -276,7 +246,6 @@ jobs:
                       publishScreen(data)
                   }
 
-
               override fun onCreate(
                   savedInstanceState: Bundle?
               ) {
@@ -285,49 +254,11 @@ jobs:
 
                   room = LiveKit.create(applicationContext)
 
-                  addJavascriptBridge()
-
-                  requestNotificationPermission()
-              }
-
-
-              private fun addJavascriptBridge() {
-
                   bridge.webView.addJavascriptInterface(
                       NativeBridge(),
                       "AIMRELAX_NATIVE"
                   )
-
-                  bridge.webView.post {
-
-                      sendToWebsite(
-                          "window.dispatchEvent(new CustomEvent('aimrelax-native-ready'));"
-                      )
-                  }
               }
-
-
-              private fun requestNotificationPermission() {
-
-                  if (Build.VERSION.SDK_INT >= 33) {
-
-                      if (
-                          ContextCompat.checkSelfPermission(
-                              this,
-                              Manifest.permission.POST_NOTIFICATIONS
-                          ) != PackageManager.PERMISSION_GRANTED
-                      ) {
-
-                          requestPermissions(
-                              arrayOf(
-                                  Manifest.permission.POST_NOTIFICATIONS
-                              ),
-                              5001
-                          )
-                      }
-                  }
-              }
-
 
               private fun connectLiveKit(
                   serverUrl: String,
@@ -356,7 +287,6 @@ jobs:
                   }
               }
 
-
               private fun startScreenCapture() {
 
                   val manager =
@@ -364,12 +294,10 @@ jobs:
                           MEDIA_PROJECTION_SERVICE
                       ) as MediaProjectionManager
 
-                  val intent =
+                  screenCaptureLauncher.launch(
                       manager.createScreenCaptureIntent()
-
-                  screenCaptureLauncher.launch(intent)
+                  )
               }
-
 
               private fun publishScreen(
                   data: Intent
@@ -413,7 +341,6 @@ jobs:
                   }
               }
 
-
               private fun stopScreenCapture() {
 
                   lifecycleScope.launch {
@@ -436,7 +363,6 @@ jobs:
                   }
               }
 
-
               private fun disconnectLiveKit() {
 
                   lifecycleScope.launch {
@@ -453,7 +379,6 @@ jobs:
                       }
                   }
               }
-
 
               private fun sendToWebsite(
                   javascript: String
@@ -473,7 +398,6 @@ jobs:
                   }
               }
 
-
               private fun jsString(
                   value: String
               ): String {
@@ -487,15 +411,12 @@ jobs:
                       "'"
               }
 
-
               inner class NativeBridge {
 
                   @JavascriptInterface
                   fun isAndroidApp(): Boolean {
-
                       return true
                   }
-
 
                   @JavascriptInterface
                   fun startLiveKit(
@@ -512,7 +433,6 @@ jobs:
                       }
                   }
 
-
                   @JavascriptInterface
                   fun startScreenShare() {
 
@@ -522,7 +442,6 @@ jobs:
                       }
                   }
 
-
                   @JavascriptInterface
                   fun stopScreenShare() {
 
@@ -531,7 +450,6 @@ jobs:
                           stopScreenCapture()
                       }
                   }
-
 
                   @JavascriptInterface
                   fun disconnectLiveKit() {
@@ -543,13 +461,10 @@ jobs:
                   }
               }
 
-
               override fun onDestroy() {
 
                   try {
-
                       room.disconnect()
-
                   } catch (_: Exception) {
                   }
 
@@ -560,28 +475,40 @@ jobs:
 
           rm -f android/app/src/main/java/com/aimrelax/pubg/MainActivity.java
 
+      # --------------------------------------------------
+      # Sync Capacitor
+      # --------------------------------------------------
 
-      # --------------------------------------------------
-      # 14. SYNC CAPACITOR
-      # --------------------------------------------------
       - name: Sync Android
         run: |
           npx cap sync android
 
+      # --------------------------------------------------
+      # Verify repositories before Gradle
+      # --------------------------------------------------
+
+      - name: Verify LiveKit repository
+        run: |
+          echo "===== android/settings.gradle ====="
+          cat android/settings.gradle
+
+          echo "===== LiveKit dependency ====="
+          grep -n "livekit-android" android/app/build.gradle || true
 
       # --------------------------------------------------
-      # 15. BUILD APK
+      # Build
       # --------------------------------------------------
+
       - name: Build APK
         working-directory: android
         run: |
           chmod +x gradlew
           ./gradlew clean assembleDebug --stacktrace
 
+      # --------------------------------------------------
+      # Upload
+      # --------------------------------------------------
 
-      # --------------------------------------------------
-      # 16. UPLOAD APK
-      # --------------------------------------------------
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
