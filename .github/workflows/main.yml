@@ -1,4 +1,4 @@
-name: AIMRELAX APK TEST
+name: AIMRELAX APK WebView Test
 
 on:
   workflow_dispatch:
@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -29,32 +30,57 @@ jobs:
         run: |
           npm install @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
 
-      - name: Prepare test page
+      # ------------------------------------------------------------
+      # TEST WEB PAGE
+      # ------------------------------------------------------------
+      - name: Prepare test web
         run: |
+          set -e
+
           rm -rf www
-          mkdir www
+          mkdir -p www
 
           cat > www/index.html <<'EOF'
-          <!doctype html>
+          <!DOCTYPE html>
           <html>
           <head>
             <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <meta name="viewport"
+                  content="width=device-width, initial-scale=1.0">
+
             <title>AIMRELAX TEST</title>
           </head>
 
-          <body style="margin:0;background:#111;color:white;font-family:Arial;text-align:center;padding-top:100px">
+          <body style="
+            margin:0;
+            background:#111;
+            color:white;
+            font-family:Arial,sans-serif;
+            text-align:center;
+          ">
 
-            <h1>AIMRELAX APK</h1>
+            <div style="padding:80px 20px">
 
-            <h2>WebView TEST OK</h2>
+              <h1>AIMRELAX APK</h1>
 
-            <p>Եթե սա տեսնում ես, Android APK-ն ճիշտ է բացում HTML-ը։</p>
+              <h2>ANDROID WEBVIEW OK</h2>
+
+              <p>
+                Local HTML is running inside the APK.
+              </p>
+
+            </div>
 
           </body>
           </html>
           EOF
 
+          echo "===== WEB FILE ====="
+          cat www/index.html
+
+      # ------------------------------------------------------------
+      # CAPACITOR CONFIG
+      # ------------------------------------------------------------
       - name: Create Capacitor config
         run: |
           cat > capacitor.config.json <<'EOF'
@@ -65,22 +91,161 @@ jobs:
           }
           EOF
 
+      # ------------------------------------------------------------
+      # ADD ANDROID
+      # ------------------------------------------------------------
       - name: Add Android
         run: |
           npx cap add android
 
+      # ------------------------------------------------------------
+      # REPLACE CAPACITOR MAIN ACTIVITY
+      # WITH SIMPLE ANDROID WEBVIEW
+      # ------------------------------------------------------------
+      - name: Create WebView MainActivity
+        run: |
+          set -e
+
+          rm -f android/app/src/main/java/com/aimrelax/pubg/MainActivity.java
+          rm -f android/app/src/main/java/com/aimrelax/pubg/MainActivity.kt
+
+          mkdir -p android/app/src/main/java/com/aimrelax/pubg
+
+          cat > android/app/src/main/java/com/aimrelax/pubg/MainActivity.java <<'JAVA'
+          package com.aimrelax.pubg;
+
+          import android.app.Activity;
+          import android.os.Bundle;
+          import android.webkit.WebSettings;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+
+          public class MainActivity extends Activity {
+
+              private WebView webView;
+
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+
+                  webView = new WebView(this);
+
+                  WebSettings settings = webView.getSettings();
+
+                  settings.setJavaScriptEnabled(true);
+                  settings.setDomStorageEnabled(true);
+                  settings.setAllowFileAccess(true);
+                  settings.setAllowContentAccess(true);
+
+                  webView.setWebViewClient(new WebViewClient());
+
+                  webView.loadUrl(
+                      "file:///android_asset/public/index.html"
+                  );
+
+                  setContentView(webView);
+              }
+
+              @Override
+              public void onBackPressed() {
+
+                  if (webView != null && webView.canGoBack()) {
+                      webView.goBack();
+                  } else {
+                      super.onBackPressed();
+                  }
+              }
+          }
+          JAVA
+
+      # ------------------------------------------------------------
+      # FIX MANIFEST
+      # ------------------------------------------------------------
+      - name: Configure Manifest
+        run: |
+          set -e
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          import xml.etree.ElementTree as ET
+
+          p = Path("android/app/src/main/AndroidManifest.xml")
+          text = p.read_text()
+
+          # Android namespace
+          if "xmlns:android=" not in text:
+              text = re.sub(
+                  r"<manifest\b",
+                  '<manifest xmlns:android="http://schemas.android.com/apk/res/android"',
+                  text,
+                  count=1
+              )
+
+          # Internet permission
+          if "android.permission.INTERNET" not in text:
+              m = re.search(
+                  r"<manifest\b[^>]*>",
+                  text,
+                  flags=re.DOTALL
+              )
+
+              if not m:
+                  raise SystemExit("Manifest tag not found")
+
+              text = (
+                  text[:m.end()]
+                  + '\n    <uses-permission android:name="android.permission.INTERNET" />'
+                  + text[m.end():]
+              )
+
+          p.write_text(text)
+
+          ET.parse(p)
+
+          print("Manifest XML: OK")
+          PY
+
+          echo "===== MANIFEST ====="
+          cat android/app/src/main/AndroidManifest.xml
+
+      # ------------------------------------------------------------
+      # SYNC
+      # ------------------------------------------------------------
       - name: Sync Android
         run: |
           npx cap sync android
 
+      # ------------------------------------------------------------
+      # VERIFY FILES
+      # ------------------------------------------------------------
+      - name: Verify APK files
+        run: |
+          set -e
+
+          echo "===== HTML ====="
+          test -f android/app/src/main/assets/public/index.html
+
+          echo "===== ACTIVITY ====="
+          test -f android/app/src/main/java/com/aimrelax/pubg/MainActivity.java
+
+          echo "===== FILES ====="
+          ls -lh android/app/src/main/assets/public/
+
+      # ------------------------------------------------------------
+      # BUILD
+      # ------------------------------------------------------------
       - name: Build APK
         working-directory: android
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug
 
+      # ------------------------------------------------------------
+      # UPLOAD
+      # ------------------------------------------------------------
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: AIMRELAX-APK-TEST
+          name: AIMRELAX-WEBVIEW-TEST
           path: android/app/build/outputs/apk/debug/app-debug.apk
