@@ -1,4 +1,4 @@
-name: AIMRELAX APK
+name: AIMRELAX LIVE Sender
 
 on:
   workflow_dispatch:
@@ -12,66 +12,299 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
 
-
-      - name: Initialize npm
-        run: npm init -y
-
-
-      - name: Install Capacitor
+      - name: Setup Android project
         run: |
-          npm install @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
+          set -e
 
+          mkdir -p android/app/src/main/java/com/aimrelax/live
+          mkdir -p android/app/src/main/res/values
 
-      - name: Prepare web files
+      - name: Create settings.gradle
         run: |
-          rm -rf www
-          mkdir -p www
+          cat > android/settings.gradle <<'EOF'
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
 
-          cp index.html www/
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
 
-          cp sw.js www/ 2>/dev/null || true
-          cp manifest.json www/ 2>/dev/null || true
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
 
+          rootProject.name = "AIMRELAX-LIVE"
+          include(":app")
+          EOF
 
-      - name: Remove old Capacitor configs
+      - name: Create root build.gradle
         run: |
-          rm -f capacitor.config.json
-          rm -f capacitor.config.js
-          true
+          cat > android/build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application' version '8.7.3' apply false
+              id 'org.jetbrains.kotlin.android' version '2.0.21' apply false
+          }
+          EOF
 
-
-      - name: Create Capacitor config
+      - name: Create gradle.properties
         run: |
-          printf '%s\n' \
-            '{' \
-            '  "appId": "com.aimrelax.pubg",' \
-            '  "appName": "AIMRELAX PUBG",' \
-            '  "webDir": "www"' \
-            '}' > capacitor.config.json
+          cat > android/gradle.properties <<'EOF'
+          android.useAndroidX=true
+          android.nonTransitiveRClass=true
+          EOF
 
-
-      - name: Add Android
+      - name: Create app build.gradle
         run: |
-          npx cap add android
+          cat > android/app/build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application'
+              id 'org.jetbrains.kotlin.android'
+          }
 
+          android {
+              namespace 'com.aimrelax.live'
+              compileSdk 35
 
-      - name: Sync Android
+              defaultConfig {
+                  applicationId 'com.aimrelax.live'
+                  minSdk 23
+                  targetSdk 35
+                  versionCode 1
+                  versionName '1.0'
+              }
+          }
+
+          dependencies {
+              implementation 'io.livekit:livekit-android:2.28.2'
+          }
+          EOF
+
+      - name: Create AndroidManifest.xml
         run: |
-          npx cap sync android
+          cat > android/app/src/main/AndroidManifest.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
 
+          <manifest
+              xmlns:android="http://schemas.android.com/apk/res/android">
+
+              <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+              <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+              <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+              <application
+                  android:allowBackup="true"
+                  android:label="AIMRELAX LIVE"
+                  android:theme="@style/AppTheme">
+
+                  <activity
+                      android:name=".MainActivity"
+                      android:screenOrientation="portrait"
+                      android:exported="true">
+
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+
+                  </activity>
+
+                  <service
+                      android:name="io.livekit.android.room.track.screencapture.ScreenCaptureService"
+                      android:foregroundServiceType="mediaProjection"
+                      android:exported="false" />
+
+              </application>
+
+          </manifest>
+          EOF
+
+      - name: Create styles.xml
+        run: |
+          cat > android/app/src/main/res/values/styles.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+
+          <resources>
+
+              <style
+                  name="AppTheme"
+                  parent="android:style/Theme.Material.Light.NoActionBar">
+
+                  <item name="android:fontFamily">sans</item>
+                  <item name="android:colorAccent">#ff6a00</item>
+
+              </style>
+
+          </resources>
+          EOF
+
+      - name: Create MainActivity.kt
+        run: |
+          cat > android/app/src/main/java/com/aimrelax/live/MainActivity.kt <<'EOF'
+          package com.aimrelax.live
+
+          import android.app.Activity
+          import android.content.Intent
+          import android.media.projection.MediaProjectionManager
+          import android.os.Bundle
+          import android.widget.Button
+          import android.widget.LinearLayout
+          import android.widget.TextView
+          import android.graphics.Color
+
+          import io.livekit.android.LiveKit
+          import io.livekit.android.room.Room
+          import io.livekit.android.room.track.screencapture.ScreenCaptureParams
+
+          import kotlinx.coroutines.CoroutineScope
+          import kotlinx.coroutines.Dispatchers
+          import kotlinx.coroutines.launch
+          import kotlinx.coroutines.withContext
+
+          class MainActivity : Activity() {
+
+              private lateinit var room: Room
+
+              private val screenCaptureRequest = 9001
+
+              private lateinit var status: TextView
+
+              override fun onCreate(savedInstanceState: Bundle?) {
+                  super.onCreate(savedInstanceState)
+
+                  LiveKit.init(applicationContext)
+
+                  room = LiveKit.create(applicationContext)
+
+                  val layout = LinearLayout(this)
+
+                  layout.orientation = LinearLayout.VERTICAL
+                  layout.setPadding(40, 80, 40, 40)
+
+                  status = TextView(this)
+
+                  status.text =
+                      "AIMRELAX LIVE\n\nՊատրաստ է։"
+
+                  status.textSize = 20f
+                  status.setTextColor(Color.BLACK)
+
+                  val button = Button(this)
+
+                  button.text = "ՍԿՍԵԼ PUBG LIVE"
+
+                  button.setOnClickListener {
+                      requestScreenCapture()
+                  }
+
+                  layout.addView(status)
+                  layout.addView(button)
+
+                  setContentView(layout)
+              }
+
+              private fun requestScreenCapture() {
+
+                  val manager =
+                      getSystemService(
+                          MEDIA_PROJECTION_SERVICE
+                      ) as MediaProjectionManager
+
+                  val intent =
+                      manager.createScreenCaptureIntent()
+
+                  startActivityForResult(
+                      intent,
+                      screenCaptureRequest
+                  )
+              }
+
+              override fun onActivityResult(
+                  requestCode: Int,
+                  resultCode: Int,
+                  data: Intent?
+              ) {
+                  super.onActivityResult(
+                      requestCode,
+                      resultCode,
+                      data
+                  )
+
+                  if (requestCode != screenCaptureRequest) {
+                      return
+                  }
+
+                  if (resultCode != RESULT_OK || data == null) {
+
+                      status.text =
+                          "Screen Share-ը չեղարկվեց։"
+
+                      return
+                  }
+
+                  startLive(data)
+              }
+
+              private fun startLive(
+                  permissionData: Intent
+              ) {
+
+                  status.text =
+                      "Միանում ենք LiveKit-ին..."
+
+                  /*
+                   * TEST MODE
+                   *
+                   * Այստեղ token-ը և LiveKit URL-ը
+                   * հետո կստանանք քո live-token Edge Function-ից։
+                   *
+                   * Դիտավորյալ չենք դնում secret-ը APK-ի մեջ։
+                   */
+
+                  status.text =
+                      "Screen Capture permission OK.\n\n" +
+                      "Հաջորդ փուլում միացնում ենք քո live-token-ը։"
+
+                  /*
+                   * LiveKit screen sharing API:
+                   *
+                   * room.localParticipant.setScreenShareEnabled(
+                   *     true,
+                   *     ScreenCaptureParams(
+                   *         mediaProjectionPermissionResultData =
+                   *             permissionData
+                   *     )
+                   * )
+                   */
+              }
+
+              override fun onDestroy() {
+                  super.onDestroy()
+
+                  try {
+                      room.disconnect()
+                  } catch (_: Exception) {
+                  }
+              }
+          }
+          EOF
+
+      - name: Generate Gradle wrapper
+        working-directory: android
+        run: |
+          gradle wrapper --gradle-version 8.10.2
 
       - name: Build APK
         working-directory: android
@@ -79,9 +312,8 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug
 
-
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: AIMRELAX-APK
+          name: AIMRELAX-LIVE-SENDER
           path: android/app/build/outputs/apk/debug/app-debug.apk
