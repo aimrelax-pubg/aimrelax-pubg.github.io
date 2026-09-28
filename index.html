@@ -742,6 +742,7 @@ section{position:relative}.section-title h2{letter-spacing:-.02em}
 .live-start-box{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:14px}.live-start-box input{width:100%;box-sizing:border-box;padding:11px;background:#0b0b0b;border:1px solid #333;color:#fff;border-radius:7px}.live-self-label{color:#ff7200;font-weight:900;font-size:13px;margin-bottom:7px}
 @media(max-width:850px){.live-layout{grid-template-columns:1fr}.live-list{max-height:300px}}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/livekit-client@2.15.0/dist/livekit-client.umd.min.js"></script> 
 </head>
 
 <body>
@@ -1207,41 +1208,80 @@ AIM<span>RELAX</span>-PUBG
 
 
 <section id="live">
-  <div class="container">
-    <div class="section-title">
-      <small>REAL-TIME</small>
-      <h2>🔴 AIMRELAX LIVE</h2>
-    </div>
-    <div class="live-layout">
-      <div class="live-card">
-        <div class="live-video-wrap">
-          <span id="live-badge" class="live-badge">● LIVE</span>
-          <video id="live-video" autoplay playsinline controls></video>
-          <div id="live-placeholder" class="live-placeholder">
-            <div style="font-size:42px">🎮</div>
-            <strong>Ընտրեք Live կամ դիտեք ընթացիկ ստրիմ</strong>
-            <span>Տեսանյութը կհայտնվի այստեղ։</span>
-          </div>
-        </div>
-        <div class="live-controls">
-          <button id="live-start-btn" class="live-btn primary" type="button">🔴 ՍԿՍԵԼ LIVE</button>
-          <button id="live-stop-btn" class="live-btn danger" type="button" disabled>⏹ ԴԱԴԱՐԵՑՆԵԼ</button>
-          <button id="live-mic-btn" class="live-btn" type="button" disabled>🎙 Միկրոֆոն</button>
-          <button id="live-leave-btn" class="live-btn" type="button" disabled>↩ Դուրս գալ</button>
-        </div>
-        <div id="live-status" class="live-status">Մուտք գործեք՝ Live սկսելու համար։</div>
-        <div class="live-help">PUBG-ի էկրանը փոխանցելու համար browser-ը կցուցադրի Screen Share պատուհանը։ Android/Chrome-ում հնարավորությունները կախված են սարքից և browser-ից։</div>
+  <section id="live">
+  <div class="container"><div class="section-title">
+  <small>AIMRELAX-PUBG</small>
+  <h2>🔴 AIMRELAX LIVE</h2>
+</div>
+
+<div class="live-layout">
+
+  <!-- LIVE PLAYER -->
+  <div class="live-card">
+
+    <div class="live-video-wrap">
+      <video id="aimrelax-live-video"
+             autoplay
+             playsinline
+             controls></video>
+
+      <div id="aimrelax-live-placeholder"
+           class="live-placeholder">
+        <strong>🔴 LIVE</strong>
+        <span>Ընտրեք ընթացիկ LIVE-ը</span>
       </div>
-      <div class="live-card">
-        <div class="live-self-label">🔴 ԸՆԹԱՑԻԿ LIVE-ԵՐ</div>
-        <div id="live-list" class="live-list"><div class="loading-text">Բեռնվում է...</div></div>
-        <div id="live-start-form" class="live-start-box" style="margin-top:14px">
-          <input id="live-title-input" maxlength="80" placeholder="Live-ի վերնագիր, օրինակ՝ PUBG Ranked 🔥">
-        </div>
-        <button id="live-refresh-btn" class="live-btn" type="button">↻ Թարմացնել</button>
+
+      <div id="aimrelax-live-badge"
+           class="live-badge">
+        🔴 LIVE
       </div>
     </div>
+
+    <div id="aimrelax-live-status"
+         class="live-status">
+      LIVE-երը բեռնվում են...
+    </div>
+
+    <div class="live-controls">
+      <button id="aimrelax-live-refresh"
+              class="live-btn"
+              type="button">
+        🔄 Թարմացնել
+      </button>
+
+      <button id="aimrelax-live-fullscreen"
+              class="live-btn"
+              type="button">
+        ⛶ Ամբողջ էկրան
+      </button>
+    </div>
+
   </div>
+
+  <!-- LIVE LIST -->
+  <div class="live-card">
+
+    <h3 style="color:#ff7200;margin-bottom:15px">
+      🔴 Ընթացիկ LIVE-եր
+    </h3>
+
+    <div id="aimrelax-live-list"
+         class="live-list">
+      <div class="loading-text">
+        Բեռնվում է...
+      </div>
+    </div>
+
+    <div class="live-help">
+      LIVE դիտելու համար ընտրեք ցանկից ընթացիկ հեռարձակումը։
+    </div>
+
+  </div>
+
+</div>
+
+  </div>
+</section>
 </section>
 
 <section class="contact" id="contact">
@@ -2970,6 +3010,566 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
   </div>
 </div>
     <script src="./lang.js"></script>
+    <script>
+/* =========================================================
+   AIMRELAX LIVE — LIVEKIT VIEWER
+   ========================================================= */
+
+const AIMRELAX_SUPABASE_URL =
+  "https://hvhlrbfjloiahbqmnrly.supabase.co";
+
+const AIMRELAX_LIVE_TOKEN_URL =
+  "https://hvhlrbfjloiahbqmnrly.supabase.co/functions/v1/live-token";
+
+let aimrelaxLiveRoom = null;
+let aimrelaxCurrentRoom = null;
+
+const liveVideo =
+  document.getElementById("aimrelax-live-video");
+
+const livePlaceholder =
+  document.getElementById("aimrelax-live-placeholder");
+
+const liveBadge =
+  document.getElementById("aimrelax-live-badge");
+
+const liveStatus =
+  document.getElementById("aimrelax-live-status");
+
+const liveList =
+  document.getElementById("aimrelax-live-list");
+
+function aimrelaxLiveSetStatus(text, type = "") {
+  if (!liveStatus) return;
+
+  liveStatus.textContent = text;
+  liveStatus.className = "live-status";
+
+  if (type) {
+    liveStatus.classList.add(type);
+  }
+}
+
+/* ---------------------------------------------------------
+   GET SUPABASE SESSION
+   --------------------------------------------------------- */
+
+async function aimrelaxLiveGetSession() {
+
+  try {
+
+    if (
+      typeof supabase !== "undefined" &&
+      supabase.auth &&
+      supabase.auth.getSession
+    ) {
+
+      const result =
+        await supabase.auth.getSession();
+
+      return result?.data?.session || null;
+    }
+
+  } catch (error) {
+
+    console.error(
+      "Supabase session error:",
+      error
+    );
+  }
+
+  return null;
+}
+
+/* ---------------------------------------------------------
+   GET LIVEKIT TOKEN
+   --------------------------------------------------------- */
+
+async function aimrelaxLiveGetToken(roomName) {
+
+  const session =
+    await aimrelaxLiveGetSession();
+
+  if (!session?.access_token) {
+
+    throw new Error(
+      "LIVE դիտելու համար անհրաժեշտ է մուտք գործել։"
+    );
+  }
+
+  const response =
+    await fetch(AIMRELAX_LIVE_TOKEN_URL, {
+
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization":
+          "Bearer " + session.access_token
+      },
+
+      body: JSON.stringify({
+        room_name: roomName,
+        role: "viewer"
+      })
+
+    });
+
+  if (!response.ok) {
+
+    const errorText =
+      await response.text();
+
+    throw new Error(
+      "Live token error: " +
+      response.status +
+      " " +
+      errorText
+    );
+  }
+
+  return await response.json();
+}
+
+/* ---------------------------------------------------------
+   ATTACH REMOTE TRACK
+   --------------------------------------------------------- */
+
+function aimrelaxAttachTrack(track) {
+
+  if (!track) return;
+
+  try {
+
+    const element =
+      track.attach();
+
+    if (
+      element &&
+      element.tagName === "VIDEO"
+    ) {
+
+      element.autoplay = true;
+      element.playsInline = true;
+      element.controls = true;
+
+      liveVideo.innerHTML = "";
+
+      liveVideo.replaceWith(element);
+
+      element.id =
+        "aimrelax-live-video";
+
+      element.style.width = "100%";
+      element.style.height = "100%";
+      element.style.objectFit = "contain";
+      element.style.background = "#000";
+
+      liveBadge.classList.add("show");
+
+      livePlaceholder.style.display =
+        "none";
+
+    }
+
+  } catch (error) {
+
+    console.error(
+      "Track attach error:",
+      error
+    );
+  }
+}
+
+/* ---------------------------------------------------------
+   WATCH LIVE
+   --------------------------------------------------------- */
+
+async function aimrelaxWatchLive(stream) {
+
+  try {
+
+    if (!stream?.room_name) {
+
+      throw new Error(
+        "LIVE room-ը չի գտնվել։"
+      );
+    }
+
+    await aimrelaxStopLive(false);
+
+    aimrelaxLiveSetStatus(
+      "Միանում ենք LIVE-ին..."
+    );
+
+    const tokenData =
+      await aimrelaxLiveGetToken(
+        stream.room_name
+      );
+
+    const token =
+      tokenData.token ||
+      tokenData.access_token;
+
+    const serverUrl =
+      tokenData.serverUrl ||
+      tokenData.server_url ||
+      tokenData.url ||
+      tokenData.livekit_url;
+
+    if (!token) {
+
+      throw new Error(
+        "LiveKit token չի վերադարձվել։"
+      );
+    }
+
+    if (!serverUrl) {
+
+      throw new Error(
+        "LiveKit server URL չի վերադարձվել։"
+      );
+    }
+
+    if (
+      !window.LivekitClient &&
+      !window.LiveKit
+    ) {
+
+      throw new Error(
+        "LiveKit JavaScript-ը չի բեռնվել։"
+      );
+    }
+
+    const LK =
+      window.LivekitClient ||
+      window.LiveKit;
+
+    aimrelaxLiveRoom =
+      new LK.Room({
+        adaptiveStream: true,
+        dynacast: true
+      });
+
+    aimrelaxCurrentRoom =
+      stream.room_name;
+
+    aimrelaxLiveRoom.on(
+      LK.RoomEvent.TrackSubscribed,
+      (track) => {
+
+        if (
+          track.kind ===
+          LK.Track.Kind.Video
+        ) {
+
+          aimrelaxAttachTrack(
+            track
+          );
+        }
+
+        if (
+          track.kind ===
+          LK.Track.Kind.Audio
+        ) {
+
+          const audio =
+            track.attach();
+
+          audio.autoplay = true;
+
+          document.body.appendChild(
+            audio
+          );
+        }
+
+      }
+    );
+
+    aimrelaxLiveRoom.on(
+      LK.RoomEvent.Disconnected,
+      () => {
+
+        liveBadge.classList.remove(
+          "show"
+        );
+
+        livePlaceholder.style.display =
+          "flex";
+
+        aimrelaxLiveSetStatus(
+          "LIVE կապը ավարտվեց։"
+        );
+      }
+    );
+
+    await aimrelaxLiveRoom.connect(
+      serverUrl,
+      token
+    );
+
+    aimrelaxLiveSetStatus(
+      "LIVE-ը միացված է։",
+      "ok"
+    );
+
+    liveBadge.classList.add(
+      "show"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "AIMRELAX LIVE error:",
+      error
+    );
+
+    aimrelaxLiveSetStatus(
+      error.message ||
+      "Չհաջողվեց միանալ LIVE-ին։",
+      "err"
+    );
+  }
+}
+
+/* ---------------------------------------------------------
+   STOP LIVE
+   --------------------------------------------------------- */
+
+async function aimrelaxStopLive(showStatus = true) {
+
+  if (aimrelaxLiveRoom) {
+
+    try {
+
+      aimrelaxLiveRoom.disconnect();
+
+    } catch (error) {
+
+      console.error(error);
+    }
+
+    aimrelaxLiveRoom = null;
+  }
+
+  aimrelaxCurrentRoom = null;
+
+  liveBadge.classList.remove(
+    "show"
+  );
+
+  livePlaceholder.style.display =
+    "flex";
+
+  if (showStatus) {
+
+    aimrelaxLiveSetStatus(
+      "LIVE-ը կանգնեցված է։"
+    );
+  }
+}
+
+/* ---------------------------------------------------------
+   LOAD LIVE STREAMS
+   --------------------------------------------------------- */
+
+async function aimrelaxLoadLives() {
+
+  try {
+
+    liveList.innerHTML =
+      '<div class="loading-text">Բեռնվում է...</div>';
+
+    const response =
+      await fetch(
+        AIMRELAX_SUPABASE_URL +
+        "/rest/v1/live_streams" +
+        "?select=id,title,room_name,host_id,created_at" +
+        "&status=eq.live" +
+        "&order=created_at.desc"
+      );
+
+    if (!response.ok) {
+
+      throw new Error(
+        "LIVE ցուցակը չի բեռնվում։"
+      );
+    }
+
+    const streams =
+      await response.json();
+
+    liveList.innerHTML = "";
+
+    if (
+      !Array.isArray(streams) ||
+      streams.length === 0
+    ) {
+
+      liveList.innerHTML =
+        '<div class="loading-text">Այս պահին LIVE չկա։</div>';
+
+      aimrelaxLiveSetStatus(
+        "Այս պահին ակտիվ LIVE չկա։"
+      );
+
+      return;
+    }
+
+    streams.forEach(
+      (stream) => {
+
+        const item =
+          document.createElement("div");
+
+        item.className =
+          "live-item";
+
+        item.innerHTML = `
+          <span class="live-dot"></span>
+
+          <div class="live-item-info">
+            <div class="live-item-title">
+              ${aimrelaxEscapeHtml(
+                stream.title ||
+                "AIMRELAX LIVE"
+              )}
+            </div>
+
+            <div class="live-item-name">
+              🔴 LIVE
+            </div>
+          </div>
+
+          <button
+            class="watch-btn"
+            type="button">
+            Դիտել
+          </button>
+        `;
+
+        const button =
+          item.querySelector(
+            ".watch-btn"
+          );
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            aimrelaxWatchLive(
+              stream
+            );
+          }
+        );
+
+        liveList.appendChild(
+          item
+        );
+      }
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Load LIVE error:",
+      error
+    );
+
+    liveList.innerHTML =
+      '<div class="loading-text">LIVE-երը բեռնելու սխալ։</div>';
+
+    aimrelaxLiveSetStatus(
+      error.message,
+      "err"
+    );
+  }
+}
+
+/* ---------------------------------------------------------
+   ESCAPE HTML
+   --------------------------------------------------------- */
+
+function aimrelaxEscapeHtml(value) {
+
+  const div =
+    document.createElement("div");
+
+  div.textContent =
+    String(value ?? "");
+
+  return div.innerHTML;
+}
+
+/* ---------------------------------------------------------
+   FULLSCREEN
+   --------------------------------------------------------- */
+
+document
+  .getElementById(
+    "aimrelax-live-fullscreen"
+  )
+  ?.addEventListener(
+    "click",
+    async () => {
+
+      const video =
+        document.getElementById(
+          "aimrelax-live-video"
+        );
+
+      if (!video) return;
+
+      try {
+
+        if (
+          document.fullscreenElement
+        ) {
+
+          await document.exitFullscreen();
+
+        } else {
+
+          await video.requestFullscreen();
+        }
+
+      } catch (error) {
+
+        console.error(error);
+      }
+    }
+  );
+
+/* ---------------------------------------------------------
+   REFRESH
+   --------------------------------------------------------- */
+
+document
+  .getElementById(
+    "aimrelax-live-refresh"
+  )
+  ?.addEventListener(
+    "click",
+    () => {
+
+      aimrelaxLoadLives();
+
+    }
+  );
+
+/* ---------------------------------------------------------
+   START
+   --------------------------------------------------------- */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+
+    aimrelaxLoadLives();
+
+  }
+);
+</script>
 </body>
 </html>
   
