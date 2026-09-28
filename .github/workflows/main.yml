@@ -9,17 +9,17 @@ jobs:
 
     steps:
 
-      # --------------------------------------------------
-      # 1. GitHub repository
-      # --------------------------------------------------
+      # ==========================================
+      # 1. Repository
+      # ==========================================
 
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
 
-      # --------------------------------------------------
+      # ==========================================
       # 2. Java 21
-      # --------------------------------------------------
+      # ==========================================
 
       - name: Setup Java 21
         uses: actions/setup-java@v4
@@ -28,56 +28,43 @@ jobs:
           java-version: '21'
 
 
-      # --------------------------------------------------
+      # ==========================================
       # 3. Android SDK
-      # --------------------------------------------------
+      # ==========================================
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
 
 
-      # --------------------------------------------------
-      # 4. Install Android SDK 35
-      # --------------------------------------------------
+      # ==========================================
+      # 4. Create project folders
+      # ==========================================
 
-      - name: Install Android SDK
-        run: |
-          yes | sdkmanager --licenses || true
-
-          sdkmanager \
-            "platform-tools" \
-            "platforms;android-35" \
-            "build-tools;35.0.0"
-
-
-      # --------------------------------------------------
-      # 5. Create project folders
-      # --------------------------------------------------
-
-      - name: Create Android project
+      - name: Create project folders
         shell: bash
         run: |
-
           mkdir -p android/app/src/main/java/com/aimrelax/live
           mkdir -p android/app/src/main/res/values
-          mkdir -p android/gradle/wrapper
 
 
-      # --------------------------------------------------
-      # 6. settings.gradle
-      # --------------------------------------------------
+      # ==========================================
+      # 5. settings.gradle
+      # ==========================================
 
       - name: Create settings.gradle
         shell: bash
         run: |
-
           cat > android/settings.gradle <<'EOF'
           pluginManagement {
               repositories {
                   google()
                   mavenCentral()
                   gradlePluginPortal()
-                  maven { url = uri("https://jitpack.io") }
+                  maven {
+                      url = uri("https://jitpack.io")
+                  }
               }
           }
 
@@ -87,7 +74,9 @@ jobs:
               repositories {
                   google()
                   mavenCentral()
-                  maven { url = uri("https://jitpack.io") }
+                  maven {
+                      url = uri("https://jitpack.io")
+                  }
               }
           }
 
@@ -97,14 +86,13 @@ jobs:
           EOF
 
 
-      # --------------------------------------------------
-      # 7. Root build.gradle
-      # --------------------------------------------------
+      # ==========================================
+      # 6. Root build.gradle
+      # ==========================================
 
       - name: Create root build.gradle
         shell: bash
         run: |
-
           cat > android/build.gradle <<'EOF'
           plugins {
               id 'com.android.application' version '8.7.3' apply false
@@ -113,14 +101,13 @@ jobs:
           EOF
 
 
-      # --------------------------------------------------
-      # 8. gradle.properties
-      # --------------------------------------------------
+      # ==========================================
+      # 7. gradle.properties
+      # ==========================================
 
       - name: Create gradle.properties
         shell: bash
         run: |
-
           cat > android/gradle.properties <<'EOF'
           org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
           android.useAndroidX=true
@@ -128,14 +115,13 @@ jobs:
           EOF
 
 
-      # --------------------------------------------------
-      # 9. app/build.gradle
-      # --------------------------------------------------
+      # ==========================================
+      # 8. app/build.gradle
+      # ==========================================
 
       - name: Create app build.gradle
         shell: bash
         run: |
-
           cat > android/app/build.gradle <<'EOF'
           plugins {
               id 'com.android.application'
@@ -168,7 +154,6 @@ jobs:
           }
 
           dependencies {
-
               implementation 'io.livekit:livekit-android:2.28.2'
 
               implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0'
@@ -176,31 +161,27 @@ jobs:
           EOF
 
 
-      # --------------------------------------------------
-      # 10. AndroidManifest.xml
-      # --------------------------------------------------
+      # ==========================================
+      # 9. AndroidManifest.xml
+      # ==========================================
 
       - name: Create AndroidManifest.xml
         shell: bash
         run: |
-
           cat > android/app/src/main/AndroidManifest.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
 
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-              <!-- Internet -->
-              <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission
+                  android:name="android.permission.INTERNET" />
 
-              <!-- Foreground service -->
               <uses-permission
                   android:name="android.permission.FOREGROUND_SERVICE" />
 
-              <!-- Android screen capture -->
               <uses-permission
                   android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
 
-              <!-- Android notifications -->
               <uses-permission
                   android:name="android.permission.POST_NOTIFICATIONS" />
 
@@ -226,9 +207,6 @@ jobs:
 
                   </activity>
 
-
-                  <!-- LiveKit screen capture foreground service -->
-
                   <service
                       android:name="io.livekit.android.room.track.screencapture.ScreenCaptureService"
                       android:foregroundServiceType="mediaProjection"
@@ -240,14 +218,13 @@ jobs:
           EOF
 
 
-      # --------------------------------------------------
-      # 11. styles.xml
-      # --------------------------------------------------
+      # ==========================================
+      # 10. Theme
+      # ==========================================
 
       - name: Create styles.xml
         shell: bash
         run: |
-
           cat > android/app/src/main/res/values/styles.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
 
@@ -273,14 +250,13 @@ jobs:
           EOF
 
 
-      # --------------------------------------------------
-      # 12. MainActivity.kt
-      # --------------------------------------------------
+      # ==========================================
+      # 11. MainActivity.kt
+      # ==========================================
 
       - name: Create MainActivity.kt
         shell: bash
         run: |
-
           cat > android/app/src/main/java/com/aimrelax/live/MainActivity.kt <<'EOF'
           package com.aimrelax.live
 
@@ -308,876 +284,4 @@ jobs:
           import kotlinx.coroutines.launch
           import kotlinx.coroutines.withContext
 
-          import org.json.JSONObject
-          import org.json.JSONTokener
-
-          import java.net.HttpURLConnection
-          import java.net.URL
-
-
-          class MainActivity : Activity() {
-
-              companion object {
-
-                  private const val SCREEN_CAPTURE_REQUEST = 9001
-
-                  private const val AIMRELAX_URL =
-                      "https://aimrelax-pubg.github.io/"
-
-                  private const val LIVE_TOKEN_URL =
-                      "https://hvhlrbfjloiahbqmnrly.supabase.co/functions/v1/live-token"
-              }
-
-
-              private lateinit var room: Room
-
-              private lateinit var status: TextView
-
-              private lateinit var webView: WebView
-
-
-              private val scope =
-                  CoroutineScope(
-                      SupervisorJob() + Dispatchers.Main
-                  )
-
-
-              private var supabaseAccessToken: String? = null
-
-              private var liveToken: String? = null
-
-              private var liveServerUrl: String? = null
-
-              private var liveRoomName: String? = null
-
-
-              override fun onCreate(savedInstanceState: Bundle?) {
-
-                  super.onCreate(savedInstanceState)
-
-
-                  LiveKit.init(applicationContext)
-
-                  room =
-                      LiveKit.create(applicationContext)
-
-
-                  createInterface()
-              }
-
-
-              private fun createInterface() {
-
-                  val root =
-                      LinearLayout(this)
-
-
-                  root.orientation =
-                      LinearLayout.VERTICAL
-
-
-                  root.setBackgroundColor(
-                      Color.WHITE
-                  )
-
-
-                  root.setPadding(
-                      24,
-                      40,
-                      24,
-                      24
-                  )
-
-
-                  status =
-                      TextView(this)
-
-
-                  status.text =
-                      "AIMRELAX LIVE\n\n" +
-                      "Մուտք գործիր AIMRELAX account-ով։"
-
-
-                  status.textSize =
-                      18f
-
-
-                  status.setTextColor(
-                      Color.BLACK
-                  )
-
-
-                  root.addView(
-                      status,
-                      LinearLayout.LayoutParams(
-                          ViewGroup.LayoutParams.MATCH_PARENT,
-                          ViewGroup.LayoutParams.WRAP_CONTENT
-                      )
-                  )
-
-
-                  webView =
-                      WebView(this)
-
-
-                  webView.settings.javaScriptEnabled =
-                      true
-
-                  webView.settings.domStorageEnabled =
-                      true
-
-                  webView.settings.databaseEnabled =
-                      true
-
-
-                  CookieManager
-                      .getInstance()
-                      .setAcceptCookie(true)
-
-
-                  CookieManager
-                      .getInstance()
-                      .setAcceptThirdPartyCookies(
-                          webView,
-                          true
-                      )
-
-
-                  webView.webViewClient =
-                      object : WebViewClient() {
-
-                          override fun onPageFinished(
-                              view: WebView?,
-                              url: String?
-                          ) {
-
-                              super.onPageFinished(
-                                  view,
-                                  url
-                              )
-
-
-                              status.text =
-                                  "AIMRELAX-ը բաց է։\n\n" +
-                                  "Մուտք գործիր account-ով։"
-                          }
-                      }
-
-
-                  webView.loadUrl(
-                      AIMRELAX_URL
-                  )
-
-
-                  root.addView(
-                      webView,
-                      LinearLayout.LayoutParams(
-                          ViewGroup.LayoutParams.MATCH_PARENT,
-                          0,
-                          1f
-                      )
-                  )
-
-
-                  val startButton =
-                      Button(this)
-
-
-                  startButton.text =
-                      "🔴 ՍԿՍԵԼ PUBG LIVE"
-
-
-                  startButton.setOnClickListener {
-
-                      readSupabaseSession()
-                  }
-
-
-                  root.addView(
-                      startButton,
-                      LinearLayout.LayoutParams(
-                          ViewGroup.LayoutParams.MATCH_PARENT,
-                          ViewGroup.LayoutParams.WRAP_CONTENT
-                      )
-                  )
-
-
-                  val stopButton =
-                      Button(this)
-
-
-                  stopButton.text =
-                      "⏹ STOP LIVE"
-
-
-                  stopButton.setOnClickListener {
-
-                      stopLive()
-                  }
-
-
-                  root.addView(
-                      stopButton,
-                      LinearLayout.LayoutParams(
-                          ViewGroup.LayoutParams.MATCH_PARENT,
-                          ViewGroup.LayoutParams.WRAP_CONTENT
-                      )
-                  )
-
-
-                  setContentView(root)
-              }
-
-
-              private fun readSupabaseSession() {
-
-                  status.text =
-                      "🔄 Ստուգում ենք AIMRELAX account-ը..."
-
-
-                  val javascript =
-                      """
-                      (function() {
-
-                          try {
-
-                              for (
-                                  var i = 0;
-                                  i < localStorage.length;
-                                  i++
-                              ) {
-
-                                  var key =
-                                      localStorage.key(i);
-
-
-                                  if (
-                                      key &&
-                                      key.indexOf("auth-token") !== -1
-                                  ) {
-
-                                      var value =
-                                          localStorage.getItem(key);
-
-
-                                      try {
-
-                                          var data =
-                                              JSON.parse(value);
-
-
-                                          if (
-                                              data &&
-                                              data.access_token
-                                          ) {
-
-                                              return data.access_token;
-                                          }
-
-
-                                          if (
-                                              data &&
-                                              data.currentSession &&
-                                              data.currentSession.access_token
-                                          ) {
-
-                                              return data.currentSession.access_token;
-                                          }
-
-                                      } catch (e) {
-                                      }
-                                  }
-                              }
-
-
-                              return "";
-
-                          } catch (e) {
-
-                              return "";
-                          }
-
-                      })();
-                      """.trimIndent()
-
-
-                  webView.evaluateJavascript(
-                      javascript
-                  ) { result ->
-
-                      val token =
-                          parseJavascriptString(result)
-
-
-                      if (
-                          token.isNullOrBlank()
-                      ) {
-
-                          status.text =
-                              "❌ AIMRELAX account-ը մուտք գործած չէ։\n\n" +
-                              "Նախ մուտք գործիր AIMRELAX-ում։"
-
-                          return@evaluateJavascript
-                      }
-
-
-                      supabaseAccessToken =
-                          token
-
-
-                      status.text =
-                          "✅ Account գտնվեց։\n\n" +
-                          "Ստանում ենք LiveKit token..."
-
-
-                      requestLiveToken()
-                  }
-              }
-
-
-              private fun parseJavascriptString(
-                  value: String?
-              ): String? {
-
-                  if (
-                      value == null ||
-                      value == "null"
-                  ) {
-
-                      return null
-                  }
-
-
-                  return try {
-
-                      val parsed =
-                          JSONTokener(
-                              value
-                          ).nextValue()
-
-
-                      parsed.toString()
-
-                  } catch (_: Exception) {
-
-                      value
-                          .removePrefix("\"")
-                          .removeSuffix("\"")
-                          .replace("\\\"", "\"")
-                          .replace("\\\\", "\\")
-                  }
-              }
-
-
-              private fun requestLiveToken() {
-
-                  val accessToken =
-                      supabaseAccessToken
-
-
-                  if (
-                      accessToken.isNullOrBlank()
-                  ) {
-
-                      status.text =
-                          "❌ Supabase session չկա։"
-
-                      return
-                  }
-
-
-                  scope.launch {
-
-                      try {
-
-                          val result =
-                              withContext(
-                                  Dispatchers.IO
-                              ) {
-
-                                  val connection =
-                                      URL(
-                                          LIVE_TOKEN_URL
-                                      ).openConnection()
-                                          as HttpURLConnection
-
-
-                                  connection.requestMethod =
-                                      "POST"
-
-
-                                  connection.setRequestProperty(
-                                      "Authorization",
-                                      "Bearer $accessToken"
-                                  )
-
-
-                                  connection.setRequestProperty(
-                                      "Content-Type",
-                                      "application/json"
-                                  )
-
-
-                                  connection.doOutput =
-                                      true
-
-
-                                  val body =
-                                      """
-                                      {
-                                        "role": "host"
-                                      }
-                                      """.trimIndent()
-
-
-                                  connection.outputStream.use {
-
-                                      it.write(
-                                          body.toByteArray(
-                                              Charsets.UTF_8
-                                          )
-                                      )
-                                  }
-
-
-                                  val responseCode =
-                                      connection.responseCode
-
-
-                                  val stream =
-                                      if (
-                                          responseCode in 200..299
-                                      ) {
-
-                                          connection.inputStream
-
-                                      } else {
-
-                                          connection.errorStream
-                                      }
-
-
-                                  val responseText =
-                                      stream
-                                          ?.bufferedReader()
-                                          ?.use {
-                                              it.readText()
-                                          }
-                                          ?: ""
-
-
-                                  Pair(
-                                      responseCode,
-                                      responseText
-                                  )
-                              }
-
-
-                          if (
-                              result.first !in 200..299
-                          ) {
-
-                              status.text =
-                                  "❌ live-token error\n\n" +
-                                  result.second
-
-                              return@launch
-                          }
-
-
-                          parseLiveToken(
-                              result.second
-                          )
-
-                      } catch (e: Exception) {
-
-                          status.text =
-                              "❌ Token ստանալու սխալ\n\n" +
-                              (
-                                  e.message
-                                      ?: "Unknown error"
-                              )
-                      }
-                  }
-              }
-
-
-              private fun parseLiveToken(
-                  response: String
-              ) {
-
-                  try {
-
-                      val json =
-                          JSONObject(response)
-
-
-                      liveToken =
-                          json.optString(
-                              "token",
-                              ""
-                          )
-
-
-                      liveServerUrl =
-                          json.optString(
-                              "serverUrl",
-                              ""
-                          )
-
-
-                      if (
-                          liveServerUrl.isNullOrBlank()
-                      ) {
-
-                          liveServerUrl =
-                              json.optString(
-                                  "server_url",
-                                  ""
-                              )
-                      }
-
-
-                      if (
-                          liveServerUrl.isNullOrBlank()
-                      ) {
-
-                          liveServerUrl =
-                              json.optString(
-                                  "url",
-                                  ""
-                              )
-                      }
-
-
-                      liveRoomName =
-                          json.optString(
-                              "room_name",
-                              ""
-                          )
-
-
-                      if (
-                          liveRoomName.isNullOrBlank()
-                      ) {
-
-                          liveRoomName =
-                              json.optString(
-                                  "roomName",
-                                  ""
-                              )
-                      }
-
-
-                      if (
-                          liveToken.isNullOrBlank()
-                      ) {
-
-                          throw Exception(
-                              "LiveKit token չի վերադարձվել։"
-                          )
-                      }
-
-
-                      if (
-                          liveServerUrl.isNullOrBlank()
-                      ) {
-
-                          throw Exception(
-                              "LiveKit server URL չի վերադարձվել։"
-                          )
-                      }
-
-
-                      status.text =
-                          "✅ LiveKit token ստացվեց։\n\n" +
-                          "Թույլատրիր Screen Capture-ը։"
-
-
-                      requestScreenCapture()
-
-                  } catch (e: Exception) {
-
-                      status.text =
-                          "❌ Token response error\n\n" +
-                          (
-                              e.message
-                                  ?: "Unknown error"
-                          ) +
-                          "\n\nResponse:\n" +
-                          response
-                  }
-              }
-
-
-              private fun requestScreenCapture() {
-
-                  val manager =
-                      getSystemService(
-                          MEDIA_PROJECTION_SERVICE
-                      ) as MediaProjectionManager
-
-
-                  val intent =
-                      manager.createScreenCaptureIntent()
-
-
-                  startActivityForResult(
-                      intent,
-                      SCREEN_CAPTURE_REQUEST
-                  )
-              }
-
-
-              override fun onActivityResult(
-                  requestCode: Int,
-                  resultCode: Int,
-                  data: Intent?
-              ) {
-
-                  super.onActivityResult(
-                      requestCode,
-                      resultCode,
-                      data
-                  )
-
-
-                  if (
-                      requestCode !=
-                      SCREEN_CAPTURE_REQUEST
-                  ) {
-
-                      return
-                  }
-
-
-                  if (
-                      resultCode != RESULT_OK ||
-                      data == null
-                  ) {
-
-                      status.text =
-                          "❌ Screen Capture-ը չեղարկվեց։"
-
-                      return
-                  }
-
-
-                  status.text =
-                      "✅ Screen Capture թույլտվությունը ստացվեց։\n\n" +
-                      "Միանում ենք LiveKit-ին..."
-
-
-                  startLive(data)
-              }
-
-
-              private fun startLive(
-                  permissionData: Intent
-              ) {
-
-                  val token =
-                      liveToken
-
-
-                  val serverUrl =
-                      liveServerUrl
-
-
-                  if (
-                      token.isNullOrBlank() ||
-                      serverUrl.isNullOrBlank()
-                  ) {
-
-                      status.text =
-                          "❌ LiveKit token կամ URL չկա։"
-
-                      return
-                  }
-
-
-                  scope.launch {
-
-                      try {
-
-                          status.text =
-                              "🔄 LiveKit-ին միանում ենք..."
-
-
-                          room.connect(
-                              serverUrl,
-                              token
-                          )
-
-
-                          status.text =
-                              "✅ LiveKit-ին միացանք։\n\n" +
-                              "PUBG-ի էկրանը հրապարակվում է..."
-
-
-                          val success =
-                              room.localParticipant
-                                  .setScreenShareEnabled(
-                                      true,
-                                      ScreenCaptureParams(
-                                          permissionData
-                                      )
-                                  )
-
-
-                          if (!success) {
-
-                              status.text =
-                                  "❌ Screen Share-ը չհաջողվեց միացնել։"
-
-                              return@launch
-                          }
-
-
-                          status.text =
-                              "🔴 AIMRELAX LIVE ԱՇԽԱՏՈՒՄ Է\n\n" +
-                              "PUBG-ի էկրանը ուղարկվում է LiveKit։"
-
-                      } catch (e: Exception) {
-
-                          status.text =
-                              "❌ LIVE START ERROR\n\n" +
-                              (
-                                  e.message
-                                      ?: e.javaClass.simpleName
-                              )
-                      }
-                  }
-              }
-
-
-              private fun stopLive() {
-
-                  scope.launch {
-
-                      try {
-
-                          room.localParticipant
-                              .setScreenShareEnabled(
-                                  false
-                              )
-
-                      } catch (_: Exception) {
-                      }
-
-
-                      try {
-
-                          room.disconnect()
-
-                      } catch (_: Exception) {
-                      }
-
-
-                      status.text =
-                          "LIVE-ը կանգնեցվեց։"
-                  }
-              }
-
-
-              override fun onDestroy() {
-
-                  try {
-
-                      room.disconnect()
-
-                  } catch (_: Exception) {
-                  }
-
-
-                  scope.cancel()
-
-
-                  try {
-
-                      webView.destroy()
-
-                  } catch (_: Exception) {
-                  }
-
-
-                  super.onDestroy()
-              }
-          }
-          EOF
-
-
-      # --------------------------------------------------
-      # 13. Download Gradle 8.10.2
-      # --------------------------------------------------
-
-      - name: Install Gradle 8.10.2
-        shell: bash
-        run: |
-
-          cd android
-
-          wget -q \
-            https://services.gradle.org/distributions/gradle-8.10.2-bin.zip
-
-          unzip -q gradle-8.10.2-bin.zip
-
-          mv gradle-8.10.2 gradle-dist
-
-          rm gradle-8.10.2-bin.zip
-
-
-      # --------------------------------------------------
-      # 14. Generate Gradle wrapper
-      # --------------------------------------------------
-
-      - name: Generate Gradle wrapper
-        shell: bash
-        run: |
-
-          cd android
-
-          ./gradle-dist/bin/gradle wrapper \
-            --gradle-version 8.10.2
-
-
-      # --------------------------------------------------
-      # 15. Build APK
-      # --------------------------------------------------
-
-      - name: Build AIMRELAX LIVE Sender
-        shell: bash
-        run: |
-
-          cd android
-
-          chmod +x gradlew
-
-          ./gradlew clean assembleDebug --stacktrace
-
-
-      # --------------------------------------------------
-      # 16. Rename APK
-      # --------------------------------------------------
-
-      - name: Prepare APK
-        shell: bash
-        run: |
-
-          mkdir -p output
-
-          cp \
-            android/app/build/outputs/apk/debug/app-debug.apk \
-            output/AIMRELAX-LIVE-Sender.apk
-
-
-      # --------------------------------------------------
-      # 17. Upload APK to GitHub Actions
-      # --------------------------------------------------
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: AIMRELAX-LIVE-Sender
-          path: output/AIMRELAX-LIVE-Sender.apk
-          if-no-files-found: error
+          import org.json
