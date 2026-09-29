@@ -4,11 +4,28 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Test workflow
-        run: |
-          echo "AIMRELAX LIVE Sender workflow is working!"
-          echo "GitHub Actions OK"
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build APK
+        run: bash build-live-sender.sh
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: AIMRELAX-LIVE-Sender
+          path: live-sender/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
