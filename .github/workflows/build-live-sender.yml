@@ -330,4 +330,1199 @@ jobs:
           import io.livekit.android.room.Room
           import io.livekit.android.room.track.ScreenCaptureParams
 
-          import kotlinx.coroutines.Coroutine
+          import kotlinx.coroutines.CoroutineScope
+          import kotlinx.coroutines.Dispatchers
+          import kotlinx.coroutines.launch
+          import kotlinx.coroutines.withContext
+
+          import org.json.JSONObject
+
+          import java.net.HttpURLConnection
+          import java.net.URL
+          import java.util.UUID
+
+
+          class MainActivity : AppCompatActivity() {
+
+              companion object {
+
+                  private const val TAG = "AIMRELAX_LIVE"
+
+                  private const val SUPABASE_URL =
+                      "https://hvhlrbfjloiahbqmnrly.supabase.co"
+
+                  private const val SUPABASE_ANON_KEY =
+                      "sb_publishable_EcZUkLdUCvV3qWDD7jlvhg_OjTYu1jA"
+
+                  private const val LIVE_TOKEN_URL =
+                      "$SUPABASE_URL/functions/v1/live-token"
+
+                  private const val LIVE_STREAMS_URL =
+                      "$SUPABASE_URL/rest/v1/live_streams"
+
+                  private const val WEBSITE_URL =
+                      "https://aimrelax-pubg.github.io/"
+
+                  private const val SCREEN_CAPTURE_REQUEST =
+                      9001
+              }
+
+
+              private lateinit var titleInput: EditText
+              private lateinit var startButton: Button
+              private lateinit var stopButton: Button
+              private lateinit var statusText: TextView
+              private lateinit var webView: WebView
+
+              private var room: Room? = null
+
+              private var accessToken: String? = null
+
+              private var currentUserId: String? = null
+
+              private var currentUserName: String = "AIMRELAX User"
+
+              private var currentStreamId: String? = null
+
+              private var currentRoomName: String? = null
+
+
+              override fun onCreate(savedInstanceState: Bundle?) {
+
+                  super.onCreate(savedInstanceState)
+
+                  createInterface()
+
+                  setupWebView()
+
+                  startButton.setOnClickListener {
+                      startLive()
+                  }
+
+                  stopButton.setOnClickListener {
+                      stopLive()
+                  }
+              }
+
+
+              private fun createInterface() {
+
+                  val root =
+                      LinearLayout(this)
+
+                  root.orientation =
+                      LinearLayout.VERTICAL
+
+                  root.setPadding(
+                      24,
+                      24,
+                      24,
+                      24
+                  )
+
+                  root.setBackgroundColor(
+                      Color.rgb(7, 7, 7)
+                  )
+
+
+                  val title =
+                      TextView(this)
+
+                  title.text =
+                      "AIMRELAX LIVE Sender"
+
+                  title.textSize =
+                      25f
+
+                  title.setTextColor(
+                      Color.rgb(255, 122, 0)
+                  )
+
+                  title.gravity =
+                      Gravity.CENTER
+
+                  root.addView(
+                      title,
+                      LinearLayout.LayoutParams(
+                          -1,
+                          -2
+                      )
+                  )
+
+
+                  val subtitle =
+                      TextView(this)
+
+                  subtitle.text =
+                      "PUBG MOBILE LIVE STREAM"
+
+                  subtitle.textSize =
+                      14f
+
+                  subtitle.setTextColor(
+                      Color.WHITE
+                  )
+
+                  subtitle.gravity =
+                      Gravity.CENTER
+
+                  val subtitleParams =
+                      LinearLayout.LayoutParams(
+                          -1,
+                          -2
+                      )
+
+                  subtitleParams.topMargin =
+                      8
+
+                  root.addView(
+                      subtitle,
+                      subtitleParams
+                  )
+
+
+                  titleInput =
+                      EditText(this)
+
+                  titleInput.hint =
+                      "LIVE-ի վերնագիրը"
+
+                  titleInput.setHintTextColor(
+                      Color.GRAY
+                  )
+
+                  titleInput.setTextColor(
+                      Color.WHITE
+                  )
+
+                  titleInput.setSingleLine(
+                      true
+                  )
+
+                  val inputParams =
+                      LinearLayout.LayoutParams(
+                          -1,
+                          -2
+                      )
+
+                  inputParams.topMargin =
+                      30
+
+                  root.addView(
+                      titleInput,
+                      inputParams
+                  )
+
+
+                  startButton =
+                      Button(this)
+
+                  startButton.text =
+                      "ՍԿՍԵԼ LIVE"
+
+                  val startParams =
+                      LinearLayout.LayoutParams(
+                          -1,
+                          -2
+                      )
+
+                  startParams.topMargin =
+                      18
+
+                  root.addView(
+                      startButton,
+                      startParams
+                  )
+
+
+                  stopButton =
+                      Button(this)
+
+                  stopButton.text =
+                      "ԴԱԴԱՐԵՑՆԵԼ LIVE"
+
+                  stopButton.isEnabled =
+                      false
+
+                  val stopParams =
+                      LinearLayout.LayoutParams(
+                          -1,
+                          -2
+                      )
+
+                  stopParams.topMargin =
+                      10
+
+                  root.addView(
+                      stopButton,
+                      stopParams
+                  )
+
+
+                  statusText =
+                      TextView(this)
+
+                  statusText.text =
+                      "Պատրաստ է"
+
+                  statusText.textSize =
+                      15f
+
+                  statusText.setTextColor(
+                      Color.WHITE
+                  )
+
+                  statusText.gravity =
+                      Gravity.CENTER
+
+                  val statusParams =
+                      LinearLayout.LayoutParams(
+                          -1,
+                          -2
+                      )
+
+                  statusParams.topMargin =
+                      18
+
+                  root.addView(
+                      statusText,
+                      statusParams
+                  )
+
+
+                  webView =
+                      WebView(this)
+
+                  webView.visibility =
+                      View.GONE
+
+                  root.addView(
+                      webView,
+                      LinearLayout.LayoutParams(
+                          1,
+                          1
+                      )
+                  )
+
+
+                  setContentView(root)
+              }
+
+
+              private fun setupWebView() {
+
+                  webView.settings.javaScriptEnabled =
+                      true
+
+                  webView.settings.domStorageEnabled =
+                      true
+
+                  webView.settings.databaseEnabled =
+                      true
+
+                  webView.webViewClient =
+                      WebViewClient()
+
+                  webView.loadUrl(
+                      WEBSITE_URL
+                  )
+              }
+
+
+              private fun startLive() {
+
+                  if (room != null) {
+
+                      setStatus(
+                          "LIVE-ն արդեն աշխատում է"
+                      )
+
+                      return
+                  }
+
+
+                  val title =
+                      titleInput.text
+                          .toString()
+                          .trim()
+                          .ifEmpty {
+                              "AIMRELAX LIVE"
+                          }
+
+
+                  startButton.isEnabled =
+                      false
+
+                  setStatus(
+                      "Մուտքի տվյալների ստուգում..."
+                  )
+
+
+                  CoroutineScope(
+                      Dispatchers.Main
+                  ).launch {
+
+                      try {
+
+                          val token =
+                              getSupabaseAccessToken()
+
+                          if (
+                              token.isNullOrBlank()
+                          ) {
+
+                              throw Exception(
+                                  "Կայքի մուտքը չի գտնվել"
+                              )
+                          }
+
+
+                          accessToken =
+                              token
+
+
+                          val user =
+                              getSupabaseUser(
+                                  token
+                              )
+
+
+                          currentUserId =
+                              user.getString(
+                                  "id"
+                              )
+
+
+                          val metadata =
+                              user.optJSONObject(
+                                  "user_metadata"
+                              )
+
+
+                          currentUserName =
+                              metadata
+                                  ?.optString(
+                                      "username"
+                                  )
+                                  ?.takeIf {
+                                      it.isNotBlank()
+                                  }
+                                  ?: metadata
+                                      ?.optString(
+                                          "name"
+                                      )
+                                      ?.takeIf {
+                                          it.isNotBlank()
+                                      }
+                                      ?: user.optString(
+                                          "email",
+                                          "AIMRELAX User"
+                                      )
+
+
+                          currentRoomName =
+                              "aimrelax-live-$currentUserId"
+
+
+                          setStatus(
+                              "LiveKit token-ի ստացում..."
+                          )
+
+
+                          val tokenBody =
+                              JSONObject()
+
+                          tokenBody.put(
+                              "room_name",
+                              currentRoomName
+                          )
+
+                          tokenBody.put(
+                              "participant_name",
+                              currentUserName
+                          )
+
+                          tokenBody.put(
+                              "role",
+                              "host"
+                          )
+
+
+                          val tokenResponse =
+                              httpJson(
+                                  LIVE_TOKEN_URL,
+                                  "POST",
+                                  token,
+                                  tokenBody.toString()
+                              )
+
+
+                          if (
+                              !tokenResponse.success
+                          ) {
+
+                              throw Exception(
+                                  tokenResponse.body
+                              )
+                          }
+
+
+                          val tokenJson =
+                              JSONObject(
+                                  tokenResponse.body
+                              )
+
+
+                          val serverUrl =
+                              tokenJson.optString(
+                                  "server_url"
+                              ).ifBlank {
+                                  tokenJson.optString(
+                                      "serverUrl"
+                                  )
+                              }
+
+
+                          val participantToken =
+                              tokenJson.optString(
+                                  "participant_token"
+                              ).ifBlank {
+                                  tokenJson.optString(
+                                      "token"
+                                  )
+                              }
+
+
+                          if (
+                              serverUrl.isBlank()
+                          ) {
+
+                              throw Exception(
+                                  "LiveKit server_url չկա"
+                              )
+                          }
+
+
+                          if (
+                              participantToken.isBlank()
+                          ) {
+
+                              throw Exception(
+                                  "LiveKit participant_token չկա"
+                              )
+                          }
+
+
+                          setStatus(
+                              "LIVE-ի գրանցում..."
+                          )
+
+
+                          val streamId =
+                              UUID.randomUUID()
+                                  .toString()
+
+
+                          currentStreamId =
+                              streamId
+
+
+                          val streamBody =
+                              JSONObject()
+
+                          streamBody.put(
+                              "id",
+                              streamId
+                          )
+
+                          streamBody.put(
+                              "streamer_id",
+                              currentUserId
+                          )
+
+                          streamBody.put(
+                              "streamer_name",
+                              currentUserName
+                          )
+
+                          streamBody.put(
+                              "title",
+                              title
+                          )
+
+                          streamBody.put(
+                              "status",
+                              "live"
+                          )
+
+
+                          val insertResponse =
+                              httpJson(
+                                  LIVE_STREAMS_URL,
+                                  "POST",
+                                  token,
+                                  streamBody.toString()
+                              )
+
+
+                          if (
+                              !insertResponse.success
+                          ) {
+
+                              throw Exception(
+                                  "LIVE ցուցակում գրանցումը չստացվեց:\n${insertResponse.body}"
+                              )
+                          }
+
+
+                          setStatus(
+                              "Էկրանի թույլտվության սպասում..."
+                          )
+
+
+                          val manager =
+                              getSystemService(
+                                  Context.MEDIA_PROJECTION_SERVICE
+                              ) as MediaProjectionManager
+
+
+                          val intent =
+                              manager.createScreenCaptureIntent()
+
+
+                          startActivityForResult(
+                              intent,
+                              SCREEN_CAPTURE_REQUEST
+                          )
+
+
+                          pendingServerUrl =
+                              serverUrl
+
+                          pendingParticipantToken =
+                              participantToken
+
+
+                      } catch (e: Exception) {
+
+                          startButton.isEnabled =
+                              true
+
+                          currentStreamId =
+                              null
+
+                          currentRoomName =
+                              null
+
+                          setStatus(
+                              "Սխալ: ${e.message}"
+                          )
+                      }
+                  }
+              }
+
+
+              private var pendingServerUrl:
+                  String? = null
+
+              private var pendingParticipantToken:
+                  String? = null
+
+
+              override fun onActivityResult(
+                  requestCode: Int,
+                  resultCode: Int,
+                  data: Intent?
+              ) {
+
+                  super.onActivityResult(
+                      requestCode,
+                      resultCode,
+                      data
+                  )
+
+
+                  if (
+                      requestCode !=
+                      SCREEN_CAPTURE_REQUEST
+                  ) {
+
+                      return
+                  }
+
+
+                  if (
+                      resultCode != Activity.RESULT_OK ||
+                      data == null
+                  ) {
+
+                      startButton.isEnabled =
+                          true
+
+                      setStatus(
+                          "Էկրանի թույլտվությունը չտրվեց"
+                      )
+
+                      cleanupLiveRow()
+
+                      return
+                  }
+
+
+                  val serverUrl =
+                      pendingServerUrl
+
+                  val participantToken =
+                      pendingParticipantToken
+
+
+                  if (
+                      serverUrl.isNullOrBlank() ||
+                      participantToken.isNullOrBlank()
+                  ) {
+
+                      startButton.isEnabled =
+                          true
+
+                      setStatus(
+                          "LiveKit տվյալները կորել են"
+                      )
+
+                      cleanupLiveRow()
+
+                      return
+                  }
+
+
+                  connectAndPublish(
+                      serverUrl,
+                      participantToken,
+                      data
+                  )
+              }
+
+
+              private fun connectAndPublish(
+                  serverUrl: String,
+                  participantToken: String,
+                  permissionData: Intent
+              ) {
+
+                  setStatus(
+                      "LiveKit-ին միացում..."
+                  )
+
+
+                  CoroutineScope(
+                      Dispatchers.Main
+                  ).launch {
+
+                      try {
+
+                          val liveRoom =
+                              LiveKit.create(
+                                  applicationContext
+                              )
+
+
+                          room =
+                              liveRoom
+
+
+                          liveRoom.connect(
+                              serverUrl,
+                              participantToken
+                          )
+
+
+                          setStatus(
+                              "Էկրանի հրապարակում..."
+                          )
+
+
+                          liveRoom.localParticipant
+                              .setScreenShareEnabled(
+                                  true,
+                                  ScreenCaptureParams(
+                                      mediaProjectionPermissionResultData =
+                                          permissionData
+                                  )
+                              )
+
+
+                          startButton.isEnabled =
+                              false
+
+                          stopButton.isEnabled =
+                              true
+
+                          setStatus(
+                              "🔴 LIVE Է — PUBG-ի էկրանը հեռարձակվում է"
+                          )
+
+
+                      } catch (e: Exception) {
+
+                          room = null
+
+                          startButton.isEnabled =
+                              true
+
+                          stopButton.isEnabled =
+                              false
+
+                          setStatus(
+                              "LiveKit սխալ: ${e.message}"
+                          )
+
+                          cleanupLiveRow()
+                      }
+                  }
+              }
+
+
+              private fun stopLive() {
+
+                  CoroutineScope(
+                      Dispatchers.Main
+                  ).launch {
+
+                      try {
+
+                          room
+                              ?.localParticipant
+                              ?.setScreenShareEnabled(
+                                  false
+                              )
+
+                      } catch (_: Exception) {
+                      }
+
+
+                      try {
+
+                          room?.disconnect()
+
+                      } catch (_: Exception) {
+                      }
+
+
+                      room = null
+
+                      pendingServerUrl =
+                          null
+
+                      pendingParticipantToken =
+                          null
+
+
+                      cleanupLiveRow()
+
+
+                      startButton.isEnabled =
+                          true
+
+                      stopButton.isEnabled =
+                          false
+
+
+                      setStatus(
+                          "LIVE-ը դադարեցված է"
+                      )
+                  }
+              }
+
+
+              private fun cleanupLiveRow() {
+
+                  val token =
+                      accessToken
+
+                  val streamId =
+                      currentStreamId
+
+
+                  if (
+                      token.isNullOrBlank() ||
+                      streamId.isNullOrBlank()
+                  ) {
+
+                      return
+                  }
+
+
+                  CoroutineScope(
+                      Dispatchers.IO
+                  ).launch {
+
+                      try {
+
+                          val url =
+                              "$LIVE_STREAMS_URL?id=eq.$streamId"
+
+
+                          val body =
+                              JSONObject()
+
+                          body.put(
+                              "status",
+                              "ended"
+                          )
+
+
+                          httpJson(
+                              url,
+                              "PATCH",
+                              token,
+                              body.toString()
+                          )
+
+                      } catch (_: Exception) {
+                      }
+                  }
+
+
+                  currentStreamId =
+                      null
+
+                  currentRoomName =
+                      null
+              }
+
+
+              private suspend fun getSupabaseAccessToken():
+                  String? {
+
+                  return withContext(
+                      Dispatchers.Main
+                  ) {
+
+                      val result =
+                          kotlinx.coroutines.suspendCancellableCoroutine<String?> { continuation ->
+
+                              webView.evaluateJavascript(
+                                  """
+                                  (function(){
+                                      try {
+                                          const keys = Object.keys(localStorage);
+
+                                          for (const key of keys) {
+
+                                              if (
+                                                  key.includes('auth-token')
+                                              ) {
+
+                                                  const raw =
+                                                      localStorage.getItem(key);
+
+                                                  if (!raw) {
+                                                      continue;
+                                                  }
+
+                                                  const data =
+                                                      JSON.parse(raw);
+
+                                                  const session =
+                                                      data?.currentSession ||
+                                                      data?.session ||
+                                                      data;
+
+                                                  const token =
+                                                      session?.access_token;
+
+                                                  if (token) {
+                                                      return JSON.stringify(token);
+                                                  }
+                                              }
+                                          }
+
+                                          return "null";
+
+                                      } catch(e) {
+                                          return "null";
+                                      }
+                                  })();
+                                  """.trimIndent()
+                              ) { value ->
+
+                                  try {
+
+                                      val clean =
+                                          value
+                                              ?.removePrefix("\"")
+                                              ?.removeSuffix("\"")
+                                              ?.replace(
+                                                  "\\\"",
+                                                  "\""
+                                              )
+
+
+                                      if (
+                                          clean.isNullOrBlank() ||
+                                          clean == "null"
+                                      ) {
+
+                                          continuation.resume(
+                                              null,
+                                              null
+                                          )
+
+                                      } else {
+
+                                          continuation.resume(
+                                              clean,
+                                              null
+                                          )
+                                      }
+
+                                  } catch (_: Exception) {
+
+                                      continuation.resume(
+                                          null,
+                                          null
+                                      )
+                                  }
+                              }
+                          }
+
+                      result
+                  }
+              }
+
+
+              private suspend fun getSupabaseUser(
+                  token: String
+              ): JSONObject {
+
+                  val response =
+                      withContext(
+                          Dispatchers.IO
+                      ) {
+
+                          httpJson(
+                              "$SUPABASE_URL/auth/v1/user",
+                              "GET",
+                              token,
+                              null
+                          )
+                      }
+
+
+                  if (
+                      !response.success
+                  ) {
+
+                      throw Exception(
+                          "Supabase user error: ${response.body}"
+                      )
+                  }
+
+
+                  return JSONObject(
+                      response.body
+                  )
+              }
+
+
+              private data class HttpResult(
+                  val success: Boolean,
+                  val code: Int,
+                  val body: String
+              )
+
+
+              private fun httpJson(
+                  urlString: String,
+                  method: String,
+                  bearer: String?,
+                  body: String?
+              ): HttpResult {
+
+                  val connection =
+                      URL(urlString)
+                          .openConnection()
+                          as HttpURLConnection
+
+
+                  try {
+
+                      connection.requestMethod =
+                          method
+
+                      connection.connectTimeout =
+                          20000
+
+                      connection.readTimeout =
+                          20000
+
+                      connection.useCaches =
+                          false
+
+                      connection.setRequestProperty(
+                          "apikey",
+                          SUPABASE_ANON_KEY
+                      )
+
+                      if (
+                          !bearer.isNullOrBlank()
+                      ) {
+
+                          connection.setRequestProperty(
+                              "Authorization",
+                              "Bearer $bearer"
+                          )
+                      }
+
+
+                      connection.setRequestProperty(
+                          "Content-Type",
+                          "application/json"
+                      )
+
+                      connection.setRequestProperty(
+                          "Accept",
+                          "application/json"
+                      )
+
+
+                      if (
+                          method == "POST" ||
+                          method == "PATCH" ||
+                          method == "PUT"
+                      ) {
+
+                          connection.doOutput =
+                              true
+
+                          val bytes =
+                              (body ?: "")
+                                  .toByteArray(
+                                      Charsets.UTF_8
+                                  )
+
+                          connection.outputStream.use {
+                              it.write(bytes)
+                          }
+                      }
+
+
+                      val code =
+                          connection.responseCode
+
+
+                      val stream =
+                          if (
+                              code in 200..299
+                          ) {
+
+                              connection.inputStream
+
+                          } else {
+
+                              connection.errorStream
+                          }
+
+
+                      val responseBody =
+                          stream
+                              ?.bufferedReader()
+                              ?.use {
+                                  it.readText()
+                              }
+                              ?: ""
+
+
+                      return HttpResult(
+                          code in 200..299,
+                          code,
+                          responseBody
+                      )
+
+                  } finally {
+
+                      connection.disconnect()
+                  }
+              }
+
+
+              private fun setStatus(
+                  text: String
+              ) {
+
+                  runOnUiThread {
+
+                      statusText.text =
+                          text
+                  }
+              }
+
+
+              override fun onDestroy() {
+
+                  /*
+                   * Intentionally do not stop LiveKit here.
+                   *
+                   * This prevents the stream from immediately
+                   * stopping when Android temporarily recreates
+                   * the Activity.
+                   */
+
+                  super.onDestroy()
+              }
+          }
+          EOF
+
+
+      # =========================================================
+      # 6. Generate Gradle wrapper
+      # =========================================================
+
+      - name: Generate Gradle wrapper
+        working-directory: live-sender
+        run: |
+          gradle wrapper \
+            --gradle-version 8.10.2 \
+            --distribution-type bin
+
+
+      # =========================================================
+      # 7. Build APK
+      # =========================================================
+
+      - name: Build Release APK
+        working-directory: live-sender
+        run: |
+          chmod +x gradlew
+
+          ./gradlew clean assembleRelease \
+            --stacktrace \
+            --info
+
+
+      # =========================================================
+      # 8. Prepare APK
+      # =========================================================
+
+      - name: Prepare APK
+        run: |
+          set -e
+
+          mkdir -p output
+
+          cp \
+            live-sender/app/build/outputs/apk/release/app-release.apk \
+            output/AIMRELAX-LIVE-Sender.apk
+
+          ls -lh output/AIMRELAX-LIVE-Sender.apk
+
+
+      # =========================================================
+      # 9. Upload APK
+      # =========================================================
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: AIMRELAX-LIVE-Sender
+          path: output/AIMRELAX-LIVE-Sender.apk
+          if-no-files-found: error
