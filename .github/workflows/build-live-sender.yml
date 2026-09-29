@@ -11,8 +11,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
       - name: Checkout repository
         uses: actions/checkout@v4
+
 
       - name: Setup Java 21
         uses: actions/setup-java@v4
@@ -20,16 +22,35 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
 
-      - name: Check Android SDK
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+
+      - name: Check Android environment
         run: |
           echo "ANDROID_HOME=$ANDROID_HOME"
           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
-          ls -la "$ANDROID_HOME"
-          sdkmanager --version || true
-          adb version || true
+
+          if [ -d "$ANDROID_HOME" ]; then
+            echo "Android SDK found"
+            ls -la "$ANDROID_HOME"
+          fi
+
+          if [ -d "$ANDROID_HOME/platforms/android-35" ]; then
+            echo "Android API 35 found"
+          else
+            echo "Android API 35 is not preinstalled"
+          fi
+
+          if [ -d "$ANDROID_HOME/build-tools/35.0.0" ]; then
+            echo "Build Tools 35.0.0 found"
+          else
+            echo "Build Tools 35.0.0 is not preinstalled"
+          fi
+
 
       - name: Create Android project
         shell: bash
@@ -38,6 +59,7 @@ jobs:
 
           mkdir -p live-sender/app/src/main/java/com/aimrelax/livesender
           mkdir -p live-sender/app/src/main/res/values
+
 
           cat > live-sender/settings.gradle <<'EOF'
           pluginManagement {
@@ -50,6 +72,7 @@ jobs:
 
           dependencyResolutionManagement {
               repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+
               repositories {
                   google()
                   mavenCentral()
@@ -57,8 +80,10 @@ jobs:
           }
 
           rootProject.name = "AIMRELAX-LIVE-Sender"
+
           include(":app")
           EOF
+
 
           cat > live-sender/build.gradle <<'EOF'
           plugins {
@@ -67,11 +92,13 @@ jobs:
           }
           EOF
 
+
           cat > live-sender/gradle.properties <<'EOF'
           org.gradle.jvmargs=-Xmx4g -Dfile.encoding=UTF-8
           android.useAndroidX=true
           kotlin.code.style=official
           EOF
+
 
           cat > live-sender/app/build.gradle <<'EOF'
           plugins {
@@ -81,13 +108,18 @@ jobs:
 
           android {
               namespace 'com.aimrelax.livesender'
+
               compileSdk 35
 
               defaultConfig {
                   applicationId 'com.aimrelax.livesender'
+
                   minSdk 23
+
                   targetSdk 35
+
                   versionCode 2
+
                   versionName '2.0'
               }
 
@@ -109,15 +141,21 @@ jobs:
           }
 
           dependencies {
+
               implementation 'androidx.core:core-ktx:1.15.0'
+
               implementation 'androidx.appcompat:appcompat:1.7.0'
+
               implementation 'androidx.activity:activity-ktx:1.10.1'
+
               implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.7'
 
               implementation 'io.livekit:livekit-android:2.28.2'
+
               implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0'
           }
           EOF
+
 
           cat > live-sender/app/src/main/res/values/strings.xml <<'EOF'
           <resources>
@@ -125,28 +163,45 @@ jobs:
           </resources>
           EOF
 
+
           cat > live-sender/app/src/main/res/values/styles.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
+
           <resources>
 
               <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+
                   <item name="android:fontFamily">sans</item>
+
                   <item name="android:navigationBarColor">#070707</item>
+
                   <item name="android:statusBarColor">#070707</item>
+
                   <item name="android:colorAccent">#ff7a00</item>
+
               </style>
 
           </resources>
           EOF
 
+
           cat > live-sender/app/src/main/AndroidManifest.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
+
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-              <uses-permission android:name="android.permission.INTERNET" />
-              <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-              <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
-              <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+              <uses-permission
+                  android:name="android.permission.INTERNET" />
+
+              <uses-permission
+                  android:name="android.permission.FOREGROUND_SERVICE" />
+
+              <uses-permission
+                  android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+
+              <uses-permission
+                  android:name="android.permission.POST_NOTIFICATIONS" />
+
 
               <application
                   android:allowBackup="true"
@@ -154,27 +209,37 @@ jobs:
                   android:theme="@style/AppTheme"
                   android:usesCleartextTraffic="false">
 
+
                   <activity
                       android:name=".MainActivity"
                       android:exported="true"
                       android:screenOrientation="portrait">
 
+
                       <intent-filter>
-                          <action android:name="android.intent.action.MAIN" />
-                          <category android:name="android.intent.category.LAUNCHER" />
+
+                          <action
+                              android:name="android.intent.action.MAIN" />
+
+                          <category
+                              android:name="android.intent.category.LAUNCHER" />
+
                       </intent-filter>
 
                   </activity>
+
 
                   <service
                       android:name="io.livekit.android.room.track.screencapture.ScreenCaptureService"
                       android:foregroundServiceType="mediaProjection"
                       android:exported="false" />
 
+
               </application>
 
           </manifest>
           EOF
+
 
           cat > live-sender/app/src/main/java/com/aimrelax/livesender/MainActivity.kt <<'EOF'
           package com.aimrelax.livesender
@@ -194,24 +259,31 @@ jobs:
           import android.widget.LinearLayout
           import android.widget.TextView
           import android.widget.Toast
+
           import androidx.activity.ComponentActivity
           import androidx.activity.result.contract.ActivityResultContracts
           import androidx.lifecycle.lifecycleScope
+
           import io.livekit.android.LiveKit
           import io.livekit.android.room.Room
           import io.livekit.android.room.track.ScreenCaptureParams
+
           import kotlinx.coroutines.Dispatchers
           import kotlinx.coroutines.launch
           import kotlinx.coroutines.withContext
+
           import org.json.JSONObject
+
           import java.net.HttpURLConnection
           import java.net.URL
           import java.util.UUID
           import java.util.concurrent.CountDownLatch
 
+
           class MainActivity : ComponentActivity() {
 
               companion object {
+
                   private const val SITE_URL =
                       "https://aimrelax-pubg.github.io/"
 
@@ -228,51 +300,82 @@ jobs:
                       "$SUPABASE_URL/rest/v1/live_streams"
               }
 
+
               private lateinit var webView: WebView
+
               private lateinit var titleInput: EditText
+
               private lateinit var startButton: Button
+
               private lateinit var stopButton: Button
+
               private lateinit var statusText: TextView
 
+
               private var accessToken: String? = null
+
               private var userId: String? = null
-              private var userName = "AIMRELAX User"
+
+              private var userName =
+                  "AIMRELAX User"
+
 
               private var room: Room? = null
+
               private var liveStreamId: String? = null
+
               private var roomName: String? = null
 
+
               private val screenCaptureLauncher =
+
                   registerForActivityResult(
                       ActivityResultContracts.StartActivityForResult()
                   ) { result ->
+
 
                       if (
                           result.resultCode != Activity.RESULT_OK ||
                           result.data == null
                       ) {
+
                           lifecycleScope.launch {
                               cancelPreparedLive()
                           }
+
                           return@registerForActivityResult
                       }
 
-                      startScreenShare(result.data!!)
+
+                      startScreenShare(
+                          result.data!!
+                      )
                   }
 
-              override fun onCreate(savedInstanceState: Bundle?) {
-                  super.onCreate(savedInstanceState)
+
+              override fun onCreate(
+                  savedInstanceState: Bundle?
+              ) {
+
+                  super.onCreate(
+                      savedInstanceState
+                  )
 
                   buildUi()
+
                   setupWebView()
               }
 
+
               private fun buildUi() {
 
-                  val root = LinearLayout(this)
+                  val root =
+                      LinearLayout(this)
+
 
                   root.orientation =
                       LinearLayout.VERTICAL
+
 
                   root.setPadding(
                       28,
@@ -280,6 +383,7 @@ jobs:
                       28,
                       24
                   )
+
 
                   root.setBackgroundColor(
                       android.graphics.Color.rgb(
@@ -289,12 +393,18 @@ jobs:
                       )
                   )
 
-                  val title = TextView(this)
+
+                  val title =
+                      TextView(this)
+
 
                   title.text =
                       "AIMRELAX LIVE"
 
-                  title.textSize = 26f
+
+                  title.textSize =
+                      26f
+
 
                   title.setTextColor(
                       android.graphics.Color.rgb(
@@ -304,12 +414,14 @@ jobs:
                       )
                   )
 
+
                   title.setPadding(
                       0,
                       0,
                       0,
                       18
                   )
+
 
                   root.addView(
                       title,
@@ -319,19 +431,24 @@ jobs:
                       )
                   )
 
+
                   titleInput =
                       EditText(this)
 
+
                   titleInput.hint =
                       "LIVE-ի վերնագիր"
+
 
                   titleInput.setTextColor(
                       android.graphics.Color.WHITE
                   )
 
+
                   titleInput.setHintTextColor(
                       android.graphics.Color.GRAY
                   )
+
 
                   root.addView(
                       titleInput,
@@ -341,15 +458,19 @@ jobs:
                       )
                   )
 
+
                   startButton =
                       Button(this)
+
 
                   startButton.text =
                       "ՍԿՍԵԼ LIVE"
 
+
                   startButton.setOnClickListener {
                       prepareLive()
                   }
+
 
                   root.addView(
                       startButton,
@@ -359,18 +480,23 @@ jobs:
                       )
                   )
 
+
                   stopButton =
                       Button(this)
+
 
                   stopButton.text =
                       "ԴԱԴԱՐԵՑՆԵԼ LIVE"
 
+
                   stopButton.isEnabled =
                       false
+
 
                   stopButton.setOnClickListener {
                       stopLive()
                   }
+
 
                   root.addView(
                       stopButton,
@@ -380,18 +506,23 @@ jobs:
                       )
                   )
 
+
                   statusText =
                       TextView(this)
+
 
                   statusText.text =
                       "Մուտք գործիր AIMRELAX կայք"
 
+
                   statusText.textSize =
                       15f
+
 
                   statusText.setTextColor(
                       android.graphics.Color.LTGRAY
                   )
+
 
                   statusText.setPadding(
                       0,
@@ -399,6 +530,7 @@ jobs:
                       0,
                       20
                   )
+
 
                   root.addView(
                       statusText,
@@ -408,8 +540,10 @@ jobs:
                       )
                   )
 
+
                   webView =
                       WebView(this)
+
 
                   root.addView(
                       webView,
@@ -420,8 +554,10 @@ jobs:
                       )
                   )
 
+
                   setContentView(root)
               }
+
 
               private fun setupWebView() {
 
@@ -437,9 +573,11 @@ jobs:
                   webView.settings.mediaPlaybackRequiresUserGesture =
                       false
 
+
                   CookieManager
                       .getInstance()
                       .setAcceptCookie(true)
+
 
                   CookieManager
                       .getInstance()
@@ -448,8 +586,10 @@ jobs:
                           true
                       )
 
+
                   webView.webChromeClient =
                       WebChromeClient()
+
 
                   webView.webViewClient =
                       object : WebViewClient() {
@@ -458,6 +598,7 @@ jobs:
                               view: WebView?,
                               url: String?
                           ) {
+
                               super.onPageFinished(
                                   view,
                                   url
@@ -468,10 +609,12 @@ jobs:
                           }
                       }
 
+
                   webView.loadUrl(
                       SITE_URL
                   )
               }
+
 
               private fun prepareLive() {
 
@@ -481,13 +624,16 @@ jobs:
                           .trim()
                           .isEmpty()
                   ) {
+
                       titleInput.setText(
                           "AIMRELAX PUBG LIVE"
                       )
                   }
 
+
                   statusText.text =
                       "Ստուգում ենք հաշիվը..."
+
 
                   lifecycleScope.launch {
 
@@ -496,11 +642,14 @@ jobs:
                           val token =
                               readSupabaseAccessToken()
 
+
                           if (
                               token.isNullOrBlank()
                           ) {
+
                               statusText.text =
                                   "Մուտք գործիր AIMRELAX կայք, հետո նորից փորձիր։"
+
 
                               Toast.makeText(
                                   this@MainActivity,
@@ -508,15 +657,19 @@ jobs:
                                   Toast.LENGTH_LONG
                               ).show()
 
+
                               return@launch
                           }
+
 
                           accessToken =
                               token
 
+
                           loadCurrentUser(
                               token
                           )
+
 
                           val uid =
                               userId
@@ -524,11 +677,14 @@ jobs:
                                       "Օգտատերը չի գտնվել"
                                   )
 
+
                           roomName =
                               "aimrelax-live-$uid"
 
+
                           statusText.text =
                               "LIVE սենյակը պատրաստվում է..."
+
 
                           val tokenJson =
                               requestLiveToken(
@@ -538,20 +694,24 @@ jobs:
                                   "host"
                               )
 
+
                           val liveToken =
                               tokenJson.optString(
                                   "participant_token"
                               )
+
 
                           val serverUrl =
                               tokenJson.optString(
                                   "server_url"
                               )
 
+
                           if (
                               liveToken.isBlank() ||
                               serverUrl.isBlank()
                           ) {
+
                               throw Exception(
                                   tokenJson.optString(
                                       "error",
@@ -560,19 +720,24 @@ jobs:
                               )
                           }
 
+
                           createLiveStreamRow()
+
 
                           statusText.text =
                               "Թույլատրիր էկրանի փոխանցումը..."
+
 
                           val manager =
                               getSystemService(
                                   Context.MEDIA_PROJECTION_SERVICE
                               ) as MediaProjectionManager
 
+
                           screenCaptureLauncher.launch(
                               manager.createScreenCaptureIntent()
                           )
+
 
                       } catch (e: Exception) {
 
@@ -581,6 +746,7 @@ jobs:
                                   e.message
                                       ?: "անհայտ սխալ"
                               }"
+
 
                           Toast.makeText(
                               this@MainActivity,
@@ -592,6 +758,7 @@ jobs:
                   }
               }
 
+
               private fun startScreenShare(
                   permissionData: Intent
               ) {
@@ -599,17 +766,22 @@ jobs:
                   val token =
                       accessToken
 
+
                   val currentRoomName =
                       roomName
+
 
                   if (
                       token.isNullOrBlank() ||
                       currentRoomName.isNullOrBlank()
                   ) {
+
                       statusText.text =
                           "LIVE session-ը կորել է։ Նորից փորձիր։"
+
                       return
                   }
+
 
                   lifecycleScope.launch {
 
@@ -623,20 +795,24 @@ jobs:
                                   "host"
                               )
 
+
                           val liveToken =
                               tokenJson.optString(
                                   "participant_token"
                               )
+
 
                           val serverUrl =
                               tokenJson.optString(
                                   "server_url"
                               )
 
+
                           if (
                               liveToken.isBlank() ||
                               serverUrl.isBlank()
                           ) {
+
                               throw Exception(
                                   tokenJson.optString(
                                       "error",
@@ -645,21 +821,26 @@ jobs:
                               )
                           }
 
+
                           statusText.text =
                               "Միանում ենք LiveKit-ին..."
+
 
                           room =
                               LiveKit.create(
                                   applicationContext
                               )
 
+
                           room!!.connect(
                               serverUrl,
                               liveToken
                           )
 
+
                           statusText.text =
                               "LIVE-ը սկսվում է..."
+
 
                           room!!
                               .localParticipant
@@ -671,14 +852,18 @@ jobs:
                                   )
                               )
 
+
                           startButton.isEnabled =
                               false
+
 
                           stopButton.isEnabled =
                               true
 
+
                           statusText.text =
                               "🔴 LIVE — PUBG էկրանը փոխանցվում է"
+
 
                       } catch (e: Exception) {
 
@@ -688,68 +873,91 @@ jobs:
                                       ?: "անհայտ սխալ"
                               }"
 
+
                           cancelPreparedLive()
                       }
                   }
               }
+
 
               private fun stopLive() {
 
                   lifecycleScope.launch {
 
                       try {
+
                           room
                               ?.localParticipant
                               ?.setScreenShareEnabled(
                                   false
                               )
+
                       } catch (_: Exception) {
                       }
+
 
                       try {
+
                           room?.disconnect()
+
                       } catch (_: Exception) {
                       }
 
-                      room = null
+
+                      room =
+                          null
+
 
                       markLiveEnded()
+
 
                       startButton.isEnabled =
                           true
 
+
                       stopButton.isEnabled =
                           false
+
 
                       statusText.text =
                           "LIVE-ը դադարեցված է"
                   }
               }
 
+
               private suspend fun cancelPreparedLive() {
 
                   try {
+
                       markLiveEnded()
+
                   } catch (_: Exception) {
                   }
+
 
                   startButton.isEnabled =
                       true
 
+
                   stopButton.isEnabled =
                       false
+
 
                   statusText.text =
                       "LIVE-ը չեղարկվեց"
               }
 
+
               private fun readSupabaseAccessToken():
                       String? {
 
-                  var result: String? = null
+                  var result:
+                      String? = null
+
 
                   val lock =
                       CountDownLatch(1)
+
 
                   runOnUiThread {
 
@@ -824,10 +1032,13 @@ jobs:
                       }
                   }
 
+
                   lock.await()
+
 
                   return result
               }
+
 
               private suspend fun loadCurrentUser(
                   token: String
@@ -840,8 +1051,10 @@ jobs:
                           token
                       )
 
+
                   val obj =
                       JSONObject(response)
+
 
                   userId =
                       obj.optString("id")
@@ -849,10 +1062,12 @@ jobs:
                               null
                           }
 
+
                   val metadata =
                       obj.optJSONObject(
                           "user_metadata"
                       )
+
 
                   userName =
                       metadata
@@ -873,6 +1088,7 @@ jobs:
                           ?: "AIMRELAX User"
               }
 
+
               private suspend fun requestLiveToken(
                   accessToken: String,
                   roomName: String,
@@ -882,19 +1098,23 @@ jobs:
 
                   val body =
                       JSONObject().apply {
+
                           put(
                               "room_name",
                               roomName
                           )
+
                           put(
                               "participant_name",
                               participantName
                           )
+
                           put(
                               "role",
                               role
                           )
                       }
+
 
                   val response =
                       httpJson(
@@ -904,8 +1124,10 @@ jobs:
                           body.toString()
                       )
 
+
                   return JSONObject(response)
               }
+
 
               private suspend fun createLiveStreamRow() {
 
@@ -915,6 +1137,7 @@ jobs:
                               "user_id չկա"
                           )
 
+
                   val title =
                       titleInput.text
                           .toString()
@@ -923,33 +1146,41 @@ jobs:
                               "AIMRELAX PUBG LIVE"
                           }
 
+
                   val streamId =
                       UUID.randomUUID()
                           .toString()
 
+
                   val body =
                       JSONObject().apply {
+
                           put(
                               "id",
                               streamId
                           )
+
                           put(
                               "streamer_id",
                               uid
                           )
+
                           put(
                               "streamer_name",
                               userName
                           )
+
                           put(
                               "title",
                               title
                           )
+
                           put(
                               "status",
                               "live"
                           )
-                  }
+                      }
+
 
                   httpJson(
                       "POST",
@@ -965,9 +1196,11 @@ jobs:
                       )
                   )
 
+
                   liveStreamId =
                       streamId
               }
+
 
               private suspend fun markLiveEnded() {
 
@@ -975,9 +1208,11 @@ jobs:
                       liveStreamId
                           ?: return
 
+
                   val token =
                       accessToken
                           ?: return
+
 
                   try {
 
@@ -996,9 +1231,11 @@ jobs:
                   } catch (_: Exception) {
                   }
 
+
                   liveStreamId =
                       null
               }
+
 
               private suspend fun httpJson(
                   method: String,
@@ -1019,52 +1256,64 @@ jobs:
                               .openConnection()
                               as HttpURLConnection
 
+
                       try {
 
                           connection.requestMethod =
                               method
 
+
                           connection.connectTimeout =
                               20000
+
 
                           connection.readTimeout =
                               30000
 
+
                           connection.useCaches =
                               false
+
 
                           connection.setRequestProperty(
                               "Authorization",
                               "Bearer $accessToken"
                           )
 
+
                           connection.setRequestProperty(
                               "apikey",
                               SUPABASE_ANON_KEY
                           )
+
 
                           connection.setRequestProperty(
                               "Content-Type",
                               "application/json"
                           )
 
+
                           for (
                               (key, value)
                               in extraHeaders
                           ) {
+
                               connection.setRequestProperty(
                                   key,
                                   value
                               )
                           }
 
+
                           if (body != null) {
 
                               connection.doOutput =
                                   true
 
+
                               connection.outputStream
                                   .use { output ->
+
                                       output.write(
                                           body.toByteArray(
                                               Charsets.UTF_8
@@ -1073,17 +1322,23 @@ jobs:
                                   }
                           }
 
+
                           val code =
                               connection.responseCode
+
 
                           val stream =
                               if (
                                   code in 200..299
                               ) {
+
                                   connection.inputStream
+
                               } else {
+
                                   connection.errorStream
                               }
+
 
                           val response =
                               stream
@@ -1093,27 +1348,34 @@ jobs:
                                   }
                                   ?: ""
 
+
                           if (
                               code !in 200..299
                           ) {
+
                               throw Exception(
                                   "HTTP $code: $response"
                               )
                           }
 
+
                           response
 
                       } finally {
+
                           connection.disconnect()
                       }
                   }
               }
 
+
               override fun onDestroy() {
+
                   super.onDestroy()
               }
           }
           EOF
+
 
       - name: Generate Gradle wrapper
         working-directory: live-sender
@@ -1122,11 +1384,14 @@ jobs:
             --gradle-version 8.10.2 \
             --distribution-type bin
 
+
       - name: Build Release APK
         working-directory: live-sender
         run: |
           chmod +x gradlew
+
           ./gradlew clean assembleRelease --stacktrace
+
 
       - name: Prepare APK
         run: |
@@ -1135,6 +1400,7 @@ jobs:
           cp \
             live-sender/app/build/outputs/apk/release/app-release.apk \
             output/AIMRELAX-LIVE-Sender.apk
+
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
