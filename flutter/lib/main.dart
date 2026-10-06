@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
-const supabaseUrl = 'https://YOUR_PROJECT.supabase.co';
-const supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
+const supabaseUrl = 'https://hvhlrbfjloiahbqmnrly.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aGxyYmZqbG9pYWhicW1ucmx5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3MTMyNjMsImV4cCI6MjEwNTI4OTI2M30.lOrLiuJ3SZ9LtQxZu3aHcVE_e_7eOWVxPoaG36l0f8M';
 const native = MethodChannel('aimrelax.live/livekit');
 
 Future<void> main() async { WidgetsFlutterBinding.ensureInitialized(); await Supabase.initialize(url:supabaseUrl,anonKey:supabaseAnonKey); runApp(const AimrelaxLiveApp()); }
