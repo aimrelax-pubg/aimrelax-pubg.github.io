@@ -24,17 +24,165 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Check Flutter
+        run: |
+          flutter --version
+          flutter doctor -v
+
       - name: Check project
         run: |
           pwd
           ls -la
           test -f pubspec.yaml
 
+      - name: Backup AIMRELAX Android files
+        shell: bash
+        run: |
+          set -e
+
+          mkdir -p /tmp/aimrelax-native
+
+          cp android/app/src/main/AndroidManifest.xml \
+            /tmp/aimrelax-native/AndroidManifest.xml
+
+          cp android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt \
+            /tmp/aimrelax-native/MainActivity.kt
+
+          echo "Native AIMRELAX files backed up."
+
+      - name: Remove old Android project
+        run: |
+          rm -rf android
+          echo "Old Android project removed."
+
+      - name: Generate fresh Flutter Android project
+        run: |
+          flutter create \
+            --platforms=android \
+            --org com.aimrelax \
+            --project-name aimrelax_live \
+            .
+
+          echo "Fresh Flutter Android project created."
+
+      - name: Restore AIMRELAX native files
+        shell: bash
+        run: |
+          set -e
+
+          mkdir -p \
+            android/app/src/main/kotlin/com/aimrelax/aimrelax_live
+
+          cp /tmp/aimrelax-native/AndroidManifest.xml \
+            android/app/src/main/AndroidManifest.xml
+
+          cp /tmp/aimrelax-native/MainActivity.kt \
+            android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
+
+          echo "AIMRELAX native files restored."
+
+      - name: Configure LiveKit
+        shell: bash
+        run: |
+          set -e
+
+          python3 <<'PY'
+          from pathlib import Path
+
+          path = Path("android/app/build.gradle.kts")
+          text = path.read_text()
+
+          dependency = 'implementation("io.livekit:livekit-android:2.29.0")'
+
+          if dependency not in text:
+              if "dependencies {" in text:
+                  text = text.replace(
+                      "dependencies {",
+                      "dependencies {\n    " + dependency,
+                      1
+                  )
+              else:
+                  text += (
+                      "\n\ndependencies {\n"
+                      "    " + dependency + "\n"
+                      "}\n"
+                  )
+
+          path.write_text(text)
+          PY
+
+          echo "LiveKit dependency configured."
+
+      - name: Verify Flutter v2 embedding
+        shell: bash
+        run: |
+          set -e
+
+          echo "=== Checking for Flutter v1 embedding ==="
+
+          if grep -RInE \
+            "io\.flutter\.app|PluginRegistry\.Registrar|FlutterView|FlutterActivityDelegate|FlutterApplication|registerWith" \
+            android \
+            --exclude-dir=build \
+            --exclude-dir=.gradle; then
+
+            echo ""
+            echo "❌ OLD FLUTTER V1 EMBEDDING FOUND"
+            exit 1
+          fi
+
+          echo "✅ No Flutter v1 embedding found."
+
+          echo ""
+          echo "=== Checking Flutter v2 ==="
+
+          grep -RIn \
+            "dev.flutter.flutter-gradle-plugin" \
+            android/app/build.gradle.kts
+
+          grep -RIn \
+            "flutterEmbedding" \
+            android/app/src/main/AndroidManifest.xml
+
+          grep -RIn \
+            "FlutterActivity" \
+            android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
+
+          echo ""
+          echo "=== Checking LiveKit ==="
+
+          grep -RIn \
+            "livekit-android:2.29.0" \
+            android/app/build.gradle.kts
+
+          echo ""
+          echo "✅ Android project verification passed."
+
       - name: Flutter pub get
         run: flutter pub get
 
-      - name: Build APK
+      - name: Clean Flutter
+        run: flutter clean
+
+      - name: Flutter pub get again
+        run: flutter pub get
+
+      - name: Build release APK
         run: flutter build apk --release
+
+      - name: Verify APK
+        run: |
+          set -e
+
+          APK="build/app/outputs/flutter-apk/app-release.apk"
+
+          test -f "$APK"
+
+          echo ""
+          echo "======================================"
+          echo "✅ APK BUILD SUCCESSFUL"
+          echo "======================================"
+          ls -lh "$APK"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
