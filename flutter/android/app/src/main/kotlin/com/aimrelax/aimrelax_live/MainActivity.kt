@@ -1,16 +1,20 @@
 package com.aimrelax.aimrelax_live
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.os.Bundle
-import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import io.livekit.android.LiveKit
 import io.livekit.android.audio.ScreenAudioCapturer
+import io.livekit.android.room.Room
 import io.livekit.android.room.track.LocalAudioTrack
 import io.livekit.android.room.track.LocalVideoTrack
 import io.livekit.android.room.track.Track
@@ -19,44 +23,42 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.cancel
 
 class MainActivity : FlutterActivity() {
 
     companion object {
         private const val CHANNEL = "aimrelax.live/livekit"
         private const val SCREEN_CAPTURE_REQUEST = 9001
+        private const val RECORD_AUDIO_REQUEST = 9002
     }
 
-    private lateinit var channel: MethodChannel
+    private lateinit var methodChannel: MethodChannel
 
-    private var room: io.livekit.android.room.Room? = null
+    private var room: Room? = null
     private var audioCapturer: ScreenAudioCapturer? = null
 
-    private var pendingStartResult: MethodChannel.Result? = null
+    private var pendingResult: MethodChannel.Result? = null
     private var pendingToken: String? = null
     private var pendingUrl: String? = null
 
-    private val scope = CoroutineScope(
-        SupervisorJob() + Dispatchers.Main.immediate
-    )
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
+    private val scope =
+        CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        channel = MethodChannel(
+        methodChannel = MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             CHANNEL
         )
 
-        channel.setMethodCallHandler { call, result ->
+        methodChannel.setMethodCallHandler { call, result ->
 
             when (call.method) {
 
                 "startLive" -> {
+
                     val token = call.argument<String>("token")
                     val url = call.argument<String>("url")
 
@@ -72,38 +74,75 @@ class MainActivity : FlutterActivity() {
                     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
                         result.error(
                             "UNSUPPORTED",
-                            "Internal audio capture requires Android 10+",
+                            "Android 10 or newer is required",
                             null
                         )
                         return@setMethodCallHandler
                     }
 
-                    if (pendingStartResult != null) {
-                        result.error(
-                            "BUSY",
-                            "A LIVE start request is already in progress",
-                            null
-                        )
-                        return@setMethodCallHandler
-                    }
-
+                    pendingResult = result
                     pendingToken = token
                     pendingUrl = url
-                    pendingStartResult = result
 
-                    requestScreenCapture()
+                    requestAudioPermission()
                 }
 
                 "stopLive" -> {
                     stopLive()
-
                     result.success(true)
                 }
 
-                else -> {
-                    result.notImplemented()
-                }
+                else -> result.notImplemented()
             }
+        }
+    }
+
+    private fun requestAudioPermission() {
+
+        if (
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.RECORD_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            requestScreenCapture()
+            return
+        }
+
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.RECORD_AUDIO),
+            RECORD_AUDIO_REQUEST
+        )
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(
+            requestCode,
+            permissions,
+            grantResults
+        )
+
+        if (requestCode != RECORD_AUDIO_REQUEST) {
+            return
+        }
+
+        if (
+            grantResults.isNotEmpty() &&
+            grantResults[0] == PackageManager.PERMISSION_GRANTED
+        ) {
+            requestScreenCapture()
+        } else {
+            pendingResult?.error(
+                "AUDIO_PERMISSION_DENIED",
+                "RECORD_AUDIO permission is required for internal audio capture",
+                null
+            )
+            clearPending()
         }
     }
 
@@ -113,7 +152,8 @@ class MainActivity : FlutterActivity() {
             getSystemService(MEDIA_PROJECTION_SERVICE)
                     as MediaProjectionManager
 
-        val intent = manager.createScreenCaptureIntent()
+        val intent =
+            manager.createScreenCaptureIntent()
 
         startActivityForResult(
             intent,
@@ -140,14 +180,12 @@ class MainActivity : FlutterActivity() {
             resultCode != Activity.RESULT_OK ||
             data == null
         ) {
-            pendingStartResult?.error(
+            pendingResult?.error(
                 "SCREEN_CAPTURE_CANCELLED",
                 "Screen capture permission was cancelled",
                 null
             )
-
-            clearPendingStart()
-
+            clearPending()
             return
         }
 
@@ -158,26 +196,23 @@ class MainActivity : FlutterActivity() {
             token.isNullOrBlank() ||
             url.isNullOrBlank()
         ) {
-            pendingStartResult?.error(
+            pendingResult?.error(
                 "INVALID_STATE",
-                "Missing LiveKit credentials",
+                "LiveKit credentials are missing",
                 null
             )
-
-            clearPendingStart()
-
+            clearPending()
             return
         }
 
-        startLiveKit(
+        connectAndStart(
             url,
             token,
             data
         )
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
-    private fun startLiveKit(
+    private fun connectAndStart(
         url: String,
         token: String,
         screenData: Intent
@@ -188,15 +223,17 @@ class MainActivity : FlutterActivity() {
             try {
 
                 if (room == null) {
-                    room = LiveKit.create(applicationContext)
+                    room = LiveKit.create(application)
                 }
 
                 val liveRoom = room
-                    ?: throw Exception("LiveKit Room creation failed")
+                    ?: throw Exception(
+                        "LiveKit room creation failed"
+                    )
 
                 liveRoom.connect(
-                    url = url,
-                    token = token
+                    url,
+                    token
                 )
 
                 liveRoom.localParticipant
@@ -234,7 +271,7 @@ class MainActivity : FlutterActivity() {
                             screenTrack
                         )
                         ?: throw Exception(
-                            "Internal audio capturer could not be created"
+                            "ScreenAudioCapturer could not be created"
                         )
 
                 audioCapturer?.gain = 1.0f
@@ -244,23 +281,19 @@ class MainActivity : FlutterActivity() {
                 )
 
                 launch(Dispatchers.Main) {
-
-                    pendingStartResult?.success(true)
-
-                    clearPendingStart()
+                    pendingResult?.success(true)
+                    clearPending()
                 }
 
             } catch (e: Exception) {
 
                 launch(Dispatchers.Main) {
-
-                    pendingStartResult?.error(
+                    pendingResult?.error(
                         "LIVE_START_FAILED",
-                        e.message ?: "Failed to start LiveKit",
+                        e.message ?: "Failed to start LIVE",
                         null
                     )
-
-                    clearPendingStart()
+                    clearPending()
                 }
             }
         }
@@ -272,48 +305,49 @@ class MainActivity : FlutterActivity() {
 
             try {
 
-                room?.let { liveRoom ->
+                val liveRoom = room
 
-                    val audioTrack =
-                        liveRoom.localParticipant
-                            .getTrackPublication(
-                                Track.Source.MICROPHONE
-                            )
-                            ?.track as? LocalAudioTrack
+                val audioTrack =
+                    liveRoom
+                        ?.localParticipant
+                        ?.getTrackPublication(
+                            Track.Source.MICROPHONE
+                        )
+                        ?.track as? LocalAudioTrack
 
-                    audioTrack?.setAudioBufferCallback(null)
+                audioTrack?.setAudioBufferCallback(null)
 
-                    liveRoom.localParticipant
-                        .setMicrophoneEnabled(false)
+                liveRoom
+                    ?.localParticipant
+                    ?.setMicrophoneEnabled(false)
 
-                    liveRoom.localParticipant
-                        .setScreenShareEnabled(false)
+                liveRoom
+                    ?.localParticipant
+                    ?.setScreenShareEnabled(false)
 
-                    liveRoom.disconnect()
-                }
+                audioCapturer
+                    ?.releaseAudioResources()
+
+                audioCapturer = null
+
+                liveRoom?.disconnect()
 
             } catch (_: Exception) {
             }
-
-            audioCapturer?.releaseAudioResources()
-            audioCapturer = null
 
             room = null
         }
     }
 
-    private fun clearPendingStart() {
-        pendingStartResult = null
+    private fun clearPending() {
+        pendingResult = null
         pendingToken = null
         pendingUrl = null
     }
 
     override fun onDestroy() {
-
         stopLive()
-
         scope.cancel()
-
         super.onDestroy()
     }
 }
