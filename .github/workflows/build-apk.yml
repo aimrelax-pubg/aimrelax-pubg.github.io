@@ -15,9 +15,15 @@ jobs:
         working-directory: flutter
 
     steps:
+      # ============================================================
+      # 1. CHECKOUT
+      # ============================================================
       - name: Checkout
         uses: actions/checkout@v4
 
+      # ============================================================
+      # 2. FLUTTER
+      # ============================================================
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -26,105 +32,331 @@ jobs:
 
       - name: Check Flutter
         run: |
+          set -e
+
+          echo "======================================"
+          echo "FLUTTER VERSION"
+          echo "======================================"
+
           flutter --version
+
+          echo ""
+          echo "======================================"
+          echo "FLUTTER DOCTOR"
+          echo "======================================"
+
           flutter doctor -v
 
+      # ============================================================
+      # 3. CHECK PROJECT
+      # ============================================================
       - name: Check project
         run: |
+          set -e
+
+          echo "======================================"
+          echo "PROJECT"
+          echo "======================================"
+
           pwd
           ls -la
+
           test -f pubspec.yaml
 
+          echo ""
+          echo "pubspec.yaml found."
+
+      # ============================================================
+      # 4. BACKUP NATIVE AIMRELAX FILES
+      # ============================================================
       - name: Backup AIMRELAX Android files
         shell: bash
         run: |
           set -e
 
+          echo "======================================"
+          echo "BACKUP NATIVE FILES"
+          echo "======================================"
+
           mkdir -p /tmp/aimrelax-native
 
-          cp android/app/src/main/AndroidManifest.xml \
-            /tmp/aimrelax-native/AndroidManifest.xml
+          if [ -f android/app/src/main/AndroidManifest.xml ]; then
+            cp \
+              android/app/src/main/AndroidManifest.xml \
+              /tmp/aimrelax-native/AndroidManifest.xml
+          else
+            echo "AndroidManifest.xml not found."
+            exit 1
+          fi
 
-          cp android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt \
-            /tmp/aimrelax-native/MainActivity.kt
+          if [ -f android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt ]; then
+            cp \
+              android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt \
+              /tmp/aimrelax-native/MainActivity.kt
+          else
+            echo "MainActivity.kt not found."
+            exit 1
+          fi
 
+          echo ""
           echo "Native AIMRELAX files backed up."
 
+      # ============================================================
+      # 5. REMOVE OLD ANDROID PROJECT
+      # ============================================================
       - name: Remove old Android project
         run: |
+          set -e
+
+          echo "======================================"
+          echo "REMOVE OLD ANDROID PROJECT"
+          echo "======================================"
+
           rm -rf android
+
           echo "Old Android project removed."
 
+      # ============================================================
+      # 6. CREATE FRESH FLUTTER ANDROID PROJECT
+      # ============================================================
       - name: Generate fresh Flutter Android project
         run: |
+          set -e
+
+          echo "======================================"
+          echo "CREATE FRESH FLUTTER ANDROID PROJECT"
+          echo "======================================"
+
           flutter create \
             --platforms=android \
             --org com.aimrelax \
             --project-name aimrelax_live \
             .
 
+          echo ""
           echo "Fresh Flutter Android project created."
 
+      # ============================================================
+      # 7. RESTORE AIMRELAX NATIVE FILES
+      # ============================================================
       - name: Restore AIMRELAX native files
         shell: bash
         run: |
           set -e
 
+          echo "======================================"
+          echo "RESTORE AIMRELAX NATIVE FILES"
+          echo "======================================"
+
           mkdir -p \
             android/app/src/main/kotlin/com/aimrelax/aimrelax_live
 
-          cp /tmp/aimrelax-native/AndroidManifest.xml \
+          cp \
+            /tmp/aimrelax-native/AndroidManifest.xml \
             android/app/src/main/AndroidManifest.xml
 
-          cp /tmp/aimrelax-native/MainActivity.kt \
+          cp \
+            /tmp/aimrelax-native/MainActivity.kt \
             android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
 
+          echo ""
           echo "AIMRELAX native files restored."
 
-      - name: Configure LiveKit
+      # ============================================================
+      # 8. CONFIGURE ANDROID / LIVEKIT
+      # ============================================================
+      - name: Configure Android and LiveKit
         shell: bash
         run: |
           set -e
 
-          python3 <<'PY'
-          from pathlib import Path
+          echo "======================================"
+          echo "CONFIGURE ANDROID"
+          echo "======================================"
 
-          path = Path("android/app/build.gradle.kts")
-          text = path.read_text()
+          if [ -f android/app/build.gradle.kts ]; then
 
-          dependency = 'implementation("io.livekit:livekit-android:2.29.0")'
+            echo "Using build.gradle.kts"
 
-          if dependency not in text:
-              if "dependencies {" in text:
-                  text = text.replace(
-                      "dependencies {",
-                      "dependencies {\n    " + dependency,
-                      1
-                  )
-              else:
-                  text += (
-                      "\n\ndependencies {\n"
-                      "    " + dependency + "\n"
-                      "}\n"
-                  )
+            python3 <<'PY'
+from pathlib import Path
 
-          path.write_text(text)
-          PY
+path = Path("android/app/build.gradle.kts")
+text = path.read_text()
 
+# ------------------------------------------------------------
+# Namespace
+# ------------------------------------------------------------
+
+text = text.replace(
+    'namespace = "com.aimrelax.aimrelax_live"',
+    'namespace = "com.aimrelax.aimrelax_live"'
+)
+
+# ------------------------------------------------------------
+# Application ID
+# ------------------------------------------------------------
+
+text = text.replace(
+    'applicationId = "com.aimrelax.aimrelax_live"',
+    'applicationId = "com.aimrelax.aimrelax_live"'
+)
+
+# ------------------------------------------------------------
+# LiveKit dependency
+# ------------------------------------------------------------
+
+dependency = 'implementation("io.livekit:livekit-android:2.29.0")'
+
+if dependency not in text:
+
+    if "dependencies {" in text:
+        text = text.replace(
+            "dependencies {",
+            "dependencies {\n    " + dependency,
+            1
+        )
+    else:
+        text += (
+            "\n\ndependencies {\n"
+            "    " + dependency + "\n"
+            "}\n"
+        )
+
+path.write_text(text)
+PY
+
+          elif [ -f android/app/build.gradle ]; then
+
+            echo "Using build.gradle"
+
+            python3 <<'PY'
+from pathlib import Path
+
+path = Path("android/app/build.gradle")
+text = path.read_text()
+
+dependency = 'implementation "io.livekit:livekit-android:2.29.0"'
+
+if dependency not in text:
+
+    if "dependencies {" in text:
+        text = text.replace(
+            "dependencies {",
+            "dependencies {\n    " + dependency,
+            1
+        )
+    else:
+        text += (
+            "\n\ndependencies {\n"
+            "    " + dependency + "\n"
+            "}\n"
+        )
+
+path.write_text(text)
+PY
+
+          else
+
+            echo "❌ Android Gradle file not found."
+            exit 1
+
+          fi
+
+          echo ""
           echo "LiveKit dependency configured."
 
+      # ============================================================
+      # 9. CONFIGURE MIN SDK
+      # ============================================================
+      - name: Configure Android SDK
+        shell: bash
+        run: |
+          set -e
+
+          echo "======================================"
+          echo "CONFIGURE ANDROID SDK"
+          echo "======================================"
+
+          if [ -f android/app/build.gradle.kts ]; then
+
+            python3 <<'PY'
+from pathlib import Path
+
+path = Path("android/app/build.gradle.kts")
+text = path.read_text()
+
+# Keep Android SDK modern.
+text = text.replace(
+    'minSdk = flutter.minSdkVersion',
+    'minSdk = 26'
+)
+
+text = text.replace(
+    'minSdkVersion = flutter.minSdkVersion',
+    'minSdkVersion = 26'
+)
+
+text = text.replace(
+    'targetSdk = flutter.targetSdkVersion',
+    'targetSdk = 36'
+)
+
+text = text.replace(
+    'targetSdkVersion = flutter.targetSdkVersion',
+    'targetSdkVersion = 36'
+)
+
+path.write_text(text)
+PY
+
+          elif [ -f android/app/build.gradle ]; then
+
+            python3 <<'PY'
+from pathlib import Path
+
+path = Path("android/app/build.gradle")
+text = path.read_text()
+
+text = text.replace(
+    'minSdkVersion flutter.minSdkVersion',
+    'minSdkVersion 26'
+)
+
+text = text.replace(
+    'targetSdkVersion flutter.targetSdkVersion',
+    'targetSdkVersion 36'
+)
+
+path.write_text(text)
+PY
+
+          fi
+
+          echo "Android SDK configuration completed."
+
+      # ============================================================
+      # 10. VERIFY FLUTTER V2 EMBEDDING
+      # ============================================================
       - name: Verify Flutter v2 embedding
         shell: bash
         run: |
           set -e
 
-          echo "=== Checking for Flutter v1 embedding ==="
+          echo "======================================"
+          echo "CHECK FLUTTER V1 EMBEDDING"
+          echo "======================================"
+
+          # IMPORTANT:
+          # GeneratedPluginRegistrant.java is a normal Flutter
+          # generated file and must NOT be treated as v1 embedding.
 
           if grep -RInE \
-            "io\.flutter\.app|PluginRegistry\.Registrar|FlutterView|FlutterActivityDelegate|FlutterApplication|registerWith" \
+            "io\.flutter\.app\.|PluginRegistry\.Registrar|FlutterActivityDelegate|FlutterApplication|registerWith\(.*Registrar" \
             android \
             --exclude-dir=build \
-            --exclude-dir=.gradle; then
+            --exclude-dir=.gradle \
+            --exclude="GeneratedPluginRegistrant.java"; then
 
             echo ""
             echo "❌ OLD FLUTTER V1 EMBEDDING FOUND"
@@ -134,56 +366,126 @@ jobs:
           echo "✅ No Flutter v1 embedding found."
 
           echo ""
-          echo "=== Checking Flutter v2 ==="
+          echo "======================================"
+          echo "CHECK FLUTTER V2"
+          echo "======================================"
 
-          grep -RIn \
-            "dev.flutter.flutter-gradle-plugin" \
-            android/app/build.gradle.kts
+          if [ -f android/app/build.gradle.kts ]; then
+            grep -RIn \
+              "dev.flutter.flutter-gradle-plugin" \
+              android/app/build.gradle.kts
+          elif [ -f android/app/build.gradle ]; then
+            grep -RIn \
+              "dev.flutter.flutter-gradle-plugin" \
+              android/app/build.gradle
+          fi
 
-          grep -RIn \
-            "flutterEmbedding" \
-            android/app/src/main/AndroidManifest.xml
+          echo ""
+          echo "Checking MainActivity..."
 
           grep -RIn \
             "FlutterActivity" \
             android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
 
           echo ""
-          echo "=== Checking LiveKit ==="
+          echo "======================================"
+          echo "CHECK LIVEKIT"
+          echo "======================================"
 
-          grep -RIn \
-            "livekit-android:2.29.0" \
-            android/app/build.gradle.kts
+          if [ -f android/app/build.gradle.kts ]; then
+            grep -RIn \
+              "livekit-android:2.29.0" \
+              android/app/build.gradle.kts
+          elif [ -f android/app/build.gradle ]; then
+            grep -RIn \
+              "livekit-android:2.29.0" \
+              android/app/build.gradle
+          fi
 
           echo ""
-          echo "✅ Android project verification passed."
+          echo "======================================"
+          echo "ANDROID PROJECT VERIFICATION PASSED"
+          echo "======================================"
 
+      # ============================================================
+      # 11. PUB GET
+      # ============================================================
       - name: Flutter pub get
-        run: flutter pub get
+        run: |
+          set -e
 
-      - name: Clean Flutter
-        run: flutter clean
+          echo "======================================"
+          echo "FLUTTER PUB GET"
+          echo "======================================"
 
+          flutter pub get
+
+      # ============================================================
+      # 12. CLEAN
+      # ============================================================
+      - name: Flutter clean
+        run: |
+          set -e
+
+          echo "======================================"
+          echo "FLUTTER CLEAN"
+          echo "======================================"
+
+          flutter clean
+
+      # ============================================================
+      # 13. PUB GET AGAIN
+      # ============================================================
       - name: Flutter pub get again
-        run: flutter pub get
+        run: |
+          set -e
 
+          flutter pub get
+
+      # ============================================================
+      # 14. BUILD APK
+      # ============================================================
       - name: Build release APK
-        run: flutter build apk --release
+        run: |
+          set -e
 
+          echo "======================================"
+          echo "BUILD RELEASE APK"
+          echo "======================================"
+
+          flutter build apk --release
+
+      # ============================================================
+      # 15. VERIFY APK
+      # ============================================================
       - name: Verify APK
         run: |
           set -e
 
           APK="build/app/outputs/flutter-apk/app-release.apk"
 
-          test -f "$APK"
+          echo "======================================"
+          echo "VERIFY APK"
+          echo "======================================"
+
+          if [ ! -f "$APK" ]; then
+            echo ""
+            echo "❌ APK NOT FOUND"
+            echo ""
+            find build -type f -name "*.apk" -print || true
+            exit 1
+          fi
 
           echo ""
           echo "======================================"
           echo "✅ APK BUILD SUCCESSFUL"
           echo "======================================"
+
           ls -lh "$APK"
 
+      # ============================================================
+      # 16. UPLOAD APK
+      # ============================================================
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
