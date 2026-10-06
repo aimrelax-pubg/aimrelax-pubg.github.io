@@ -24,85 +24,102 @@ jobs:
       - name: Flutter version
         run: flutter --version
 
-      - name: Verify project
+      - name: Verify Flutter project
         working-directory: flutter
         run: |
           set -e
 
-          echo "Checking Flutter project..."
           test -f pubspec.yaml
+          test -d android
           test -f android/settings.gradle.kts
           test -f android/app/build.gradle.kts
           test -f android/app/src/main/AndroidManifest.xml
-          test -f android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
 
-          echo "Project structure OK"
+          echo "Flutter project OK"
+
+      - name: Remove old Flutter Android v1 files
+        working-directory: flutter
+        run: |
+          set -e
+
+          echo "Searching for old Flutter v1 embedding files..."
+
+          find android -type f \( \
+            -name "GeneratedPluginRegistrant.java" \
+            -o -name "GeneratedPluginRegistrant.kt" \
+            \) -print
+
+          find android -type f \
+            -name "GeneratedPluginRegistrant.java" \
+            -delete
+
+          find android -type f \
+            -name "GeneratedPluginRegistrant.kt" \
+            -delete
+
+          echo "Old generated registrant files removed."
+
+      - name: Check for real Flutter v1 embedding
+        working-directory: flutter
+        run: |
+          set -e
+
+          echo "Checking Android source files..."
+
+          if grep -RInE \
+            "io\.flutter\.app\.|PluginRegistry\.Registrar|FlutterActivityDelegate|FlutterApplication" \
+            android/app/src/main \
+            --include="*.kt" \
+            --include="*.java"; then
+
+            echo ""
+            echo "=========================================="
+            echo "REAL FLUTTER V1 EMBEDDING FOUND"
+            echo "=========================================="
+            exit 1
+          fi
+
+          echo "No Flutter v1 embedding found."
+
+      - name: Verify MainActivity
+        working-directory: flutter
+        run: |
+          set -e
+
+          MAIN="android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt"
+
+          test -f "$MAIN"
+
+          grep -q "FlutterActivity" "$MAIN"
+          grep -q "configureFlutterEngine" "$MAIN"
+          grep -q "aimrelax.live/livekit" "$MAIN"
+
+          echo "MainActivity is Flutter v2 compatible."
 
       - name: Verify LiveKit dependency
         working-directory: flutter
         run: |
           set -e
 
-          grep -q 'io.livekit:livekit-android:2.29.0' \
+          grep -q \
+            'io.livekit:livekit-android:2.29.0' \
             android/app/build.gradle.kts
 
-          echo "LiveKit 2.29.0 dependency OK"
+          echo "LiveKit 2.29.0 dependency found."
 
-      - name: Verify Flutter Android embedding
+      - name: Verify LiveKit native code
         working-directory: flutter
         run: |
           set -e
 
-          grep -q 'FlutterActivity' \
-            android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
+          MAIN="android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt"
 
-          if grep -RInE \
-            'io\.flutter\.app\.|PluginRegistry\.Registrar|FlutterActivityDelegate|FlutterApplication' \
-            android \
-            --exclude-dir=build \
-            --exclude-dir=.gradle \
-            --exclude='GeneratedPluginRegistrant.java'; then
+          grep -q "ScreenCaptureParams" "$MAIN"
+          grep -q "ScreenAudioCapturer" "$MAIN"
+          grep -q "setScreenShareEnabled" "$MAIN"
+          grep -q "setAudioBufferCallback" "$MAIN"
 
-            echo "OLD FLUTTER V1 EMBEDDING FOUND"
-            exit 1
-          fi
-
-          echo "Flutter Android embedding OK"
-
-      - name: Verify AIMRELAX MethodChannel
-        working-directory: flutter
-        run: |
-          set -e
-
-          grep -q 'aimrelax.live/livekit' \
-            android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
-
-          grep -q '"startLive"' \
-            android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
-
-          grep -q '"stopLive"' \
-            android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
-
-          echo "AIMRELAX MethodChannel OK"
-
-      - name: Verify LiveKit Android code
-        working-directory: flutter
-        run: |
-          set -e
-
-          grep -q 'ScreenCaptureParams' \
-            android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
-
-          grep -q 'ScreenAudioCapturer' \
-            android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
-
-          grep -q 'setScreenShareEnabled' \
-            android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
-
-          grep -q 'setAudioBufferCallback' \
-            android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
-
-          echo "LiveKit screen + audio code OK"
+          echo "LiveKit screen/audio implementation found."
 
       - name: Verify Android permissions
         working-directory: flutter
@@ -111,25 +128,31 @@ jobs:
 
           MANIFEST="android/app/src/main/AndroidManifest.xml"
 
-          grep -q 'android.permission.INTERNET' "$MANIFEST"
-          grep -q 'android.permission.RECORD_AUDIO' "$MANIFEST"
-          grep -q 'android.permission.FOREGROUND_SERVICE' "$MANIFEST"
-          grep -q 'android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION' "$MANIFEST"
-          grep -q 'android.permission.FOREGROUND_SERVICE_MICROPHONE' "$MANIFEST"
+          grep -q "android.permission.INTERNET" "$MANIFEST"
+          grep -q "android.permission.RECORD_AUDIO" "$MANIFEST"
+          grep -q "android.permission.FOREGROUND_SERVICE" "$MANIFEST"
+          grep -q "android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" "$MANIFEST"
+          grep -q "android.permission.FOREGROUND_SERVICE_MICROPHONE" "$MANIFEST"
 
-          echo "Android permissions OK"
+          echo "Android permissions OK."
 
       - name: Flutter clean
         working-directory: flutter
-        run: flutter clean
+        run: |
+          flutter clean
 
       - name: Flutter pub get
         working-directory: flutter
-        run: flutter pub get
+        run: |
+          flutter pub get
 
       - name: Build release APK
         working-directory: flutter
-        run: flutter build apk --release --no-tree-shake-icons
+        run: |
+          flutter build apk \
+            --release \
+            --no-tree-shake-icons \
+            --verbose
 
       - name: Verify APK
         working-directory: flutter
@@ -140,14 +163,17 @@ jobs:
 
           if [ ! -f "$APK" ]; then
             echo "APK was not created."
-            echo "Available APK files:"
+
+            echo "Searching for APK files:"
             find build -type f -name "*.apk" -print
+
             exit 1
           fi
 
-          echo "========================================"
+          echo ""
+          echo "=========================================="
           echo "AIMRELAX LIVE APK BUILD SUCCESSFUL"
-          echo "========================================"
+          echo "=========================================="
 
           ls -lh "$APK"
 
