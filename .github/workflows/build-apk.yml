@@ -323,15 +323,7 @@ jobs:
           flutter pub get
 
       - name: Check Gradle repositories
-        working-directory: flutter
-        run: |
-          set -e
-
-          cd android
-
-          ./gradlew \
-            :app:repositories \
-            --no-daemon
+      
 
       - name: Resolve Android dependencies
         working-directory: flutter
