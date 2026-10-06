@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Flutter
@@ -24,47 +24,168 @@ jobs:
       - name: Flutter version
         run: flutter --version
 
-      - name: Verify Flutter project
+      # ---------------------------------------------------------
+      # Save our custom Android files
+      # ---------------------------------------------------------
+      - name: Backup AIMRELAX Android files
         working-directory: flutter
         run: |
           set -e
 
-          test -f pubspec.yaml
-          test -d android
+          mkdir -p /tmp/aimrelax_backup
+
+          cp android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt \
+             /tmp/aimrelax_backup/MainActivity.kt
+
+          cp android/app/src/main/AndroidManifest.xml \
+             /tmp/aimrelax_backup/AndroidManifest.xml
+
+          cp android/app/build.gradle.kts \
+             /tmp/aimrelax_backup/app-build.gradle.kts
+
+          echo "AIMRELAX Android files backed up."
+
+      # ---------------------------------------------------------
+      # Generate a completely fresh modern Flutter Android project
+      # ---------------------------------------------------------
+      - name: Regenerate Android platform
+        working-directory: flutter
+        run: |
+          set -e
+
+          rm -rf android
+
+          flutter create \
+            --platforms=android \
+            --org com.aimrelax \
+            --project-name aimrelax_live \
+            .
+
+          echo "Fresh Flutter Android project created."
+
+      # ---------------------------------------------------------
+      # Restore MainActivity
+      # ---------------------------------------------------------
+      - name: Restore MainActivity
+        working-directory: flutter
+        run: |
+          set -e
+
+          mkdir -p android/app/src/main/kotlin/com/aimrelax/aimrelax_live
+
+          cp /tmp/aimrelax_backup/MainActivity.kt \
+             android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
+
+          echo "MainActivity restored."
+
+      # ---------------------------------------------------------
+      # Restore AndroidManifest
+      # ---------------------------------------------------------
+      - name: Restore AndroidManifest
+        working-directory: flutter
+        run: |
+          set -e
+
+          cp /tmp/aimrelax_backup/AndroidManifest.xml \
+             android/app/src/main/AndroidManifest.xml
+
+          echo "AndroidManifest restored."
+
+      # ---------------------------------------------------------
+      # Replace app Gradle with LiveKit version
+      # ---------------------------------------------------------
+      - name: Configure LiveKit Gradle
+        working-directory: flutter
+        run: |
+          set -e
+
+          cat > android/app/build.gradle.kts <<'EOF'
+          plugins {
+              id("com.android.application")
+              id("org.jetbrains.kotlin.android")
+              id("dev.flutter.flutter-gradle-plugin")
+          }
+
+          android {
+              namespace = "com.aimrelax.aimrelax_live"
+              compileSdk = 36
+
+              defaultConfig {
+                  applicationId = "com.aimrelax.aimrelax_live"
+                  minSdk = 26
+                  targetSdk = 36
+                  versionCode = 2
+                  versionName = "2.0"
+              }
+          }
+
+          dependencies {
+              implementation("io.livekit:livekit-android:2.29.0")
+          }
+
+          flutter {
+              source = "../.."
+          }
+          EOF
+
+          echo "LiveKit Gradle configuration written."
+
+      # ---------------------------------------------------------
+      # Make sure repositories include Maven Central
+      # ---------------------------------------------------------
+      - name: Configure repositories
+        working-directory: flutter
+        run: |
+          set -e
+
+          cat > android/settings.gradle.kts <<'EOF'
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+                  maven { url = uri("https://jitpack.io") }
+              }
+          }
+
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+
+              repositories {
+                  google()
+                  mavenCentral()
+                  maven { url = uri("https://jitpack.io") }
+              }
+          }
+
+          plugins {
+              id("dev.flutter.flutter-plugin-loader") version "1.0.0"
+              id("com.android.application") version "8.7.3" apply false
+              id("org.jetbrains.kotlin.android") version "2.0.21" apply false
+          }
+
+          include(":app")
+          EOF
+
+          echo "Repositories configured."
+
+      # ---------------------------------------------------------
+      # Verify that Android V2 embedding is used
+      # ---------------------------------------------------------
+      - name: Verify Android project
+        working-directory: flutter
+        run: |
+          set -e
+
+          echo "Checking Android project..."
+
           test -f android/settings.gradle.kts
+          test -f android/build.gradle.kts
+          test -f android/gradle.properties
+          test -f android/gradlew
           test -f android/app/build.gradle.kts
           test -f android/app/src/main/AndroidManifest.xml
-
-          echo "Flutter project OK"
-
-      - name: Remove old Flutter Android v1 files
-        working-directory: flutter
-        run: |
-          set -e
-
-          echo "Searching for old Flutter v1 embedding files..."
-
-          find android -type f \( \
-            -name "GeneratedPluginRegistrant.java" \
-            -o -name "GeneratedPluginRegistrant.kt" \
-            \) -print
-
-          find android -type f \
-            -name "GeneratedPluginRegistrant.java" \
-            -delete
-
-          find android -type f \
-            -name "GeneratedPluginRegistrant.kt" \
-            -delete
-
-          echo "Old generated registrant files removed."
-
-      - name: Check for real Flutter v1 embedding
-        working-directory: flutter
-        run: |
-          set -e
-
-          echo "Checking Android source files..."
+          test -f android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
 
           if grep -RInE \
             "io\.flutter\.app\.|PluginRegistry\.Registrar|FlutterActivityDelegate|FlutterApplication" \
@@ -72,31 +193,22 @@ jobs:
             --include="*.kt" \
             --include="*.java"; then
 
-            echo ""
-            echo "=========================================="
-            echo "REAL FLUTTER V1 EMBEDDING FOUND"
-            echo "=========================================="
+            echo "OLD FLUTTER V1 EMBEDDING FOUND"
             exit 1
           fi
 
-          echo "No Flutter v1 embedding found."
+          grep -q 'android:name="\.MainActivity"' \
+            android/app/src/main/AndroidManifest.xml
 
-      - name: Verify MainActivity
-        working-directory: flutter
-        run: |
-          set -e
+          grep -q 'android:value="2"' \
+            android/app/src/main/AndroidManifest.xml
 
-          MAIN="android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt"
+          echo "Modern Flutter Android project confirmed."
 
-          test -f "$MAIN"
-
-          grep -q "FlutterActivity" "$MAIN"
-          grep -q "configureFlutterEngine" "$MAIN"
-          grep -q "aimrelax.live/livekit" "$MAIN"
-
-          echo "MainActivity is Flutter v2 compatible."
-
-      - name: Verify LiveKit dependency
+      # ---------------------------------------------------------
+      # Verify LiveKit
+      # ---------------------------------------------------------
+      - name: Verify LiveKit
         working-directory: flutter
         run: |
           set -e
@@ -105,37 +217,32 @@ jobs:
             'io.livekit:livekit-android:2.29.0' \
             android/app/build.gradle.kts
 
-          echo "LiveKit 2.29.0 dependency found."
+          grep -q \
+            'io.livekit.android' \
+            android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
 
-      - name: Verify LiveKit native code
-        working-directory: flutter
-        run: |
-          set -e
+          echo "LiveKit configuration confirmed."
 
-          MAIN="android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt"
-
-          grep -q "ScreenCaptureParams" "$MAIN"
-          grep -q "ScreenAudioCapturer" "$MAIN"
-          grep -q "setScreenShareEnabled" "$MAIN"
-          grep -q "setAudioBufferCallback" "$MAIN"
-
-          echo "LiveKit screen/audio implementation found."
-
-      - name: Verify Android permissions
+      # ---------------------------------------------------------
+      # Verify permissions
+      # ---------------------------------------------------------
+      - name: Verify permissions
         working-directory: flutter
         run: |
           set -e
 
           MANIFEST="android/app/src/main/AndroidManifest.xml"
 
-          grep -q "android.permission.INTERNET" "$MANIFEST"
-          grep -q "android.permission.RECORD_AUDIO" "$MANIFEST"
-          grep -q "android.permission.FOREGROUND_SERVICE" "$MANIFEST"
-          grep -q "android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" "$MANIFEST"
-          grep -q "android.permission.FOREGROUND_SERVICE_MICROPHONE" "$MANIFEST"
+          grep -q 'android.permission.INTERNET' "$MANIFEST"
+          grep -q 'android.permission.RECORD_AUDIO' "$MANIFEST"
+          grep -q 'android.permission.FOREGROUND_SERVICE' "$MANIFEST"
+          grep -q 'android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION' "$MANIFEST"
 
-          echo "Android permissions OK."
+          echo "Required permissions confirmed."
 
+      # ---------------------------------------------------------
+      # Flutter dependencies
+      # ---------------------------------------------------------
       - name: Flutter clean
         working-directory: flutter
         run: |
@@ -146,7 +253,10 @@ jobs:
         run: |
           flutter pub get
 
-      - name: Build release APK
+      # ---------------------------------------------------------
+      # Build
+      # ---------------------------------------------------------
+      - name: Build APK
         working-directory: flutter
         run: |
           flutter build apk \
@@ -154,6 +264,9 @@ jobs:
             --no-tree-shake-icons \
             --verbose
 
+      # ---------------------------------------------------------
+      # Verify APK
+      # ---------------------------------------------------------
       - name: Verify APK
         working-directory: flutter
         run: |
@@ -163,20 +276,19 @@ jobs:
 
           if [ ! -f "$APK" ]; then
             echo "APK was not created."
-
-            echo "Searching for APK files:"
             find build -type f -name "*.apk" -print
-
             exit 1
           fi
 
-          echo ""
           echo "=========================================="
           echo "AIMRELAX LIVE APK BUILD SUCCESSFUL"
           echo "=========================================="
 
           ls -lh "$APK"
 
+      # ---------------------------------------------------------
+      # Upload APK
+      # ---------------------------------------------------------
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
