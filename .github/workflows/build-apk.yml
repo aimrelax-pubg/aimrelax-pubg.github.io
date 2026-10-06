@@ -10,6 +10,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: build_project/AIMRELAX_LIVE
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,8 +24,11 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Flutter version
-        run: flutter --version
+      - name: Check Flutter project
+        run: |
+          pwd
+          ls -la
+          test -f pubspec.yaml
 
       - name: Flutter pub get
         run: flutter pub get
@@ -33,5 +40,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: AIMRELAX-LIVE-APK
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: build_project/AIMRELAX_LIVE/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
