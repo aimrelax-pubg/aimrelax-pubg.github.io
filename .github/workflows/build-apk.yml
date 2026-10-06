@@ -12,18 +12,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
-      # ==========================================
-      # CHECKOUT
-      # ==========================================
-
       - name: Checkout
         uses: actions/checkout@v4
-
-
-      # ==========================================
-      # FLUTTER
-      # ==========================================
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -32,34 +22,19 @@ jobs:
           cache: true
 
       - name: Flutter version
-        run: |
-          set -e
-          flutter --version
-
-
-      # ==========================================
-      # BACKUP CUSTOM ANDROID FILES
-      # ==========================================
+        run: flutter --version
 
       - name: Backup AIMRELAX Android files
         working-directory: flutter
         run: |
           set -e
-
           mkdir -p /tmp/aimrelax_backup
 
           cp android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt \
-             /tmp/aimrelax_backup/MainActivity.kt
+            /tmp/aimrelax_backup/MainActivity.kt
 
           cp android/app/src/main/AndroidManifest.xml \
-             /tmp/aimrelax_backup/AndroidManifest.xml
-
-          echo "Android files backed up successfully."
-
-
-      # ==========================================
-      # REGENERATE FLUTTER ANDROID PROJECT
-      # ==========================================
+            /tmp/aimrelax_backup/AndroidManifest.xml
 
       - name: Regenerate Android project
         working-directory: flutter
@@ -74,13 +49,6 @@ jobs:
             --project-name aimrelax_live \
             .
 
-          echo "Fresh Flutter Android project created."
-
-
-      # ==========================================
-      # RESTORE MAIN ACTIVITY
-      # ==========================================
-
       - name: Restore MainActivity
         working-directory: flutter
         run: |
@@ -89,14 +57,7 @@ jobs:
           mkdir -p android/app/src/main/kotlin/com/aimrelax/aimrelax_live
 
           cp /tmp/aimrelax_backup/MainActivity.kt \
-             android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
-
-          echo "MainActivity restored."
-
-
-      # ==========================================
-      # RESTORE MANIFEST
-      # ==========================================
+            android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
 
       - name: Restore AndroidManifest
         working-directory: flutter
@@ -104,286 +65,96 @@ jobs:
           set -e
 
           cp /tmp/aimrelax_backup/AndroidManifest.xml \
-             android/app/src/main/AndroidManifest.xml
+            android/app/src/main/AndroidManifest.xml
 
-          echo "AndroidManifest restored."
-
-
-      # ==========================================
-      # CONFIGURE LIVEKIT + JITPACK
-      # ==========================================
-
-      - name: Configure LiveKit dependency
+      - name: Configure LiveKit
         working-directory: flutter
         run: |
           set -e
 
           python3 <<'PY'
           from pathlib import Path
-          import re
-
-          # ==========================================
-          # APP GRADLE
-          # ==========================================
 
           app = Path("android/app/build.gradle.kts")
-          s = app.read_text()
+          settings = Path("android/settings.gradle.kts")
+
+          app_text = app.read_text()
+          settings_text = settings.read_text()
 
           dependency = 'implementation("io.livekit:livekit-android:2.29.0")'
 
-          if dependency not in s:
-
-              if "dependencies {" in s:
-
-                  s = s.replace(
-                      "dependencies {",
-                      "dependencies {\n    " + dependency,
+          if dependency not in app_text:
+              marker = "dependencies {"
+              if marker in app_text:
+                  app_text = app_text.replace(
+                      marker,
+                      marker + "\n    " + dependency,
                       1
                   )
-
               else:
-
-                  s += (
-                      "\n\n"
-                      "dependencies {\n"
+                  app_text += (
+                      "\n\ndependencies {\n"
                       "    " + dependency + "\n"
                       "}\n"
                   )
 
-          app.write_text(s)
+          app.write_text(app_text)
 
-          # ==========================================
-          # SETTINGS GRADLE
-          # ==========================================
-
-          settings = Path("android/settings.gradle.kts")
-          s = settings.read_text()
-
-          JITPACK = 'maven { url = uri("https://jitpack.io") }'
-
-          # ==========================================
-          # FIND DEPENDENCY RESOLUTION MANAGEMENT
-          # ==========================================
-
-          drm = re.search(
-              r'dependencyResolutionManagement\s*\{',
-              s
-          )
-
-          if drm:
-
-              start = drm.start()
-
-              repositories = re.search(
-                  r'repositories\s*\{',
-                  s[start:]
+          if "https://jitpack.io" not in settings_text:
+              settings_text = settings_text.replace(
+                  "mavenCentral()",
+                  "mavenCentral()\n        maven { url = uri(\"https://jitpack.io\") }",
+                  1
               )
 
-              if not repositories:
-                  raise SystemExit(
-                      "dependencyResolutionManagement exists "
-                      "but repositories block is missing."
-                  )
+          settings.write_text(settings_text)
 
-              repo_start = start + repositories.start()
-
-              brace_start = s.find(
-                  "{",
-                  repo_start
-              )
-
-              depth = 0
-              repo_end = None
-
-              for i in range(brace_start, len(s)):
-
-                  if s[i] == "{":
-                      depth += 1
-
-                  elif s[i] == "}":
-                      depth -= 1
-
-                      if depth == 0:
-                          repo_end = i
-                          break
-
-              if repo_end is None:
-                  raise SystemExit(
-                      "Could not parse repositories block."
-                  )
-
-              repo_block = s[repo_start:repo_end]
-
-              if "jitpack.io" not in repo_block:
-
-                  if "mavenCentral()" in repo_block:
-
-                      repo_block = repo_block.replace(
-                          "mavenCentral()",
-                          "mavenCentral()\n"
-                          "        " + JITPACK,
-                          1
-                      )
-
-                  else:
-
-                      repo_block += (
-                          "\n"
-                          "        " + JITPACK + "\n"
-                      )
-
-                  s = (
-                      s[:repo_start]
-                      + repo_block
-                      + s[repo_end:]
-                  )
-
-          else:
-
-              # ======================================
-              # FLUTTER SETTINGS WITHOUT DRM
-              # ======================================
-
-              import_line = (
-                  "import org.gradle.api.initialization.resolve.RepositoriesMode\n"
-              )
-
-              if (
-                  "RepositoriesMode" not in s
-                  and not s.startswith(import_line)
-              ):
-                  s = import_line + s
-
-              block = """
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
-    repositories {
-        google()
-        mavenCentral()
-        maven { url = uri("https://jitpack.io") }
-    }
-}
-
-"""
-
-              if "rootProject.name" in s:
-
-                  s = s.replace(
-                      "rootProject.name",
-                      block + "rootProject.name",
-                      1
-                  )
-
-              else:
-
-                  s = block + s
-
-          settings.write_text(s)
-
-          # ==========================================
-          # OUTPUT
-          # ==========================================
-
-          print("")
-          print("==========================================")
-          print("FINAL SETTINGS.GRADLE.KTS")
-          print("==========================================")
-          print(settings.read_text())
-
-          print("")
-          print("==========================================")
-          print("FINAL APP/BUILD.GRADLE.KTS")
-          print("==========================================")
-          print(app.read_text())
-
-          print("")
-          print("==========================================")
-          print("LIVEKIT + JITPACK CONFIGURED")
-          print("==========================================")
+          print("LiveKit configured.")
+          print("JitPack configured.")
           PY
-
-
-      # ==========================================
-      # VERIFY FLUTTER GRADLE
-      # ==========================================
 
       - name: Verify Flutter Gradle integration
         working-directory: flutter
         run: |
           set -e
 
-          echo "Checking Android project..."
-
           test -f android/settings.gradle.kts
           test -f android/build.gradle.kts
-          test -f android/gradle.properties
-          test -f android/gradlew
           test -f android/app/build.gradle.kts
-
-          echo "Android project: OK"
-
-          echo ""
-          echo "Checking Flutter Gradle plugin..."
+          test -f android/gradlew
 
           grep -q "flutter_tools/gradle" \
             android/settings.gradle.kts
 
-          echo "Flutter Gradle integration: OK"
+          echo "Flutter Gradle integration OK."
 
-
-      # ==========================================
-      # VERIFY JITPACK
-      # ==========================================
-
-      - name: Verify JitPack repository
+      - name: Verify JitPack
         working-directory: flutter
         run: |
           set -e
-
-          echo "Checking JitPack repository..."
 
           grep -q "jitpack.io" \
             android/settings.gradle.kts
 
-          echo "JitPack found."
+          echo "JitPack repository OK."
 
-          echo ""
-          echo "JitPack configuration:"
-          grep -n -B4 -A8 "jitpack.io" \
-            android/settings.gradle.kts
-
-          echo ""
-          echo "JitPack verification: OK"
-
-
-      # ==========================================
-      # VERIFY LIVEKIT
-      # ==========================================
-
-      - name: Verify LiveKit dependency
+      - name: Verify LiveKit
         working-directory: flutter
         run: |
           set -e
 
-          echo "Checking LiveKit dependency..."
-
-          grep -q \
-            "io.livekit:livekit-android:2.29.0" \
+          grep -q "io.livekit:livekit-android:2.29.0" \
             android/app/build.gradle.kts
 
-          echo "LiveKit 2.29.0: OK"
+          grep -q "io.livekit.android" \
+            android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
 
-
-      # ==========================================
-      # VERIFY V2 EMBEDDING
-      # ==========================================
+          echo "LiveKit configuration OK."
 
       - name: Verify Flutter V2 embedding
         working-directory: flutter
         run: |
           set -e
-
-          echo "Checking for old Flutter V1 embedding..."
 
           if grep -RInE \
             "io\.flutter\.app\.|PluginRegistry\.Registrar|FlutterActivityDelegate|FlutterApplication" \
@@ -391,65 +162,17 @@ dependencyResolutionManagement {
             --include="*.kt" \
             --include="*.java"; then
 
-            echo ""
-            echo "=========================================="
-            echo "OLD FLUTTER V1 EMBEDDING FOUND"
-            echo "=========================================="
-
+            echo "Old Flutter V1 embedding found."
             exit 1
           fi
 
-          echo "No Flutter V1 embedding found."
-
-          echo ""
-          echo "Checking Flutter embedding metadata..."
-
-          grep -q \
-            'android:value="2"' \
+          grep -q 'android:value="2"' \
             android/app/src/main/AndroidManifest.xml
 
-          echo "Flutter embedding metadata: OK"
-
-          echo ""
-          echo "Checking MainActivity..."
-
-          grep -q \
-            "FlutterActivity" \
+          grep -q "FlutterActivity" \
             android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
 
-          echo "MainActivity FlutterActivity: OK"
-
-
-      # ==========================================
-      # VERIFY LIVEKIT NATIVE CODE
-      # ==========================================
-
-      - name: Verify LiveKit native configuration
-        working-directory: flutter
-        run: |
-          set -e
-
-          echo "Checking LiveKit dependency..."
-
-          grep -q \
-            "io.livekit:livekit-android:2.29.0" \
-            android/app/build.gradle.kts
-
-          echo "LiveKit dependency: OK"
-
-          echo ""
-          echo "Checking MainActivity LiveKit imports..."
-
-          grep -q \
-            "io.livekit.android" \
-            android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
-
-          echo "LiveKit imports: OK"
-
-
-      # ==========================================
-      # VERIFY MANIFEST
-      # ==========================================
+          echo "Flutter V2 embedding OK."
 
       - name: Verify Android permissions
         working-directory: flutter
@@ -458,141 +181,55 @@ dependencyResolutionManagement {
 
           MANIFEST="android/app/src/main/AndroidManifest.xml"
 
-          echo "Checking Android permissions..."
+          grep -q "android.permission.INTERNET" "$MANIFEST"
+          grep -q "android.permission.RECORD_AUDIO" "$MANIFEST"
+          grep -q "android.permission.FOREGROUND_SERVICE" "$MANIFEST"
+          grep -q "android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" "$MANIFEST"
 
-          grep -q \
-            'android.permission.INTERNET' \
-            "$MANIFEST"
+          echo "Android permissions OK."
 
-          grep -q \
-            'android.permission.RECORD_AUDIO' \
-            "$MANIFEST"
-
-          grep -q \
-            'android.permission.FOREGROUND_SERVICE' \
-            "$MANIFEST"
-
-          grep -q \
-            'android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION' \
-            "$MANIFEST"
-
-          echo ""
-          echo "Android permissions: OK"
-
-
-      # ==========================================
-      # SHOW FINAL CONFIG
-      # ==========================================
-
-      - name: Show Android configuration
+      - name: Show configuration
         working-directory: flutter
         run: |
-          set -e
-
-          echo ""
-          echo "=========================================="
-          echo "SETTINGS.GRADLE.KTS"
-          echo "=========================================="
-
+          echo "===== SETTINGS ====="
           cat android/settings.gradle.kts
 
-          echo ""
-          echo "=========================================="
-          echo "APP BUILD.GRADLE.KTS"
-          echo "=========================================="
-
+          echo "===== APP GRADLE ====="
           cat android/app/build.gradle.kts
 
-          echo ""
-          echo "=========================================="
-          echo "ANDROID MANIFEST"
-          echo "=========================================="
-
-          cat android/app/src/main/AndroidManifest.xml
-
-          echo ""
-          echo "=========================================="
-          echo "MAIN ACTIVITY"
-          echo "=========================================="
-
+          echo "===== MAIN ACTIVITY ====="
           cat android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
-
-
-      # ==========================================
-      # FLUTTER CLEAN
-      # ==========================================
 
       - name: Flutter clean
         working-directory: flutter
-        run: |
-          set -e
-          flutter clean
-
-
-      # ==========================================
-      # PUB GET
-      # ==========================================
+        run: flutter clean
 
       - name: Flutter pub get
         working-directory: flutter
-        run: |
-          set -e
-          flutter pub get
-
-
-      # ==========================================
-      # GRADLE DEPENDENCY CHECK
-      # ==========================================
+        run: flutter pub get
 
       - name: Resolve Android dependencies
         working-directory: flutter
         run: |
           set -e
 
-          echo ""
-          echo "=========================================="
-          echo "RESOLVING ANDROID DEPENDENCIES"
-          echo "=========================================="
-
           cd android
 
-          ./gradlew \
-            :app:dependencies \
+          ./gradlew :app:dependencies \
             --configuration releaseRuntimeClasspath \
             --refresh-dependencies \
             --no-daemon \
             --stacktrace
-
-          echo ""
-          echo "Android dependencies resolved successfully."
-
-
-      # ==========================================
-      # BUILD APK
-      # ==========================================
 
       - name: Build APK
         working-directory: flutter
         run: |
           set -e
 
-          echo ""
-          echo "=========================================="
-          echo "BUILDING AIMRELAX LIVE APK"
-          echo "=========================================="
-
           flutter build apk \
             --release \
             --no-tree-shake-icons \
             --verbose
-
-          echo ""
-          echo "APK BUILD COMMAND FINISHED."
-
-
-      # ==========================================
-      # VERIFY APK
-      # ==========================================
 
       - name: Verify APK
         working-directory: flutter
@@ -601,35 +238,19 @@ dependencyResolutionManagement {
 
           APK="build/app/outputs/flutter-apk/app-release.apk"
 
-          echo ""
-          echo "=========================================="
-
           if [ ! -f "$APK" ]; then
-
             echo "APK WAS NOT CREATED."
-
             echo ""
-            echo "APK files found:"
-
-            find build \
-              -type f \
-              -name "*.apk" \
-              -print
-
+            echo "Available APK files:"
+            find build -type f -name "*.apk" -print
             exit 1
           fi
 
+          echo "======================================"
           echo "AIMRELAX LIVE APK BUILD SUCCESSFUL"
+          echo "======================================"
 
-          echo ""
           ls -lh "$APK"
-
-          echo "=========================================="
-
-
-      # ==========================================
-      # UPLOAD APK
-      # ==========================================
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
