@@ -25,7 +25,7 @@ jobs:
         run: flutter --version
 
       # ---------------------------------------------------------
-      # Save our custom Android files
+      # Backup custom AIMRELAX Android files
       # ---------------------------------------------------------
       - name: Backup AIMRELAX Android files
         working-directory: flutter
@@ -40,15 +40,12 @@ jobs:
           cp android/app/src/main/AndroidManifest.xml \
              /tmp/aimrelax_backup/AndroidManifest.xml
 
-          cp android/app/build.gradle.kts \
-             /tmp/aimrelax_backup/app-build.gradle.kts
-
-          echo "AIMRELAX Android files backed up."
+          echo "Custom Android files backed up."
 
       # ---------------------------------------------------------
-      # Generate a completely fresh modern Flutter Android project
+      # Create clean modern Flutter Android project
       # ---------------------------------------------------------
-      - name: Regenerate Android platform
+      - name: Regenerate Android project
         working-directory: flutter
         run: |
           set -e
@@ -79,7 +76,7 @@ jobs:
           echo "MainActivity restored."
 
       # ---------------------------------------------------------
-      # Restore AndroidManifest
+      # Restore manifest
       # ---------------------------------------------------------
       - name: Restore AndroidManifest
         working-directory: flutter
@@ -92,100 +89,64 @@ jobs:
           echo "AndroidManifest restored."
 
       # ---------------------------------------------------------
-      # Replace app Gradle with LiveKit version
+      # Add LiveKit dependency to freshly generated Gradle file
       # ---------------------------------------------------------
-      - name: Configure LiveKit Gradle
+      - name: Configure LiveKit dependency
         working-directory: flutter
         run: |
           set -e
 
-          cat > android/app/build.gradle.kts <<'EOF'
-          plugins {
-              id("com.android.application")
-              id("org.jetbrains.kotlin.android")
-              id("dev.flutter.flutter-gradle-plugin")
-          }
+          python3 - <<'PY'
+          from pathlib import Path
 
-          android {
-              namespace = "com.aimrelax.aimrelax_live"
-              compileSdk = 36
+          p = Path("android/app/build.gradle.kts")
+          s = p.read_text()
 
-              defaultConfig {
-                  applicationId = "com.aimrelax.aimrelax_live"
-                  minSdk = 26
-                  targetSdk = 36
-                  versionCode = 2
-                  versionName = "2.0"
-              }
-          }
+          dependency = 'implementation("io.livekit:livekit-android:2.29.0")'
 
-          dependencies {
-              implementation("io.livekit:livekit-android:2.29.0")
-          }
+          if dependency not in s:
+              if "dependencies {" in s:
+                  s = s.replace(
+                      "dependencies {",
+                      "dependencies {\n    " + dependency
+                  )
+              else:
+                  s += "\n\ndependencies {\n    " + dependency + "\n}\n"
 
-          flutter {
-              source = "../.."
-          }
-          EOF
+          p.write_text(s)
+          print(p.read_text())
+          PY
 
-          echo "LiveKit Gradle configuration written."
+          echo "LiveKit dependency configured."
 
       # ---------------------------------------------------------
-      # Make sure repositories include Maven Central
+      # DO NOT replace Flutter's generated settings.gradle.kts
+      # Flutter's includeBuild() must remain intact.
       # ---------------------------------------------------------
-      - name: Configure repositories
+      - name: Verify Flutter Gradle integration
         working-directory: flutter
         run: |
           set -e
 
-          cat > android/settings.gradle.kts <<'EOF'
-          pluginManagement {
-              repositories {
-                  google()
-                  mavenCentral()
-                  gradlePluginPortal()
-                  maven { url = uri("https://jitpack.io") }
-              }
-          }
-
-          dependencyResolutionManagement {
-              repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
-
-              repositories {
-                  google()
-                  mavenCentral()
-                  maven { url = uri("https://jitpack.io") }
-              }
-          }
-
-          plugins {
-              id("dev.flutter.flutter-plugin-loader") version "1.0.0"
-              id("com.android.application") version "8.7.3" apply false
-              id("org.jetbrains.kotlin.android") version "2.0.21" apply false
-          }
-
-          include(":app")
-          EOF
-
-          echo "Repositories configured."
-
-      # ---------------------------------------------------------
-      # Verify that Android V2 embedding is used
-      # ---------------------------------------------------------
-      - name: Verify Android project
-        working-directory: flutter
-        run: |
-          set -e
-
-          echo "Checking Android project..."
+          echo "Checking Flutter Gradle settings..."
 
           test -f android/settings.gradle.kts
           test -f android/build.gradle.kts
           test -f android/gradle.properties
           test -f android/gradlew
           test -f android/app/build.gradle.kts
-          test -f android/app/src/main/AndroidManifest.xml
-          test -f android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
+
+          grep -q "flutter_tools/gradle" android/settings.gradle.kts
+
+          echo "Flutter Gradle integration is present."
+
+      # ---------------------------------------------------------
+      # Verify no Flutter V1 embedding
+      # ---------------------------------------------------------
+      - name: Verify Flutter V2 embedding
+        working-directory: flutter
+        run: |
+          set -e
 
           if grep -RInE \
             "io\.flutter\.app\.|PluginRegistry\.Registrar|FlutterActivityDelegate|FlutterApplication" \
@@ -193,17 +154,23 @@ jobs:
             --include="*.kt" \
             --include="*.java"; then
 
+            echo "=========================================="
             echo "OLD FLUTTER V1 EMBEDDING FOUND"
+            echo "=========================================="
+
             exit 1
           fi
-
-          grep -q 'android:name="\.MainActivity"' \
-            android/app/src/main/AndroidManifest.xml
 
           grep -q 'android:value="2"' \
             android/app/src/main/AndroidManifest.xml
 
-          echo "Modern Flutter Android project confirmed."
+          grep -q "FlutterActivity" \
+            android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
+
+          grep -q "configureFlutterEngine" \
+            android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
+
+          echo "Flutter V2 embedding confirmed."
 
       # ---------------------------------------------------------
       # Verify LiveKit
@@ -224,9 +191,9 @@ jobs:
           echo "LiveKit configuration confirmed."
 
       # ---------------------------------------------------------
-      # Verify permissions
+      # Verify Android permissions
       # ---------------------------------------------------------
-      - name: Verify permissions
+      - name: Verify Android permissions
         working-directory: flutter
         run: |
           set -e
@@ -238,7 +205,7 @@ jobs:
           grep -q 'android.permission.FOREGROUND_SERVICE' "$MANIFEST"
           grep -q 'android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION' "$MANIFEST"
 
-          echo "Required permissions confirmed."
+          echo "Android permissions confirmed."
 
       # ---------------------------------------------------------
       # Flutter dependencies
@@ -276,7 +243,10 @@ jobs:
 
           if [ ! -f "$APK" ]; then
             echo "APK was not created."
+
+            echo "APK files found:"
             find build -type f -name "*.apk" -print
+
             exit 1
           fi
 
