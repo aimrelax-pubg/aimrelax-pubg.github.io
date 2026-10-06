@@ -13,17 +13,9 @@ jobs:
 
     steps:
 
-      # =========================================================
-      # CHECKOUT
-      # =========================================================
-
       - name: Checkout
         uses: actions/checkout@v4
 
-
-      # =========================================================
-      # FLUTTER
-      # =========================================================
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -31,13 +23,10 @@ jobs:
           channel: stable
           cache: true
 
+
       - name: Flutter version
         run: flutter --version
 
-
-      # =========================================================
-      # CHECK EXISTING ANDROID FILES
-      # =========================================================
 
       - name: Check Android files
         working-directory: flutter
@@ -49,10 +38,6 @@ jobs:
 
           echo "Android source files OK."
 
-
-      # =========================================================
-      # BACKUP AIMRELAX FILES
-      # =========================================================
 
       - name: Backup AIMRELAX Android files
         working-directory: flutter
@@ -70,15 +55,6 @@ jobs:
             android/app/src/main/AndroidManifest.xml \
             /tmp/aimrelax_backup/AndroidManifest.xml
 
-          test -f /tmp/aimrelax_backup/MainActivity.kt
-          test -f /tmp/aimrelax_backup/AndroidManifest.xml
-
-          echo "AIMRELAX Android files backed up."
-
-
-      # =========================================================
-      # REGENERATE CLEAN FLUTTER ANDROID PROJECT
-      # =========================================================
 
       - name: Regenerate Android project
         working-directory: flutter
@@ -96,10 +72,6 @@ jobs:
           echo "Fresh Flutter Android project created."
 
 
-      # =========================================================
-      # RESTORE MAIN ACTIVITY
-      # =========================================================
-
       - name: Restore MainActivity
         working-directory: flutter
         run: |
@@ -112,15 +84,6 @@ jobs:
             /tmp/aimrelax_backup/MainActivity.kt \
             android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
 
-          test -f \
-            android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
-
-          echo "MainActivity restored."
-
-
-      # =========================================================
-      # RESTORE MANIFEST
-      # =========================================================
 
       - name: Restore AndroidManifest
         working-directory: flutter
@@ -131,14 +94,10 @@ jobs:
             /tmp/aimrelax_backup/AndroidManifest.xml \
             android/app/src/main/AndroidManifest.xml
 
-          test -f \
-            android/app/src/main/AndroidManifest.xml
-
-          echo "AndroidManifest restored."
-
 
       # =========================================================
-      # CONFIGURE GRADLE + LIVEKIT + JITPACK
+      # CONFIGURE LIVEKIT + JITPACK
+      # KEEP FLUTTER ENGINE REPOSITORY
       # =========================================================
 
       - name: Configure Gradle repositories
@@ -148,6 +107,7 @@ jobs:
 
           python3 <<'PY'
           from pathlib import Path
+          import re
 
           settings = Path("android/settings.gradle.kts")
           root_gradle = Path("android/build.gradle.kts")
@@ -159,20 +119,18 @@ jobs:
 
 
           # =====================================================
-          # LIVEKIT DEPENDENCY
+          # LIVEKIT
           # =====================================================
 
           livekit = 'implementation("io.livekit:livekit-android:2.29.0")'
 
           if livekit not in app_text:
-
               if "dependencies {" in app_text:
                   app_text = app_text.replace(
                       "dependencies {",
                       "dependencies {\n    " + livekit,
                       1
                   )
-
               else:
                   app_text += (
                       "\n\n"
@@ -185,45 +143,49 @@ jobs:
 
 
           # =====================================================
-          # CHECK FLUTTER GRADLE INTEGRATION
+          # DO NOT DESTROY FLUTTER PLUGIN CONFIGURATION
           # =====================================================
 
           if "flutter_tools/gradle" not in settings_text:
               raise SystemExit(
-                  "ERROR: Flutter Gradle integration is missing."
+                  "Flutter Gradle integration is missing."
               )
 
 
           # =====================================================
-          # REMOVE EXISTING DEPENDENCY RESOLUTION MANAGEMENT
+          # REMOVE ONLY OLD CUSTOM DEPENDENCY MANAGEMENT
           # =====================================================
 
-          marker = "dependencyResolutionManagement {"
+          def remove_block(text, marker):
+              start = text.find(marker)
 
-          start = settings_text.find(marker)
-
-          if start != -1:
+              if start == -1:
+                  return text
 
               depth = 0
               end = None
 
-              for i in range(start, len(settings_text)):
-
-                  if settings_text[i] == "{":
+              for i in range(start, len(text)):
+                  if text[i] == "{":
                       depth += 1
-
-                  elif settings_text[i] == "}":
+                  elif text[i] == "}":
                       depth -= 1
-
                       if depth == 0:
                           end = i + 1
                           break
 
-              if end is not None:
-                  settings_text = (
-                      settings_text[:start]
-                      + settings_text[end:]
+              if end is None:
+                  raise SystemExit(
+                      f"Could not safely remove block: {marker}"
                   )
+
+              return text[:start] + text[end:]
+
+
+          settings_text = remove_block(
+              settings_text,
+              "dependencyResolutionManagement {"
+          )
 
 
           # =====================================================
@@ -234,17 +196,14 @@ jobs:
               "import org.gradle.api.initialization.resolve.RepositoriesMode"
           )
 
-          if import_line not in settings_text:
-
-              settings_text = (
-                  import_line
-                  + "\n"
-                  + settings_text
-              )
+          settings_text = settings_text.replace(
+              import_line + "\n",
+              ""
+          )
 
 
           # =====================================================
-          # JITPACK REPOSITORY
+          # DEPENDENCY RESOLUTION
           # =====================================================
 
           repository_block = """
@@ -260,20 +219,29 @@ jobs:
                   maven {
                       url = uri("https://jitpack.io")
                   }
+
+                  maven {
+                      url = uri("https://storage.googleapis.com/download.flutter.io")
+                  }
               }
           }
 
           """
 
 
-          if "rootProject.name" in settings_text:
+          settings_text = (
+              import_line
+              + "\n"
+              + settings_text
+          )
 
+
+          if "rootProject.name" in settings_text:
               settings_text = settings_text.replace(
                   "rootProject.name",
                   repository_block + "rootProject.name",
                   1
               )
-
           else:
               settings_text += "\n" + repository_block
 
@@ -282,8 +250,15 @@ jobs:
 
 
           # =====================================================
-          # ROOT BUILD.GRADLE.KTS
+          # ROOT GRADLE
           # =====================================================
+
+          # Remove previously added custom allprojects repository block
+          root_text = remove_block(
+              root_text,
+              "allprojects {"
+          ) if "allprojects {" in root_text else root_text
+
 
           root_repo_block = """
           allprojects {
@@ -294,21 +269,22 @@ jobs:
                   maven {
                       url = uri("https://jitpack.io")
                   }
+
+                  maven {
+                      url = uri("https://storage.googleapis.com/download.flutter.io")
+                  }
               }
           }
+
           """
 
-
-          if "https://jitpack.io" not in root_text:
-
-              root_text += "\n" + root_repo_block
-
+          root_text += "\n" + root_repo_block
 
           root_gradle.write_text(root_text)
 
 
           # =====================================================
-          # PRINT FINAL FILES
+          # OUTPUT
           # =====================================================
 
           print("")
@@ -332,10 +308,6 @@ jobs:
           PY
 
 
-      # =========================================================
-      # VERIFY FLUTTER GRADLE
-      # =========================================================
-
       - name: Verify Flutter Gradle
         working-directory: flutter
         run: |
@@ -352,27 +324,29 @@ jobs:
           echo "Flutter Gradle integration OK."
 
 
-      # =========================================================
-      # VERIFY JITPACK
-      # =========================================================
+      - name: Verify Flutter Maven
+        working-directory: flutter
+        run: |
+          set -e
+
+          grep -q \
+            "download.flutter.io" \
+            android/settings.gradle.kts
+
+          echo "Flutter Maven repository OK."
+
 
       - name: Verify JitPack
         working-directory: flutter
         run: |
           set -e
 
-          grep -q "jitpack.io" \
+          grep -q \
+            "jitpack.io" \
             android/settings.gradle.kts
 
-          grep -q "jitpack.io" \
-            android/build.gradle.kts
+          echo "JitPack repository OK."
 
-          echo "JitPack repository configured."
-
-
-      # =========================================================
-      # VERIFY LIVEKIT
-      # =========================================================
 
       - name: Verify LiveKit
         working-directory: flutter
@@ -385,10 +359,6 @@ jobs:
 
           echo "LiveKit 2.29.0 configured."
 
-
-      # =========================================================
-      # VERIFY FLUTTER V2 EMBEDDING
-      # =========================================================
 
       - name: Verify Flutter V2 embedding
         working-directory: flutter
@@ -416,10 +386,6 @@ jobs:
           echo "Flutter V2 embedding OK."
 
 
-      # =========================================================
-      # VERIFY ANDROID PERMISSIONS
-      # =========================================================
-
       - name: Verify Android permissions
         working-directory: flutter
         run: |
@@ -446,10 +412,6 @@ jobs:
           echo "Android permissions OK."
 
 
-      # =========================================================
-      # FLUTTER CLEAN
-      # =========================================================
-
       - name: Flutter clean
         working-directory: flutter
         run: |
@@ -458,10 +420,6 @@ jobs:
           flutter clean
 
 
-      # =========================================================
-      # FLUTTER PUB GET
-      # =========================================================
-
       - name: Flutter pub get
         working-directory: flutter
         run: |
@@ -469,10 +427,6 @@ jobs:
 
           flutter pub get
 
-
-      # =========================================================
-      # RESOLVE ANDROID DEPENDENCIES
-      # =========================================================
 
       - name: Resolve Android dependencies
         working-directory: flutter
@@ -489,10 +443,6 @@ jobs:
             --stacktrace
 
 
-      # =========================================================
-      # BUILD APK
-      # =========================================================
-
       - name: Build APK
         working-directory: flutter
         run: |
@@ -506,10 +456,6 @@ jobs:
           echo "APK build finished."
 
 
-      # =========================================================
-      # VERIFY APK
-      # =========================================================
-
       - name: Verify APK
         working-directory: flutter
         run: |
@@ -518,10 +464,7 @@ jobs:
           APK="build/app/outputs/flutter-apk/app-release.apk"
 
           if [ ! -f "$APK" ]; then
-
-            echo "========================================"
             echo "APK WAS NOT CREATED"
-            echo "========================================"
 
             find build \
               -type f \
@@ -537,10 +480,6 @@ jobs:
 
           ls -lh "$APK"
 
-
-      # =========================================================
-      # UPLOAD APK
-      # =========================================================
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
