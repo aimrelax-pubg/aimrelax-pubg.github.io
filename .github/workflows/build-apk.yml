@@ -12,7 +12,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: build_project/AIMRELAX_LIVE
+        working-directory: flutter
 
     steps:
       - name: Checkout
@@ -24,7 +24,7 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Check Flutter project
+      - name: Check project
         run: |
           pwd
           ls -la
@@ -40,5 +40,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: AIMRELAX-LIVE-APK
-          path: build_project/AIMRELAX_LIVE/build/app/outputs/flutter-apk/app-release.apk
+          path: flutter/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
