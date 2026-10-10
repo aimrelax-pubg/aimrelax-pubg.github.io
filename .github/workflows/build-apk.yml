@@ -413,7 +413,15 @@ jobs:
 
           echo "Android permissions OK."
 
-
+          - name: Diagnose Android embedding
+            working-directory: flutter
+            run: |
+            echo "=== Android manifests ==="
+            find android -name AndroidManifest.xml -print
+            echo "=== Main manifest ==="
+            cat android/app/src/main/AndroidManifest.xml
+            echo "=== Embedding metadata ==="
+            grep -n -E 'FlutterApplication|flutterEmbedding|android:value="2"' android/app/src/main/AndroidManifest.xml
       - name: Flutter clean
         working-directory: flutter
         run: |
