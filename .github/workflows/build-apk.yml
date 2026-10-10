@@ -15,7 +15,7 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
-        - name: Apply website and login patch
+      - name: Apply website and login patch
         run: python3 flutter/apply_patch.py flutter
 
 
