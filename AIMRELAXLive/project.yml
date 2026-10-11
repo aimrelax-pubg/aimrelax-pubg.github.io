@@ -37,6 +37,7 @@ targets:
       - package: LiveKit
         product: LiveKit
 
+
   AIMRELAXBroadcast:
     type: app-extension
     platform: iOS
@@ -51,3 +52,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.aimrelax.live.broadcast
         SWIFT_VERSION: 5.0
         TARGETED_DEVICE_FAMILY: "1,2"
+    dependencies:
+      - package: LiveKit
+        product: LiveKit
+
