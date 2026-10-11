@@ -26,6 +26,11 @@
         <string>UIInterfaceOrientationLandscapeRight</string>
     </array>
     <key>NSMicrophoneUsageDescription</key>
-    <string>Միկրոֆոնն օգտագործվում է AIMRELAX LIVE հեռարձակման համար։</string>
+    <string>Միկրոֆոնն օգտագործվում է AIMRELAX LIVE հեռարձակման համար։</string>  
+    <key>RTCAppGroupIdentifier</key>
+    <string>group.com.aimrelax.live</string>
+    <key>RTCScreenSharingExtension</key>
+    <string>com.aimrelax.live.broadcast</string>
+
 </dict>
 </plist>
