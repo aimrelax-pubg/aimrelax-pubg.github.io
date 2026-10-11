@@ -17,10 +17,12 @@
     <string>1</string>
     <key>NSExtension</key>
     <dict>
-        <key>NSExtensionPointIdentifier</key>
-        <string>com.apple.broadcast-services-upload</string>
-        <key>NSExtensionPrincipalClass</key>
-        <string>$(PRODUCT_MODULE_NAME).SampleHandler</string>
+
+          <key>NSExtensionPrincipalClass</key>
+          <string>$(PRODUCT_MODULE_NAME).SampleHandler</string>
+          <key>RTCAppGroupIdentifier</key>
+          <string>group.com.aimrelax.live</string>
+
     </dict>
 </dict>
 </plist>
