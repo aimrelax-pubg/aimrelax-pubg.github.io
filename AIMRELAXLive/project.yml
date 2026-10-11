@@ -1,0 +1,53 @@
+
+name: AIMRELAXLive
+
+options:
+  bundleIdPrefix: com.aimrelax
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+
+packages:
+  Supabase:
+    url: https://github.com/supabase/supabase-swift
+    from: 2.0.0
+  LiveKit:
+    url: https://github.com/livekit/client-sdk-swift
+    from: 2.0.0
+
+targets:
+  AIMRELAXLive:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+    info:
+      path: Config/Info.plist
+    entitlements:
+      path: Config/App.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.aimrelax.live
+        SWIFT_VERSION: 5.0
+        TARGETED_DEVICE_FAMILY: "1,2"
+        INFOPLIST_KEY_UIUserInterfaceStyle: Dark
+    dependencies:
+      - package: Supabase
+        product: Supabase
+      - package: LiveKit
+        product: LiveKit
+
+  AIMRELAXBroadcast:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: BroadcastExtension
+    info:
+      path: Config/Broadcast-Info.plist
+    entitlements:
+      path: Config/Broadcast.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.aimrelax.live.broadcast
+        SWIFT_VERSION: 5.0
+        TARGETED_DEVICE_FAMILY: "1,2"
