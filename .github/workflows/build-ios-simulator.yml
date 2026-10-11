@@ -1,0 +1,32 @@
+
+name: Build AIMRELAX LIVE iOS (Simulator Check)
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'AIMRELAXLive/**'
+      - '.github/workflows/build-ios-simulator.yml'
+
+jobs:
+  build:
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        working-directory: AIMRELAXLive
+        run: xcodegen generate
+
+      - name: Resolve Swift packages
+        working-directory: AIMRELAXLive
+        run: xcodebuild -resolvePackageDependencies -project AIMRELAXLive.xcodeproj -scheme AIMRELAXLive
+
+      - name: Build for iOS Simulator
+        working-directory: AIMRELAXLive
+        run: xcodebuild -project AIMRELAXLive.xcodeproj -scheme AIMRELAXLive -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
