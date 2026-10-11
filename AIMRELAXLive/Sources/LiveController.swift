@@ -128,6 +128,7 @@ room = newRoom
 try await newRoom.connect(
     url: credentials.url,
     token: credentials.token
+    roomOptions: roomOptions
 )
 
             
