@@ -116,13 +116,21 @@ final class LiveController: ObservableObject {
                 accessToken: session.accessToken
             )
 
-            let newRoom = Room()
-            room = newRoom
+let roomOptions = RoomOptions(
+    defaultScreenShareCaptureOptions: ScreenShareCaptureOptions(
+        appAudio: true
+    )
+)
 
-            try await newRoom.connect(
-                url: credentials.url,
-                token: credentials.token
-            )
+let newRoom = Room(roomOptions: roomOptions)
+room = newRoom
+
+try await newRoom.connect(
+    url: credentials.url,
+    token: credentials.token
+)
+
+            
 
             try await newRoom.localParticipant.setMicrophone(enabled: true)
             micEnabled = true
