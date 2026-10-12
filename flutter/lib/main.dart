@@ -121,6 +121,7 @@ Future<void> signOut() async {
     heartbeatTimer?.cancel();
     titleController.dispose();
     WakelockPlus.disable();
+    authSubscription?.cancel();  
     super.dispose();
   }
 
