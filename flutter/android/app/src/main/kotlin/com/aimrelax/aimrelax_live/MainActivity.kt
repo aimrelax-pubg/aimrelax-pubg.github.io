@@ -54,6 +54,39 @@ class MainActivity : FlutterActivity() {
                         result.error("INVALID_ARGUMENT", "LiveKit token or URL is missing", null)
                         return@setMethodCallHandler
                     }
+                    "setMicEnabled" -> {
+    val enabled = call.argument<Boolean>("enabled")
+    if (enabled == null) {
+        result.error("INVALID_ARGUMENT", "Missing enabled value", null)
+    } else {
+        scope.launch(Dispatchers.IO) {
+            try {
+                val liveRoom = room
+                    ?: throw Exception("LIVE is not running")
+
+                val audioModule =
+                    liveRoom.lkObjects.audioDeviceModule
+                        as? JavaAudioDeviceModule
+                        ?: throw Exception("Audio device module unavailable")
+
+                audioModule.setAudioRecordEnabled(enabled)
+                micEnabled = enabled
+
+                launch(Dispatchers.Main) {
+                    result.success(true)
+                }
+            } catch (e: Exception) {
+                launch(Dispatchers.Main) {
+                    result.error(
+                        "MIC_TOGGLE_FAILED",
+                        e.message ?: "Could not change microphone",
+                        null
+                    )
+                }
+            }
+        }
+    }
+}
                     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
                         result.error("UNSUPPORTED", "Android 10 or newer is required", null)
                         return@setMethodCallHandler
