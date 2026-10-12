@@ -60,6 +60,48 @@ class _LiveHomeState extends State<LiveHome> {
       TextEditingController(text: 'PUBG LIVE');
 
   final SupabaseClient db = Supabase.instance.client;
+   StreamSubscription<AuthState>? authSubscription;
+bool signingIn = false;
+String? authError;
+
+@override
+void initState() {
+  super.initState();
+
+  authSubscription = db.auth.onAuthStateChange.listen((data) {
+    if (!mounted) return;
+    setState(() {
+      signingIn = false;
+      authError = null;
+    });
+  });
+}
+
+Future<void> signInWithGoogle() async {
+  if (signingIn) return;
+
+  setState(() {
+    signingIn = true;
+    authError = null;
+  });
+
+  try {
+    await db.auth.signInWithOAuth(
+      OAuthProvider.google,
+      redirectTo: 'io.supabase.aimrelaxlive://login-callback/',
+    );
+  } catch (e) {
+    if (!mounted) return;
+    setState(() {
+      signingIn = false;
+      authError = 'Google մուտքը չհաջողվեց։ $e';
+    });
+  }
+}
+
+Future<void> signOut() async {
+  await db.auth.signOut();
+} 
 
   Timer? heartbeatTimer;
 
