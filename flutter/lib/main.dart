@@ -1,3 +1,4 @@
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -9,7 +10,7 @@ const String supabaseUrl =
     'https://hvhlrbfjloiahbqmnrly.supabase.co';
 
 const String supabaseAnonKey =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aGxyYmZqbG9pYWhicW1ucmx5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3MTMyNjMsImV4cCI6MjEwNTI4OTI2M30.lOrLiuJ3SZ9LtQxZu3aHcVE_e_7eOWVxPoaG36l0f8M';
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aGxyYmZqbG9pYWhicW1ucmx5Iiwicm9sZSI6MTc4OTcxMzI2MywiZXhwIjoyMTA1Mjg5MjYzfQ.lOrLiuJ3SZ9LtQxZu3aHcVE_e_7eOWVxPoaG36l0f8M';
 
 const MethodChannel native =
     MethodChannel('aimrelax.live/livekit');
@@ -58,13 +59,15 @@ class _LiveHomeState extends State<LiveHome> {
   final TextEditingController titleController =
       TextEditingController(text: 'PUBG LIVE');
 
-  final SupabaseClient db =
-      Supabase.instance.client;
+  final SupabaseClient db = Supabase.instance.client;
 
   Timer? heartbeatTimer;
 
   bool busy = false;
   bool live = false;
+
+  // Microphone state
+  bool micEnabled = true;
 
   String? streamId;
   String statusText = 'Ready to go LIVE';
@@ -77,6 +80,56 @@ class _LiveHomeState extends State<LiveHome> {
     titleController.dispose();
     WakelockPlus.disable();
     super.dispose();
+  }
+
+  // Toggle microphone without stopping the game-audio stream.
+  // Native Android code must implement "setMicEnabled".
+  Future<void> toggleMic() async {
+    if (!live || busy) return;
+
+    final bool nextValue = !micEnabled;
+
+    setState(() {
+      busy = true;
+      statusText = nextValue
+          ? 'Enabling microphone...'
+          : 'Muting microphone...';
+    });
+
+    try {
+      final result = await native.invokeMethod<bool>(
+        'setMicEnabled',
+        <String, dynamic>{
+          'enabled': nextValue,
+        },
+      );
+
+      if (result != true) {
+        throw Exception('Android did not confirm microphone state');
+      }
+
+      if (!mounted) return;
+
+      setState(() {
+        micEnabled = nextValue;
+        busy = false;
+        statusText = micEnabled
+            ? 'LIVE is active · Microphone ON'
+            : 'LIVE is active · Microphone OFF';
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        busy = false;
+        statusText = 'Microphone error: $e';
+      });
+
+      showMessage(
+        'Microphone error:\n$e',
+        error: true,
+      );
+    }
   }
 
   Future<void> goLive() async {
@@ -100,9 +153,7 @@ class _LiveHomeState extends State<LiveHome> {
       return;
     }
 
-    if (busy || live) {
-      return;
-    }
+    if (busy || live) return;
 
     setState(() {
       busy = true;
@@ -111,10 +162,9 @@ class _LiveHomeState extends State<LiveHome> {
 
     try {
       final userName =
-          session.user.email?.split('@').first ??
-              'Streamer';
+          session.user.email?.split('@').first ?? 'Streamer';
 
-      // 1. Create stream in Supabase
+      // 1. Create stream in Supabase.
       final created = await db.functions.invoke(
         'live-create',
         body: {
@@ -124,37 +174,27 @@ class _LiveHomeState extends State<LiveHome> {
         },
       );
 
-      final createdData =
-          _map(created.data);
+      final createdData = _map(created.data);
 
       if (createdData['error'] != null) {
-        throw Exception(
-          createdData['error'].toString(),
-        );
+        throw Exception(createdData['error'].toString());
       }
 
-      final stream =
-          _map(createdData['stream']);
+      final stream = _map(createdData['stream']);
+      final createdStreamId = stream['id']?.toString();
 
-      final createdStreamId =
-          stream['id']?.toString();
-
-      if (createdStreamId == null ||
-          createdStreamId.isEmpty) {
-        throw Exception(
-          'live-create did not return stream id',
-        );
+      if (createdStreamId == null || createdStreamId.isEmpty) {
+        throw Exception('live-create did not return stream id');
       }
 
       streamId = createdStreamId;
 
-      // 2. Get LiveKit publisher token
+      // 2. Get LiveKit publisher token.
       setState(() {
         statusText = 'Preparing LiveKit...';
       });
 
-      final tokenResponse =
-          await db.functions.invoke(
+      final tokenResponse = await db.functions.invoke(
         'live-token',
         body: {
           'stream_id': streamId,
@@ -162,43 +202,29 @@ class _LiveHomeState extends State<LiveHome> {
         },
       );
 
-      final tokenData =
-          _map(tokenResponse.data);
+      final tokenData = _map(tokenResponse.data);
 
       if (tokenData['error'] != null) {
-        throw Exception(
-          tokenData['error'].toString(),
-        );
+        throw Exception(tokenData['error'].toString());
       }
 
-      final token =
-          tokenData['token']?.toString();
-
-      final url =
-          tokenData['url']?.toString();
+      final token = tokenData['token']?.toString();
+      final url = tokenData['url']?.toString();
 
       if (token == null || token.isEmpty) {
-        throw Exception(
-          'LiveKit token is missing',
-        );
+        throw Exception('LiveKit token is missing');
       }
 
       if (url == null || url.isEmpty) {
-        throw Exception(
-          'LiveKit URL is missing',
-        );
+        throw Exception('LiveKit URL is missing');
       }
 
-      // 3. Native Android:
-      // microphone permission -> screen capture ->
-      // LiveKit connection -> screen + internal audio
+      // 3. Start native Android LIVE.
       setState(() {
-        statusText =
-            'Waiting for screen permission...';
+        statusText = 'Waiting for screen permission...';
       });
 
-      final nativeResult =
-          await native.invokeMethod<bool>(
+      final nativeResult = await native.invokeMethod<bool>(
         'startLive',
         {
           'token': token,
@@ -207,16 +233,10 @@ class _LiveHomeState extends State<LiveHome> {
       );
 
       if (nativeResult != true) {
-        throw Exception(
-          'Android LiveKit start failed',
-        );
+        throw Exception('Android LiveKit start failed');
       }
 
-      // IMPORTANT:
-      // Do NOT update started_at here.
-      // That column does not exist in the current
-      // live_streams schema.
-
+      // Mark the stream as live.
       await db
           .from('live_streams')
           .update({
@@ -231,8 +251,9 @@ class _LiveHomeState extends State<LiveHome> {
       setState(() {
         live = true;
         busy = false;
+        micEnabled = true;
         viewers = 0;
-        statusText = 'LIVE is active';
+        statusText = 'LIVE is active · Microphone ON';
       });
 
       heartbeatTimer?.cancel();
@@ -243,7 +264,6 @@ class _LiveHomeState extends State<LiveHome> {
       );
 
       await refreshViewers();
-
     } catch (e) {
       await cleanupFailedStart();
 
@@ -252,6 +272,7 @@ class _LiveHomeState extends State<LiveHome> {
       setState(() {
         busy = false;
         live = false;
+        micEnabled = true;
         statusText = 'LIVE failed';
       });
 
@@ -265,13 +286,10 @@ class _LiveHomeState extends State<LiveHome> {
   Future<void> refreshViewers() async {
     final id = streamId;
 
-    if (id == null || id.isEmpty || !live) {
-      return;
-    }
+    if (id == null || id.isEmpty || !live) return;
 
     try {
-      final response =
-          await db.functions.invoke(
+      final response = await db.functions.invoke(
         'live-heartbeat',
         body: {
           'stream_id': id,
@@ -279,9 +297,7 @@ class _LiveHomeState extends State<LiveHome> {
         },
       );
 
-      final data =
-          _map(response.data);
-
+      final data = _map(response.data);
       final value = data['viewer_count'];
 
       int count = 0;
@@ -291,10 +307,7 @@ class _LiveHomeState extends State<LiveHome> {
       } else if (value is num) {
         count = value.toInt();
       } else if (value != null) {
-        count = int.tryParse(
-              value.toString(),
-            ) ??
-            0;
+        count = int.tryParse(value.toString()) ?? 0;
       }
 
       if (!mounted) return;
@@ -303,16 +316,14 @@ class _LiveHomeState extends State<LiveHome> {
         viewers = count;
       });
     } catch (_) {
-      // Heartbeat failure should not stop the LIVE.
+      // Heartbeat errors must not stop LIVE.
     }
   }
 
   Future<void> endLive() async {
     final id = streamId;
 
-    if (id == null || id.isEmpty || busy) {
-      return;
-    }
+    if (id == null || id.isEmpty || busy) return;
 
     setState(() {
       busy = true;
@@ -325,7 +336,7 @@ class _LiveHomeState extends State<LiveHome> {
         await native.invokeMethod('stopLive');
       } catch (_) {}
 
-      // Then mark stream ended.
+      // Mark stream ended.
       try {
         await db.functions.invoke(
           'live-end',
@@ -345,14 +356,13 @@ class _LiveHomeState extends State<LiveHome> {
       setState(() {
         live = false;
         busy = false;
+        micEnabled = true;
         streamId = null;
         viewers = 0;
         statusText = 'LIVE ended';
       });
 
-      showMessage(
-        'LIVE ended',
-      );
+      showMessage('LIVE ended');
     } catch (e) {
       heartbeatTimer?.cancel();
       heartbeatTimer = null;
@@ -364,6 +374,7 @@ class _LiveHomeState extends State<LiveHome> {
       setState(() {
         live = false;
         busy = false;
+        micEnabled = true;
         streamId = null;
         viewers = 0;
         statusText = 'LIVE ended';
@@ -401,6 +412,7 @@ class _LiveHomeState extends State<LiveHome> {
 
     streamId = null;
     viewers = 0;
+    micEnabled = true;
   }
 
   Map<String, dynamic> _map(dynamic value) {
@@ -412,9 +424,7 @@ class _LiveHomeState extends State<LiveHome> {
       return Map<String, dynamic>.from(value);
     }
 
-    throw Exception(
-      'Invalid server response',
-    );
+    throw Exception('Invalid server response');
   }
 
   void showMessage(
@@ -428,13 +438,10 @@ class _LiveHomeState extends State<LiveHome> {
       ..showSnackBar(
         SnackBar(
           duration: const Duration(seconds: 5),
-          backgroundColor:
-              error ? Colors.red.shade900 : null,
+          backgroundColor: error ? Colors.red.shade900 : null,
           content: Text(
             message,
-            style: const TextStyle(
-              fontSize: 14,
-            ),
+            style: const TextStyle(fontSize: 14),
           ),
         ),
       );
@@ -445,15 +452,9 @@ class _LiveHomeState extends State<LiveHome> {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-            22,
-            24,
-            22,
-            30,
-          ),
+          padding: const EdgeInsets.fromLTRB(22, 24, 22, 30),
           child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text(
                 'AIMRELAX LIVE',
@@ -482,12 +483,9 @@ class _LiveHomeState extends State<LiveHome> {
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
                   color: const Color(0xFF121212),
-                  borderRadius:
-                      BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(18),
                   border: Border.all(
-                    color: live
-                        ? Colors.red
-                        : Colors.white12,
+                    color: live ? Colors.red : Colors.white12,
                   ),
                 ),
                 child: Row(
@@ -497,44 +495,38 @@ class _LiveHomeState extends State<LiveHome> {
                       height: 14,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: live
-                            ? Colors.red
-                            : Colors.grey,
+                        color: live ? Colors.red : Colors.grey,
                       ),
                     ),
+
                     const SizedBox(width: 12),
+
                     Expanded(
                       child: Column(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            live
-                                ? '🔴 LIVE'
-                                : 'OFFLINE',
+                            live ? '🔴 LIVE' : 'OFFLINE',
                             style: TextStyle(
                               fontSize: 20,
-                              fontWeight:
-                                  FontWeight.bold,
-                              color: live
-                                  ? Colors.red
-                                  : Colors.white70,
+                              fontWeight: FontWeight.bold,
+                              color: live ? Colors.red : Colors.white70,
                             ),
                           ),
+
                           const SizedBox(height: 3),
+
                           Text(
                             statusText,
-                            style: const TextStyle(
-                              color: Colors.grey,
-                            ),
+                            style: const TextStyle(color: Colors.grey),
                           ),
                         ],
                       ),
                     ),
+
                     if (live)
                       Column(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           const Text(
                             'VIEWERS',
@@ -543,12 +535,12 @@ class _LiveHomeState extends State<LiveHome> {
                               fontSize: 10,
                             ),
                           ),
+
                           Text(
                             '$viewers',
                             style: const TextStyle(
                               fontSize: 20,
-                              fontWeight:
-                                  FontWeight.bold,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ],
@@ -562,19 +554,14 @@ class _LiveHomeState extends State<LiveHome> {
               TextField(
                 controller: titleController,
                 enabled: !live && !busy,
-                textInputAction:
-                    TextInputAction.done,
-                decoration:
-                    InputDecoration(
+                textInputAction: TextInputAction.done,
+                decoration: const InputDecoration(
                   labelText: 'LIVE title',
                   hintText: 'PUBG LIVE',
-                  prefixIcon:
-                      const Icon(Icons.title),
-                  border:
-                      const OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.title),
+                  border: OutlineInputBorder(),
                   filled: true,
-                  fillColor:
-                      const Color(0xFF111111),
+                  fillColor: Color(0xFF111111),
                 ),
               ),
 
@@ -584,28 +571,21 @@ class _LiveHomeState extends State<LiveHome> {
                 SizedBox(
                   height: 56,
                   child: FilledButton.icon(
-                    onPressed:
-                        busy ? null : goLive,
+                    onPressed: busy ? null : goLive,
                     icon: busy
                         ? const SizedBox(
                             width: 21,
                             height: 21,
-                            child:
-                                CircularProgressIndicator(
+                            child: CircularProgressIndicator(
                               strokeWidth: 2,
                             ),
                           )
-                        : const Icon(
-                            Icons.videocam,
-                          ),
+                        : const Icon(Icons.videocam),
                     label: Text(
-                      busy
-                          ? 'STARTING...'
-                          : 'START LIVE',
+                      busy ? 'STARTING...' : 'START LIVE',
                       style: const TextStyle(
                         fontSize: 17,
-                        fontWeight:
-                            FontWeight.bold,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
@@ -614,23 +594,49 @@ class _LiveHomeState extends State<LiveHome> {
                 SizedBox(
                   height: 56,
                   child: FilledButton.icon(
-                    onPressed:
-                        busy ? null : endLive,
-                    icon: const Icon(
-                      Icons.stop_circle,
-                    ),
+                    onPressed: busy ? null : endLive,
+                    icon: const Icon(Icons.stop_circle),
                     label: Text(
-                      busy
-                          ? 'ENDING...'
-                          : 'END LIVE',
+                      busy ? 'ENDING...' : 'END LIVE',
                       style: const TextStyle(
                         fontSize: 17,
-                        fontWeight:
-                            FontWeight.bold,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                 ),
+
+              // MICROPHONE ON / OFF BUTTON
+              if (live) ...[
+                const SizedBox(height: 12),
+
+                SizedBox(
+                  height: 54,
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: busy ? null : toggleMic,
+                    icon: Icon(
+                      micEnabled ? Icons.mic : Icons.mic_off,
+                    ),
+                    label: Text(
+                      micEnabled
+                          ? 'MICROPHONE ON'
+                          : 'MICROPHONE OFF',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor:
+                          micEnabled ? Colors.orange : Colors.redAccent,
+                      side: BorderSide(
+                        color: micEnabled ? Colors.orange : Colors.redAccent,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
 
               const SizedBox(height: 26),
 
@@ -638,25 +644,23 @@ class _LiveHomeState extends State<LiveHome> {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: const Color(0xFF101010),
-                  borderRadius:
-                      BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 child: const Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'STREAM',
-                      style: TextStyle(
-                        fontWeight:
-                            FontWeight.bold,
-                      ),
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
+
                     SizedBox(height: 10),
+
                     Text(
                       '• PUBG screen capture\n'
                       '• LiveKit WebRTC\n'
                       '• Internal game audio\n'
+                      '• Microphone ON/OFF\n'
                       '• Viewer counter\n'
                       '• Android 10+',
                       style: TextStyle(
