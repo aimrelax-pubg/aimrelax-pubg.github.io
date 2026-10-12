@@ -491,6 +491,71 @@ Future<void> signOut() async {
 
   @override
   Widget build(BuildContext context) {
+      if (db.auth.currentSession == null) {
+  return Scaffold(
+    body: SafeArea(
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.videocam,
+                size: 76,
+                color: Colors.orange,
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'AIMRELAX LIVE',
+                style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Մուտք գործիր Google-ով՝ PUBG LIVE հեռարձակելու համար',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 28),
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: FilledButton.icon(
+                  onPressed:
+                      signingIn ? null : signInWithGoogle,
+                  icon: signingIn
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Icon(Icons.login),
+                  label: Text(
+                    signingIn
+                        ? 'ՄՈՒՏՔ...'
+                        : 'ՄՈՒՏՔ GOOGLE-ՈՎ',
+                  ),
+                ),
+              ),
+              if (authError != null) ...[
+                const SizedBox(height: 16),
+                Text(
+                  authError!,
+                  style: const TextStyle(color: Colors.redAccent),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
