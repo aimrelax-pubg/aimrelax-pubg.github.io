@@ -35,6 +35,8 @@ class MainActivity : FlutterActivity() {
     private lateinit var methodChannel: MethodChannel
     private var room: Room? = null
     private var audioCapturer: ScreenAudioCapturer? = null
+    @Volatile
+    private var micEnabled = true
     private var pendingResult: MethodChannel.Result? = null
     private var pendingToken: String? = null
     private var pendingUrl: String? = null
