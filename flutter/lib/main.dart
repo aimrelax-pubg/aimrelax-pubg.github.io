@@ -87,12 +87,45 @@ Future<void> signInWithGoogle() async {
   });
 
   try {
-    await db.auth.signInWithOAuth(
-      OAuthProvider.google,
-      redirectTo: 'com.aimrelax.live://login-callback/',
+    final googleSignIn = GoogleSignIn(
+      scopes: const <String>['email'],
+      serverClientId:
+          '553916262884-e6t38573765ffi5jjkkccbkaot452v24.apps.googleusercontent.com',
     );
+
+    final account = await googleSignIn.signIn();
+
+    if (account == null) {
+      if (mounted) {
+        setState(() => signingIn = false);
+      }
+      return;
+    }
+
+    final googleAuth = await account.authentication;
+    final idToken = googleAuth.idToken;
+
+    if (idToken == null || idToken.isEmpty) {
+      throw Exception(
+        'Google ID token չկա։ Ստուգիր Web Client ID-ն և Android SHA-1-ը։',
+      );
+    }
+
+    await db.auth.signInWithIdToken(
+      provider: OAuthProvider.google,
+      idToken: idToken,
+      accessToken: googleAuth.accessToken,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      signingIn = false;
+      authError = null;
+    });
   } catch (e) {
     if (!mounted) return;
+
     setState(() {
       signingIn = false;
       authError = 'Google մուտքը չհաջողվեց։ $e';
