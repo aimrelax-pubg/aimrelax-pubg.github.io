@@ -88,7 +88,7 @@ Future<void> signInWithGoogle() async {
   try {
     await db.auth.signInWithOAuth(
       OAuthProvider.google,
-      redirectTo: 'io.supabase.aimrelaxlive://login-callback/',
+      redirectTo: 'com.aimrelax.live://login-callback/',
     );
   } catch (e) {
     if (!mounted) return;
