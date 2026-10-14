@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 const String supabaseUrl =
     'https://hvhlrbfjloiahbqmnrly.supabase.co';
