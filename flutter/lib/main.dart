@@ -412,7 +412,7 @@ class _LiveHomeState extends State<LiveHome> {
         .order('created_at')
         .listen((rows) {
       recentComments = rows
-          .takeLast(3)
+          .skip(rows.length > 3 ? rows.length - 3 : 0)
           .map((row) => '${row['author_name'] ?? 'Viewer'}: ${row['message'] ?? ''}')
           .toList();
       updateOverlay();
