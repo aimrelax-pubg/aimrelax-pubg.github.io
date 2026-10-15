@@ -782,6 +782,10 @@ class _LiveHomeState extends State<LiveHome> {
     } catch (e) {
       heartbeatTimer?.cancel();
       heartbeatTimer = null;
+      commentRefreshTimer?.cancel();
+      commentRefreshTimer = null;
+      await commentSubscription?.cancel();
+      commentSubscription = null;
 
       await WakelockPlus.disable();
 
