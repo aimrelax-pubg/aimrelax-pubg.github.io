@@ -88,9 +88,11 @@ class _AppShellState extends State<AppShell> {
   }
 
   Future<void> _syncSessionToWebsite(Session session) async {
-    if (session.refreshToken.isEmpty ||
-        session.refreshToken == _lastSyncedRefreshToken) return;
-    _lastSyncedRefreshToken = session.refreshToken;
+    final refreshToken = session.refreshToken;
+    if (refreshToken == null ||
+        refreshToken.isEmpty ||
+        refreshToken == _lastSyncedRefreshToken) return;
+    _lastSyncedRefreshToken = refreshToken;
     await _siteKey.currentState?.syncSession(session);
   }
 
@@ -243,7 +245,8 @@ class SitePageState extends State<SitePage> {
   }
 
   Future<void> syncSession(Session session) async {
-    if (!_pageReady || session.refreshToken.isEmpty) return;
+    final refreshToken = session.refreshToken;
+    if (!_pageReady || refreshToken == null || refreshToken.isEmpty) return;
     final sessionJson = jsonEncode(session.toJson());
     final encoded = jsonEncode(sessionJson);
     await _controller.runJavaScript('''
