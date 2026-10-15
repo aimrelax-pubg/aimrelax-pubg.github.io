@@ -63,6 +63,9 @@ class MainActivity : FlutterActivity() {
                         ?: return@launch
                     audioModule.setAudioRecordEnabled(next)
                     micEnabled = next
+                    launch(Dispatchers.Main) {
+                        methodChannel.invokeMethod("overlayMicChanged", next)
+                    }
                     updateOverlay(viewers = -1, mic = next)
                 } catch (_: Exception) { }
             }
