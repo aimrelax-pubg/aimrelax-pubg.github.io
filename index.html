@@ -495,6 +495,12 @@ footer strong{
 </style>
 
 <style>
+/* Admin-only player removal controls */
+.roster-remove-btn{margin-top:12px;background:#241010;color:#ff9a9a;border:1px solid #653030;border-radius:5px;padding:7px 10px;font-size:12px;font-weight:800;cursor:pointer}
+.roster-remove-btn:hover{background:#401515;border-color:#ff5555}
+.vote-row .vote-remove-btn{margin:0 0 0 10px;padding:5px 8px;flex-shrink:0}
+#players .player[hidden]{display:none!important}
+
 /* AIMRELAX AUTH + VOTING */
 #auth-vote { background:#080808; }
 .auth-vote-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; max-width:1000px; margin:auto; }
@@ -1031,6 +1037,50 @@ AIM<span>RELAX</span>-PUBG
 </section>
 
 
+<!-- PUBG SCREEN LIVE: viewer-only website section -->
+<section id="live">
+  <div class="live-wrap">
+    <div class="section-title">
+      <small>AIMRELAX COMMUNITY</small>
+      <h2>🎮 PUBG LIVE</h2>
+      <p style="max-width:650px;margin:10px auto 0;color:#929292;line-height:1.7">Դիտիր խաղային ուղիղ եթերները, միացիր համայնքին ու կիսվիր քո արձագանքով։</p>
+    </div>
+    <div class="live-grid">
+      <div class="live-card live-viewer-card">
+        <div id="live-video-stage" class="live-video-stage">
+          <video id="live-video" class="live-video" autoplay playsinline muted></video>
+          <div id="live-state-overlay" class="live-state-overlay" role="status" aria-live="polite"></div>
+          <div class="live-like-counter" aria-live="polite">❤️ <span id="live-like-count">0</span></div>
+          <div id="live-heart-effects" class="live-heart-effects" aria-hidden="true"></div>
+          <button id="live-like-btn" class="live-like-btn" type="button" aria-label="Լայքել LIVE-ը" title="Լայքել LIVE-ը" disabled>❤️</button>
+        </div>
+        <button id="live-fullscreen-btn" type="button" style="display:block;width:100%;margin-top:10px;padding:12px;border:1px solid #333;border-radius:10px;background:#1b1b1b;color:#fff;font-weight:800;cursor:pointer">⛶ ԱՄԲՈՂՋ ԷԿՐԱՆ</button>
+        <div class="live-video-label">
+          <span id="live-indicator" class="live-dot" style="display:none"><i></i> LIVE</span>
+          <span id="live-viewer-count">Դիտողներ՝ 0</span>
+        </div>
+        <div id="live-status" class="live-status">Ընտրեք LIVE-ը աջ կողմի ցանկից՝ դիտումը սկսելու համար։</div>
+        <button id="live-leave-btn" type="button" disabled style="display:none;width:100%;margin-top:10px;padding:11px;border:1px solid #333;border-radius:10px;background:#191919;color:#ddd;font-weight:800;cursor:pointer">↩ ԴՈՒՐՍ ԳԱԼ LIVE-ԻՑ</button>
+        <div class="live-viewer-hint">📱 <strong>Ուղիղ եթեր սկսելու համար</strong> օգտագործեք AIMRELAX LIVE Android հավելվածը։ Կայքի այս բաժինը նախատեսված է դիտելու, լայքելու և մեկնաբանելու համար։</div>
+        <div id="live-comments-panel" style="margin-top:12px;background:#090909;border:1px solid #292929;border-radius:10px;padding:12px">
+          <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap"><strong style="color:#ff7200">💬 LIVE մեկնաբանություններ</strong><span id="live-comments-status" style="font-size:11px;color:#888">Ընտրեք LIVE</span></div>
+          <div id="live-comments-list" style="height:145px;overflow:auto;margin:10px 0;color:#bbb;font-size:13px">Ընտրեք LIVE՝ մեկնաբանությունները տեսնելու համար։</div>
+          <form id="live-comments-form" style="display:flex;gap:7px"><input id="live-comments-input" maxlength="300" placeholder="Գրիր մեկնաբանություն..." disabled style="flex:1;min-width:0;background:#111;border:1px solid #333;border-radius:6px;padding:10px;color:#fff"><button type="submit" disabled aria-label="Ուղարկել մեկնաբանությունը" style="background:#ff7200;color:#111;border:0;border-radius:6px;padding:0 14px;font-weight:bold">➤</button></form>
+        </div>
+        <div id="live-support" class="live-support" aria-hidden="true"></div>
+      </div>
+      <div class="live-card">
+        <div class="section-title" style="margin-bottom:15px">
+          <small>ՄԻԱՑԻՐ ՀԻՄԱ</small>
+          <h2 style="font-size:24px">🔴 Ուղիղ եթերներ</h2>
+        </div>
+        <p style="margin:0 0 14px;color:#888;font-size:13px;line-height:1.6">Ընտրիր հասանելի եթերը։ Եթե այս պահին եթեր չկա, ցանկը կթարմացվի նոր LIVE սկսվելիս։</p>
+        <div id="live-list" class="live-list"><div class="live-empty">Բեռնվում է LIVE-երի ցանկը…</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- Խաղացողներ -->
 
 <section class="players" id="players">
@@ -1213,49 +1263,7 @@ AIM<span>RELAX</span>-PUBG
   </div>
 </section>
 
-<!-- PUBG SCREEN LIVE: viewer-only website section -->
-<section id="live">
-  <div class="live-wrap">
-    <div class="section-title">
-      <small>AIMRELAX COMMUNITY</small>
-      <h2>🎮 PUBG LIVE</h2>
-      <p style="max-width:650px;margin:10px auto 0;color:#929292;line-height:1.7">Դիտիր խաղային ուղիղ եթերները, միացիր համայնքին ու կիսվիր քո արձագանքով։</p>
-    </div>
-    <div class="live-grid">
-      <div class="live-card live-viewer-card">
-        <div id="live-video-stage" class="live-video-stage">
-          <video id="live-video" class="live-video" autoplay playsinline muted></video>
-          <div id="live-state-overlay" class="live-state-overlay" role="status" aria-live="polite"></div>
-          <div class="live-like-counter" aria-live="polite">❤️ <span id="live-like-count">0</span></div>
-          <div id="live-heart-effects" class="live-heart-effects" aria-hidden="true"></div>
-          <button id="live-like-btn" class="live-like-btn" type="button" aria-label="Լայքել LIVE-ը" title="Լայքել LIVE-ը" disabled>❤️</button>
-        </div>
-        <button id="live-fullscreen-btn" type="button" style="display:block;width:100%;margin-top:10px;padding:12px;border:1px solid #333;border-radius:10px;background:#1b1b1b;color:#fff;font-weight:800;cursor:pointer">⛶ ԱՄԲՈՂՋ ԷԿՐԱՆ</button>
-        <div class="live-video-label">
-          <span id="live-indicator" class="live-dot" style="display:none"><i></i> LIVE</span>
-          <span id="live-viewer-count">Դիտողներ՝ 0</span>
-        </div>
-        <div id="live-status" class="live-status">Ընտրեք LIVE-ը աջ կողմի ցանկից՝ դիտումը սկսելու համար։</div>
-        <button id="live-leave-btn" type="button" disabled style="display:none;width:100%;margin-top:10px;padding:11px;border:1px solid #333;border-radius:10px;background:#191919;color:#ddd;font-weight:800;cursor:pointer">↩ ԴՈՒՐՍ ԳԱԼ LIVE-ԻՑ</button>
-        <div class="live-viewer-hint">📱 <strong>Ուղիղ եթեր սկսելու համար</strong> օգտագործեք AIMRELAX LIVE Android հավելվածը։ Կայքի այս բաժինը նախատեսված է դիտելու, լայքելու և մեկնաբանելու համար։</div>
-        <div id="live-comments-panel" style="margin-top:12px;background:#090909;border:1px solid #292929;border-radius:10px;padding:12px">
-          <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap"><strong style="color:#ff7200">💬 LIVE մեկնաբանություններ</strong><span id="live-comments-status" style="font-size:11px;color:#888">Ընտրեք LIVE</span></div>
-          <div id="live-comments-list" style="height:145px;overflow:auto;margin:10px 0;color:#bbb;font-size:13px">Ընտրեք LIVE՝ մեկնաբանությունները տեսնելու համար։</div>
-          <form id="live-comments-form" style="display:flex;gap:7px"><input id="live-comments-input" maxlength="300" placeholder="Գրիր մեկնաբանություն..." disabled style="flex:1;min-width:0;background:#111;border:1px solid #333;border-radius:6px;padding:10px;color:#fff"><button type="submit" disabled aria-label="Ուղարկել մեկնաբանությունը" style="background:#ff7200;color:#111;border:0;border-radius:6px;padding:0 14px;font-weight:bold">➤</button></form>
-        </div>
-        <div id="live-support" class="live-support" aria-hidden="true"></div>
-      </div>
-      <div class="live-card">
-        <div class="section-title" style="margin-bottom:15px">
-          <small>ՄԻԱՑԻՐ ՀԻՄԱ</small>
-          <h2 style="font-size:24px">🔴 Ուղիղ եթերներ</h2>
-        </div>
-        <p style="margin:0 0 14px;color:#888;font-size:13px;line-height:1.6">Ընտրիր հասանելի եթերը։ Եթե այս պահին եթեր չկա, ցանկը կթարմացվի նոր LIVE սկսվելիս։</p>
-        <div id="live-list" class="live-list"><div class="live-empty">Բեռնվում է LIVE-երի ցանկը…</div></div>
-      </div>
-    </div>
-  </div>
-</section>
+
 
 <style id="aimrelax-live-viewer-refresh">
 #live{padding:clamp(36px,5vw,76px) 16px;background:radial-gradient(ellipse at 50% 0%,rgba(255,114,0,.09),transparent 48%),#070707}
@@ -1528,43 +1536,63 @@ async function doLogout(){
 }
 $('m-logout-btn').onclick=doLogout;
 $('header-logout-btn').onclick=doLogout;
-async function loadPlayers(){
-  const rosterNicknames=[...document.querySelectorAll('#players h3')]
-    .map(el=>el.textContent.trim()).filter(Boolean);
-
-  const {data:dbPlayers,error}=await sb.from('players').select('id,nickname,active');
-  if(error){
-    console.error('players load error',error);
-    playersCache=rosterNicknames.map(nickname=>({id:null,nickname,dbNickname:null}));
-  }else{
-    const normalize=v=>String(v||'').normalize('NFKC')
-      .replace(/[\u200B-\u200D\uFEFF]/g,'')
-      .replace(/[«»“”]/g,'')
-      .replace(/\s+/g,' ').trim().toLocaleLowerCase('hy-AM');
-    const compact=v=>normalize(v).replace(/[\s_\-.'’`]/g,'');
-    const byExact=new Map();
-    const byCompact=new Map();
-    (dbPlayers||[]).forEach(p=>{
-      if(!p?.id||!p?.nickname)return;
-      const a=normalize(p.nickname),b=compact(p.nickname);
-      if(!byExact.has(a))byExact.set(a,p);
-      if(!byCompact.has(b))byCompact.set(b,p);
-    });
-
-    playersCache=rosterNicknames.map(nickname=>{
-      const exact=byExact.get(normalize(nickname));
-      const compactMatch=byCompact.get(compact(nickname));
-      const p=exact||compactMatch||null;
-      return {id:p?.id||null,nickname,dbNickname:p?.nickname||null};
-    });
+function canManageRoster(){
+  return !!currentUser && (currentUser.id==='5f1c951f-1e76-4f82-9849-46becf038b55' || mySiteRole==='owner' || mySiteRole==='admin');
+}
+async function removeRosterPlayer(playerId,nickname){
+  if(!canManageRoster()){alert('Այս գործողությունը հասանելի է միայն ադմինին։');return;}
+  if(!confirm('Հեռացնե՞լ «'+nickname+'»-ին Խաղացողներ և Քվեարկություն բաժիններից։'))return;
+  try{
+    const {error}=await sb.rpc('admin_remove_player',{p_player_id:playerId});
+    if(error)throw error;
+    selectedPlayerId=null;
+    await loadPlayers();
+    await loadVotes();
+  }catch(error){
+    console.error('Player removal failed:',error);
+    alert('Նիկը չհեռացվեց։ '+(error?.message||'Ստուգեք Supabase migration-ը։'));
   }
-
+}
+async function loadPlayers(){
+  const playerCards=[...document.querySelectorAll('#players .players-grid .player')];
+  const rosterNicknames=playerCards.map(card=>card.querySelector('h3')?.textContent.trim()||'').filter(Boolean);
+  const {data:dbPlayers,error}=await sb.from('players').select('id,nickname,active');
+  const normalize=v=>String(v||'').normalize('NFKC')
+    .replace(/[\u200B-\u200D\uFEFF]/g,'')
+    .replace(/[«»“”]/g,'')
+    .replace(/\s+/g,' ').trim().toLocaleLowerCase('hy-AM');
+  const compact=v=>normalize(v).replace(/[\s_\-.'’`]/g,'');
+  const byExact=new Map(),byCompact=new Map();
+  if(error)console.error('players load error',error);
+  (dbPlayers||[]).forEach(p=>{
+    if(!p?.id||!p?.nickname)return;
+    if(!byExact.has(normalize(p.nickname)))byExact.set(normalize(p.nickname),p);
+    if(!byCompact.has(compact(p.nickname)))byCompact.set(compact(p.nickname),p);
+  });
+  playerCards.forEach(card=>{
+    const nickname=card.querySelector('h3')?.textContent.trim()||'';
+    const p=byExact.get(normalize(nickname))||byCompact.get(compact(nickname))||null;
+    card.hidden=!!(p && p.active===false);
+    let remove=card.querySelector('.roster-remove-btn');
+    if(canManageRoster() && p && p.active!==false){
+      if(!remove){
+        remove=document.createElement('button');
+        remove.type='button';remove.className='roster-remove-btn';
+        remove.textContent='🗑 Հեռացնել';
+        card.appendChild(remove);
+      }
+      remove.onclick=()=>removeRosterPlayer(p.id,nickname);
+    }else if(remove)remove.remove();
+  });
+  playersCache=rosterNicknames.map(nickname=>{
+    const p=byExact.get(normalize(nickname))||byCompact.get(compact(nickname))||null;
+    return {id:p?.id||null,nickname,dbNickname:p?.nickname||null,active:p?.active!==false};
+  }).filter(p=>p.active);
   $('player-options').innerHTML=playersCache.map(p=>`
     <label class="player-option${p.id?'':' player-option-missing'}">
       <input type="radio" name="vote-player" value="${esc(p.id||'')}" ${p.id?'':'disabled'}>
       <span>${esc(p.nickname)}</span>${p.id?'':' <small class="player-sync-hint">(UUID չկա)</small>'}
     </label>`).join('');
-
   document.querySelectorAll('input[name="vote-player"]').forEach(i=>i.onchange=()=>{
     selectedPlayerId=i.value;
     document.querySelectorAll('.player-option').forEach(x=>x.classList.remove('selected'));
@@ -1572,12 +1600,7 @@ async function loadPlayers(){
     $('vote-btn').disabled=!currentUser||!selectedPlayerId;
     $('vote-status').textContent='';
   });
-
-  if(!currentUser){
-    $('vote-btn').disabled=true;
-  }else if(!selectedPlayerId){
-    $('vote-btn').disabled=true;
-  }
+  if(!currentUser||!selectedPlayerId)$('vote-btn').disabled=true;
 }
 
 async function loadVotes(){
@@ -1588,22 +1611,22 @@ async function loadVotes(){
     return;
   }
 
-  const nicknameById=new Map(playersCache.map(p=>[String(p.id),p.nickname]));
+  const activeById=new Map(playersCache.filter(p=>p.id).map(p=>[String(p.id),p]));
   const counts={};
-
   (data||[]).forEach(v=>{
     const key=String(v.player_id);
-    counts[key]=(counts[key]||0)+1;
+    if(activeById.has(key))counts[key]=(counts[key]||0)+1;
   });
-
   const entries=Object.entries(counts)
-    .map(([id,c])=>[nicknameById.get(id)||'Խաղացող',c])
-    .sort((a,b)=>b[1]-a[1]);
-
-  $('vote-total').textContent=`Ընդհանուր՝ ${data?.length||0} հոգի`;
+    .map(([id,c])=>({id,nickname:activeById.get(id).nickname,count:c}))
+    .sort((a,b)=>b.count-a.count);
+  $('vote-total').textContent=`Ընդհանուր՝ ${data?.length||0} քվե`;
   $('vote-list').innerHTML=entries.length
-    ?entries.map(x=>`<div class="vote-row"><span>${esc(x[0])}</span><span>${x[1]} քվե</span></div>`).join('')
+    ?entries.map(x=>`<div class="vote-row"><span>${esc(x.nickname)}</span><span>${x.count} քվե</span>${canManageRoster()?'<button type="button" class="roster-remove-btn vote-remove-btn" data-player-id="'+x.id+'" data-player-name="'+esc(x.nickname)+'">🗑</button>':''}</div>`).join('')
     :'<div class="loading-text">Դեռ ոչ ոք չի քվեարկել։</div>';
+  $('vote-list').querySelectorAll('.vote-remove-btn').forEach(btn=>{
+    btn.onclick=()=>removeRosterPlayer(btn.dataset.playerId,btn.dataset.playerName);
+  });
 
   if(currentUser){
     const {data:mine}=await sb.from('votes').select('id').eq('user_id',currentUser.id).limit(1).maybeSingle();
@@ -2507,6 +2530,7 @@ async function loadMySiteRole(){
     btn.style.setProperty('visibility',allowed?'visible':'hidden','important');
     btn.style.setProperty('opacity',allowed?'1':'0','important');
   }
+  try{await loadPlayers();await loadVotes();}catch(e){console.warn('Player admin controls refresh failed',e);}
 }
 async function openAdminPanel(){
   if(mySiteRole!=='owner' && mySiteRole!=='admin'){return;}
