@@ -1,6 +1,9 @@
 package com.aimrelax.aimrelax_live
 
 import android.app.Service
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.PixelFormat
@@ -28,7 +31,8 @@ class LiveOverlayService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == ACTION_STOP) { stopSelf(); return START_NOT_STICKY }
+        if (intent?.action == ACTION_STOP) { stopForeground(STOP_FOREGROUND_REMOVE); stopSelf(); return START_NOT_STICKY }
+        ensureForeground()
         if (root == null) showOverlay()
         if (intent?.action == ACTION_UPDATE) {
             viewerCount = intent.getIntExtra("viewers", viewerCount)
@@ -40,6 +44,27 @@ class LiveOverlayService : Service() {
         }
         return START_STICKY
     }
+    private fun ensureForeground() {
+        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            manager.createNotificationChannel(NotificationChannel("aimrelax_live_overlay", "AIMRELAX LIVE controls", NotificationManager.IMPORTANCE_LOW))
+        }
+        val notification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Notification.Builder(this, "aimrelax_live_overlay")
+        } else {
+            @Suppress("DEPRECATION") Notification.Builder(this)
+        }.setSmallIcon(android.R.drawable.ic_media_play)
+            .setContentTitle("AIMRELAX LIVE is running")
+            .setContentText("Floating viewer count, microphone and comments are active.")
+            .setOngoing(true)
+            .build()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(71, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+        } else {
+            startForeground(71, notification)
+        }
+    }
+
     private fun showOverlay() {
         wm = getSystemService(WINDOW_SERVICE) as WindowManager
         val box = LinearLayout(this).apply {
