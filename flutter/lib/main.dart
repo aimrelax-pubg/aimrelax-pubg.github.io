@@ -343,6 +343,17 @@ class _LiveHomeState extends State<LiveHome> {
   int viewers = 0;
 
   @override
+  void initState() {
+    super.initState();
+    native.setMethodCallHandler((call) async {
+      if (call.method == 'overlayMicChanged' && mounted) {
+        final value = call.arguments;
+        if (value is bool) setState(() => micEnabled = value);
+      }
+    });
+  }
+
+  @override
   void dispose() {
     heartbeatTimer?.cancel();
     commentSubscription?.cancel();
