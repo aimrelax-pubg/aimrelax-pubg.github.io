@@ -13,7 +13,7 @@ const String supabaseUrl =
     'https://hvhlrbfjloiahbqmnrly.supabase.co';
 
 const String supabaseAnonKey =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2aGxyYmZqbG9pYWhicW1ucmx5Iiwicm9sZSI6MTc4OTcxMzI2MywiZXhwIjoyMTA1Mjg5MjYzfQ.lOrLiuJ3SZ9LtQxZu3aHcVE_e_7eOWVxPoaG36l0f8M';
+    'sb_publishable_EcZUkLdUCVv3qWDD7jlvhg_OjTYu1jA';
 
 const MethodChannel native =
     MethodChannel('aimrelax.live/livekit');
