@@ -1242,6 +1242,15 @@ AIM<span>RELAX</span>-PUBG
       LIVE-երը բեռնվում են...
     </div>
 
+    <div id="aimrelax-live-chat" style="margin-top:14px;background:#090909;border:1px solid #292929;border-radius:10px;padding:12px;text-align:left">
+      <strong style="color:#ff7200">💬 LIVE մեկնաբանություններ</strong>
+      <div id="aimrelax-live-chat-messages" style="height:150px;overflow:auto;margin:10px 0;color:#bbb">Ընտրեք LIVE՝ մեկնաբանությունները տեսնելու համար։</div>
+      <form id="aimrelax-live-chat-form" style="display:flex;gap:7px">
+        <input id="aimrelax-live-chat-input" maxlength="300" placeholder="Գրիր մեկնաբանություն..." disabled style="flex:1;min-width:0;background:#111;border:1px solid #333;border-radius:6px;padding:11px;color:#fff">
+        <button type="submit" disabled style="background:#ff7200;border:0;border-radius:6px;padding:0 14px">➤</button>
+      </form>
+    </div>
+
     <div class="live-controls">
       <button id="aimrelax-live-refresh"
               class="live-btn"
@@ -3023,6 +3032,7 @@ const AIMRELAX_LIVE_TOKEN_URL =
 
 let aimrelaxLiveRoom = null;
 let aimrelaxCurrentRoom = null;
+let aimrelaxCurrentStreamId = null, aimrelaxLiveChatChannel = null, aimrelaxLiveChatMessages = [];
 
 const liveVideo =
   document.getElementById("aimrelax-live-video");
@@ -3197,6 +3207,8 @@ async function aimrelaxWatchLive(stream) {
     }
 
     await aimrelaxStopLive(false);
+    aimrelaxCurrentStreamId = stream.id || null;
+    await aimrelaxStartLiveChat(stream);
 
     aimrelaxLiveSetStatus(
       "Միանում ենք LIVE-ին..."
@@ -3353,6 +3365,8 @@ async function aimrelaxStopLive(showStatus = true) {
   }
 
   aimrelaxCurrentRoom = null;
+  aimrelaxCurrentStreamId = null;
+  if (aimrelaxLiveChatChannel) { try { await sb.removeChannel(aimrelaxLiveChatChannel); } catch (_) {} aimrelaxLiveChatChannel = null; }
 
   liveBadge.classList.remove(
     "show"
@@ -3368,6 +3382,32 @@ async function aimrelaxStopLive(showStatus = true) {
     );
   }
 }
+
+/* LIVE COMMENTS */
+function aimrelaxRenderLiveComments() {
+ const box=document.getElementById("aimrelax-live-chat-messages"); if(!box)return;
+ box.replaceChildren();
+ if(!aimrelaxLiveChatMessages.length){box.textContent="Դեռ մեկնաբանություններ չկան։";return;}
+ aimrelaxLiveChatMessages.slice(-60).forEach(c=>{const row=document.createElement("div");row.style.cssText="padding:6px 8px;margin:5px 0;background:#151515;border-radius:6px;overflow-wrap:anywhere";const a=document.createElement("strong");a.style.color="#ff7200";a.textContent=(c.author_name||"Viewer")+": ";const m=document.createElement("span");m.textContent=c.message||"";row.append(a,m);box.appendChild(row);});box.scrollTop=box.scrollHeight;
+}
+async function aimrelaxStartLiveChat(stream) {
+ if(aimrelaxLiveChatChannel){try{await sb.removeChannel(aimrelaxLiveChatChannel)}catch(_){}aimrelaxLiveChatChannel=null;}
+ aimrelaxLiveChatMessages=[];aimrelaxRenderLiveComments();
+ const input=document.getElementById("aimrelax-live-chat-input"),send=document.querySelector("#aimrelax-live-chat-form button");
+ if(input)input.disabled=!currentUser;if(send)send.disabled=!currentUser;if(!stream?.id)return;
+ try{
+  const q=await sb.from("live_comments").select("id,stream_id,user_id,author_name,message,created_at").eq("stream_id",stream.id).order("created_at",{ascending:true}).limit(60);
+  if(q.error)throw q.error;aimrelaxLiveChatMessages=q.data||[];aimrelaxRenderLiveComments();
+  aimrelaxLiveChatChannel=sb.channel("live-comments-"+stream.id).on("postgres_changes",{event:"INSERT",schema:"public",table:"live_comments",filter:"stream_id=eq."+stream.id},p=>{aimrelaxLiveChatMessages.push(p.new);aimrelaxLiveChatMessages=aimrelaxLiveChatMessages.slice(-60);aimrelaxRenderLiveComments();}).subscribe();
+ }catch(e){console.error("LIVE comments",e);const box=document.getElementById("aimrelax-live-chat-messages");if(box)box.textContent="Մեկնաբանությունների աղյուսակը դեռ կարգավորված չէ։";}
+}
+document.getElementById("aimrelax-live-chat-form")?.addEventListener("submit",async e=>{
+ e.preventDefault();const input=document.getElementById("aimrelax-live-chat-input"),send=document.querySelector("#aimrelax-live-chat-form button"),message=(input?.value||"").trim();
+ if(!message||!aimrelaxCurrentStreamId||!currentUser)return;if(send)send.disabled=true;
+ try{const q=await sb.from("live_comments").insert({stream_id:aimrelaxCurrentStreamId,user_id:currentUser.id,author_name:currentUser.user_metadata?.username||currentUser.user_metadata?.name||currentUser.email?.split("@")[0]||"Viewer",message:message.slice(0,300)});if(q.error)throw q.error;input.value="";}
+ catch(err){console.error("Send LIVE comment",err);const box=document.getElementById("aimrelax-live-chat-messages");if(box)box.textContent="Չհաջողվեց ուղարկել մեկնաբանությունը։";}
+ finally{if(send)send.disabled=!currentUser;}
+});
 
 /* ---------------------------------------------------------
    LOAD LIVE STREAMS

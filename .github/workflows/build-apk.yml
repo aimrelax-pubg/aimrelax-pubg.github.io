@@ -1,11 +1,13 @@
 
 name: Build AIMRELAX LIVE APK
+# TikTok-style LIVE overlay build
 
 on:
   workflow_dispatch:
   push:
     branches:
       - main
+      - feature/tiktok-live-overlay
 
 jobs:
   build:
@@ -34,6 +36,7 @@ jobs:
           set -e
           test -f android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
           test -f android/app/src/main/AndroidManifest.xml
+          test -f android/app/src/main/kotlin/com/aimrelax/aimrelax_live/LiveOverlayService.kt
           echo "Android source files OK."
 
       - name: Backup AIMRELAX Android files
@@ -45,6 +48,7 @@ jobs:
 
           cp android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt /tmp/aimrelax_backup/MainActivity.kt
           cp android/app/src/main/AndroidManifest.xml /tmp/aimrelax_backup/AndroidManifest.xml
+          cp android/app/src/main/kotlin/com/aimrelax/aimrelax_live/LiveOverlayService.kt /tmp/aimrelax_backup/LiveOverlayService.kt
 
       - name: Regenerate Android project
         working-directory: flutter
@@ -68,6 +72,8 @@ jobs:
 
           cp /tmp/aimrelax_backup/MainActivity.kt \
             android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
+          cp /tmp/aimrelax_backup/LiveOverlayService.kt \
+            android/app/src/main/kotlin/com/aimrelax/aimrelax_live/LiveOverlayService.kt
 
       - name: Restore AndroidManifest
         working-directory: flutter

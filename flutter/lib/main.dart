@@ -327,12 +327,15 @@ class _LiveHomeState extends State<LiveHome> {
   final SupabaseClient db = Supabase.instance.client;
 
   Timer? heartbeatTimer;
+  StreamSubscription<List<Map<String, dynamic>>>? commentSubscription;
+  List<String> recentComments = [];
 
   bool busy = false;
   bool live = false;
 
   // Microphone state
   bool micEnabled = true;
+  bool overlayVisible = false;
 
   String? streamId;
   String statusText = 'Ready to go LIVE';
@@ -340,8 +343,20 @@ class _LiveHomeState extends State<LiveHome> {
   int viewers = 0;
 
   @override
+  void initState() {
+    super.initState();
+    native.setMethodCallHandler((call) async {
+      if (call.method == 'overlayMicChanged' && mounted) {
+        final value = call.arguments;
+        if (value is bool) setState(() => micEnabled = value);
+      }
+    });
+  }
+
+  @override
   void dispose() {
     heartbeatTimer?.cancel();
+    commentSubscription?.cancel();
     titleController.dispose();
     WakelockPlus.disable();
     super.dispose();
@@ -382,6 +397,7 @@ class _LiveHomeState extends State<LiveHome> {
             ? 'LIVE is active · Microphone ON'
             : 'LIVE is active · Microphone OFF';
       });
+      await updateOverlay();
     } catch (e) {
       if (!mounted) return;
 
@@ -395,6 +411,59 @@ class _LiveHomeState extends State<LiveHome> {
         error: true,
       );
     }
+  }
+
+  void startLiveComments() {
+    commentSubscription?.cancel();
+    final id = streamId;
+    if (id == null || id.isEmpty) return;
+    commentSubscription = db
+        .from('live_comments')
+        .stream(primaryKey: ['id'])
+        .eq('stream_id', id)
+        .order('created_at')
+        .listen((rows) {
+      recentComments = rows
+          .skip(rows.length > 3 ? rows.length - 3 : 0)
+          .map((row) {
+            final author = row['author_name']?.toString() ?? 'Viewer';
+            final message = row['message']?.toString() ?? '';
+            return '$author: $message';
+          })
+          .toList();
+      updateOverlay();
+    }, onError: (_) {});
+  }
+
+  Future<void> showOverlay() async {
+    if (!live) return;
+    try {
+      final shown = await native.invokeMethod<bool>('showOverlay', {
+        'viewers': viewers,
+        'mic': micEnabled,
+        'comments': recentComments,
+      });
+      if (shown != true) {
+        showMessage('Միացրու «Display over other apps» թույլտվությունը, հետո նորից սեղմիր կոճակը։');
+      } else {
+        overlayVisible = true;
+        await updateOverlay();
+        showMessage('Լողացող LIVE պատուհանը միացված է։');
+      }
+    } catch (e) {
+      showMessage('Չհաջողվեց բացել LIVE պատուհանը։ $e', error: true);
+    }
+  }
+
+  Future<void> updateOverlay() async {
+    if (!live || !overlayVisible) return;
+    try {
+      await native.invokeMethod('updateOverlay', {
+        'viewers': viewers,
+        'mic': micEnabled,
+        'comments': recentComments,
+      });
+    } catch (_) {}
   }
 
   Future<void> goLive() async {
@@ -529,6 +598,7 @@ class _LiveHomeState extends State<LiveHome> {
       );
 
       await refreshViewers();
+      startLiveComments();
     } catch (e) {
       await cleanupFailedStart();
 
@@ -580,6 +650,7 @@ class _LiveHomeState extends State<LiveHome> {
       setState(() {
         viewers = count;
       });
+      await updateOverlay();
     } catch (_) {
       // Heartbeat errors must not stop LIVE.
     }
@@ -598,6 +669,10 @@ class _LiveHomeState extends State<LiveHome> {
     try {
       // Stop Android LiveKit first.
       try {
+        await native.invokeMethod('hideOverlay');
+      } catch (_) {}
+      overlayVisible = false;
+      try {
         await native.invokeMethod('stopLive');
       } catch (_) {}
 
@@ -613,6 +688,9 @@ class _LiveHomeState extends State<LiveHome> {
 
       heartbeatTimer?.cancel();
       heartbeatTimer = null;
+      await commentSubscription?.cancel();
+      commentSubscription = null;
+      recentComments = [];
 
       await WakelockPlus.disable();
 
@@ -622,6 +700,7 @@ class _LiveHomeState extends State<LiveHome> {
         live = false;
         busy = false;
         micEnabled = true;
+        overlayVisible = false;
         streamId = null;
         viewers = 0;
         statusText = 'LIVE ended';
@@ -901,6 +980,20 @@ class _LiveHomeState extends State<LiveHome> {
                     ),
                   ),
                 ),
+
+              // TikTok-style floating overlay controls.
+              if (live) ...[
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 54,
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: showOverlay,
+                    icon: const Icon(Icons.picture_in_picture_alt),
+                    label: const Text('SHOW CONTROLS OVER GAME'),
+                  ),
+                ),
+              ],
 
               // MICROPHONE ON / OFF BUTTON
               if (live) ...[
