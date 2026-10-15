@@ -23,17 +23,22 @@ class LiveOverlayService : Service() {
         const val ACTION_MIC = "com.aimrelax.live.OVERLAY_MIC"
         const val ACTION_STOP = "com.aimrelax.live.OVERLAY_STOP"
         const val ACTION_UPDATE = "com.aimrelax.live.OVERLAY_UPDATE"
+        const val ACTION_PAUSE = "com.aimrelax.live.OVERLAY_PAUSE"
+        const val ACTION_END_LIVE = "com.aimrelax.live.OVERLAY_END_LIVE"
     }
 
     private var wm: WindowManager? = null
     private var root: LinearLayout? = null
     private var status: TextView? = null
     private var mic: Button? = null
+    private var pauseButton: Button? = null
+    private var stopButton: Button? = null
     private var comments: TextView? = null
     private var expandButton: TextView? = null
     private var overlayParams: WindowManager.LayoutParams? = null
     private var viewerCount = 0
     private var micState = true
+    private var pausedState = false
     private var expanded = false
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -51,8 +56,10 @@ class LiveOverlayService : Service() {
         if (intent?.action == ACTION_UPDATE) {
             viewerCount = intent.getIntExtra("viewers", viewerCount)
             micState = intent.getBooleanExtra("mic", micState)
-            status?.text = "🔴 LIVE  •  👁 $viewerCount"
+            pausedState = intent.getBooleanExtra("paused", pausedState)
+            status?.text = (if (pausedState) "⏸ PAUSED" else "🔴 LIVE") + "  •  👁 $viewerCount"
             mic?.text = if (micState) "🎙 MIC ON" else "🔇 MIC OFF"
+            pauseButton?.text = if (pausedState) "▶ RESUME LIVE" else "⏸ PAUSE LIVE"
             val lines = intent.getStringArrayListExtra("comments")
             if (lines != null) comments?.text = lines.takeLast(3).joinToString("\n")
         }
@@ -101,7 +108,7 @@ class LiveOverlayService : Service() {
         status = TextView(this).apply {
             setTextColor(Color.WHITE)
             textSize = 12f
-            text = "🔴 LIVE  •  👁 $viewerCount"
+            text = (if (pausedState) "⏸ PAUSED" else "🔴 LIVE") + "  •  👁 $viewerCount"
             setPadding(dp(5), dp(7), dp(7), dp(7))
             contentDescription = "Drag to move LIVE window"
         }
@@ -127,6 +134,25 @@ class LiveOverlayService : Service() {
             setOnClickListener { sendBroadcast(Intent(ACTION_MIC).setPackage(packageName)) }
         }
         box.addView(mic)
+
+        pauseButton = Button(this).apply {
+            text = "⏸ PAUSE LIVE"
+            textSize = 12f
+            minHeight = dp(40)
+            setPadding(dp(4), 0, dp(4), 0)
+            setOnClickListener { sendBroadcast(Intent(ACTION_PAUSE).setPackage(packageName)) }
+        }
+        box.addView(pauseButton)
+
+        stopButton = Button(this).apply {
+            text = "⏹ END LIVE"
+            textSize = 12f
+            minHeight = dp(40)
+            setPadding(dp(4), 0, dp(4), 0)
+            setTextColor(Color.RED)
+            setOnClickListener { sendBroadcast(Intent(ACTION_END_LIVE).setPackage(packageName)) }
+        }
+        box.addView(stopButton)
 
         comments = TextView(this).apply {
             setTextColor(Color.LTGRAY)
@@ -207,6 +233,8 @@ class LiveOverlayService : Service() {
     private fun setExpanded(value: Boolean) {
         expanded = value
         mic?.visibility = if (expanded) View.VISIBLE else View.GONE
+        pauseButton?.visibility = if (expanded) View.VISIBLE else View.GONE
+        stopButton?.visibility = if (expanded) View.VISIBLE else View.GONE
         comments?.visibility = if (expanded) View.VISIBLE else View.GONE
         expandButton?.text = if (expanded) "−" else "＋"
         root?.let {
