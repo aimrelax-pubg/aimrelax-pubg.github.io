@@ -724,7 +724,17 @@ section{position:relative}.section-title h2{letter-spacing:-.02em}
 @media(max-width:650px){.nav{padding:10px 12px!important}.logo{font-size:17px!important}.hero{padding-left:16px!important;padding-right:16px!important}.hero h1{font-size:clamp(48px,16vw,82px)!important}.buttons{margin-top:35px!important}}
 </style>
 <style id="aimrelax-live-style">
-#live{padding:70px 18px;background:#080808;border-top:1px solid #1b1b1b;border-bottom:1px solid #1b1b1b}.live-wrap{max-width:1400px;margin:0 auto}.live-grid{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(260px,.8fr);gap:20px;margin-top:25px}.live-card{background:#101010;border:1px solid #292929;border-radius:16px;padding:16px;box-shadow:0 12px 35px rgba(0,0,0,.22)}.live-video{width:100%;height:auto;aspect-ratio:auto;max-height:82vh;min-height:240px;background:#000;border-radius:12px;object-fit:contain;object-position:center center;display:block;border:1px solid #222;cursor:zoom-in}.live-video:fullscreen{width:100vw;height:100vh;max-height:100vh;min-height:0;aspect-ratio:auto;object-fit:contain;background:#000;border:0;border-radius:0;cursor:zoom-out}.live-video-label{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:10px 0 0;color:#aaa;font-size:13px}.live-dot{display:inline-flex;align-items:center;gap:7px;color:#ff5252;font-weight:900}.live-dot i{width:9px;height:9px;background:#ff2020;border-radius:50%;display:inline-block;box-shadow:0 0 12px #ff2020}.live-controls{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}.live-controls button{border:0;border-radius:9px;padding:12px 15px;font-weight:900;cursor:pointer;background:#252525;color:#fff}.live-controls button.primary{background:#ff7200;color:#111}.live-controls button.danger{background:#b51d1d;color:#fff}.live-controls button:disabled{opacity:.45;cursor:not-allowed}.live-title-input{width:100%;box-sizing:border-box;margin-top:12px;padding:13px 14px;border-radius:9px;border:1px solid #303030;background:#151515;color:#fff;outline:none}.live-title-input:focus{border-color:#ff7200}.live-status{margin-top:12px;padding:12px;border-radius:9px;background:#151515;color:#bbb;line-height:1.5;min-height:22px}.live-status.ok{color:#8cff9b}.live-status.err{color:#ff8f8f}.live-status.warn{color:#ffd27a}.live-list{display:flex;flex-direction:column;gap:10px;max-height:510px;overflow:auto}.live-item{padding:13px;border:1px solid #292929;background:#141414;border-radius:12px}.live-item-head{display:flex;justify-content:space-between;gap:8px;align-items:center}.live-item-name{font-weight:900;color:#fff}.live-item-title{color:#aaa;font-size:13px;margin-top:5px}.live-watch-btn{width:100%;margin-top:10px;border:0;border-radius:8px;padding:10px;background:#ff7200;color:#111;font-weight:900;cursor:pointer}.live-empty{color:#777;text-align:center;padding:25px 10px}.live-note{font-size:13px;color:#888;line-height:1.6;margin-top:12px}.live-support{display:none;margin-top:12px;padding:13px;border-radius:10px;border:1px solid #6b3b00;background:#241700;color:#ffd79b;line-height:1.55}@media(max-width:800px){.live-grid{grid-template-columns:1fr}#live{padding:45px 8px}.live-card{padding:10px}.live-video{width:100%;height:auto;min-height:220px;max-height:72vh;aspect-ratio:auto}}
+#live{padding:70px 18px;background:#080808;border-top:1px solid #1b1b1b;border-bottom:1px solid #1b1b1b}.live-wrap{max-width:1400px;margin:0 auto}.live-grid{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(260px,.8fr);gap:20px;margin-top:25px}.live-card{background:#101010;border:1px solid #292929;border-radius:16px;padding:16px;box-shadow:0 12px 35px rgba(0,0,0,.22)}.live-video{width:100%;height:auto;aspect-ratio:auto;max-height:82vh;min-height:240px;background:#000;border-radius:12px;object-fit:contain;object-position:center center;display:block;border:1px solid #222;cursor:zoom-in}.live-video:fullscreen{width:100vw;height:100vh;max-height:100vh;min-height:0;aspect-ratio:auto;object-fit:contain;background:#000;border:0;border-radius:0;cursor:zoom-out}.live-video-stage{position:relative;width:100%;overflow:hidden;border-radius:12px;background:#000;isolation:isolate}
+.live-video-stage .live-video{border-radius:12px}
+.live-like-counter{position:absolute;z-index:3;top:12px;left:12px;padding:7px 11px;border-radius:999px;background:rgba(0,0,0,.62);border:1px solid rgba(255,255,255,.18);font-weight:900;font-size:14px;color:#fff;pointer-events:none;backdrop-filter:blur(6px)}
+.live-like-btn{position:absolute;z-index:4;right:16px;bottom:16px;width:58px;height:58px;border:1px solid rgba(255,255,255,.35);border-radius:50%;background:rgba(255,65,105,.94);color:#fff;font-size:29px;box-shadow:0 5px 24px rgba(255,35,85,.4);cursor:pointer;transition:transform .12s,filter .12s}
+.live-like-btn:active{transform:scale(.86)}
+.live-like-btn:disabled{opacity:.55;cursor:not-allowed}
+.live-heart-effects{position:absolute;z-index:2;right:18px;bottom:70px;width:100px;height:72%;pointer-events:none;overflow:visible}
+.live-float-heart{position:absolute;right:var(--heart-right,8px);bottom:0;font-size:var(--heart-size,28px);line-height:1;filter:drop-shadow(0 2px 5px rgba(255,30,80,.45));animation:liveHeartRise 1.65s ease-out forwards}
+@keyframes liveHeartRise{0%{transform:translateY(0) scale(.65) rotate(-8deg);opacity:0}12%{opacity:1}70%{opacity:.9}100%{transform:translateY(-230px) translateX(var(--heart-drift, -15px)) scale(1.25) rotate(14deg);opacity:0}}
+@media(prefers-reduced-motion:reduce){.live-float-heart{animation-duration:.4s}}
+.live-video-label{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:10px 0 0;color:#aaa;font-size:13px}.live-dot{display:inline-flex;align-items:center;gap:7px;color:#ff5252;font-weight:900}.live-dot i{width:9px;height:9px;background:#ff2020;border-radius:50%;display:inline-block;box-shadow:0 0 12px #ff2020}.live-controls{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}.live-controls button{border:0;border-radius:9px;padding:12px 15px;font-weight:900;cursor:pointer;background:#252525;color:#fff}.live-controls button.primary{background:#ff7200;color:#111}.live-controls button.danger{background:#b51d1d;color:#fff}.live-controls button:disabled{opacity:.45;cursor:not-allowed}.live-title-input{width:100%;box-sizing:border-box;margin-top:12px;padding:13px 14px;border-radius:9px;border:1px solid #303030;background:#151515;color:#fff;outline:none}.live-title-input:focus{border-color:#ff7200}.live-status{margin-top:12px;padding:12px;border-radius:9px;background:#151515;color:#bbb;line-height:1.5;min-height:22px}.live-status.ok{color:#8cff9b}.live-status.err{color:#ff8f8f}.live-status.warn{color:#ffd27a}.live-list{display:flex;flex-direction:column;gap:10px;max-height:510px;overflow:auto}.live-item{padding:13px;border:1px solid #292929;background:#141414;border-radius:12px}.live-item-head{display:flex;justify-content:space-between;gap:8px;align-items:center}.live-item-name{font-weight:900;color:#fff}.live-item-title{color:#aaa;font-size:13px;margin-top:5px}.live-watch-btn{width:100%;margin-top:10px;border:0;border-radius:8px;padding:10px;background:#ff7200;color:#111;font-weight:900;cursor:pointer}.live-empty{color:#777;text-align:center;padding:25px 10px}.live-note{font-size:13px;color:#888;line-height:1.6;margin-top:12px}.live-support{display:none;margin-top:12px;padding:13px;border-radius:10px;border:1px solid #6b3b00;background:#241700;color:#ffd79b;line-height:1.55}@media(max-width:800px){.live-grid{grid-template-columns:1fr}#live{padding:45px 8px}.live-card{padding:10px}.live-video{width:100%;height:auto;min-height:220px;max-height:72vh;aspect-ratio:auto}}
 /* AIMRELAX SCREEN SHARE / BROWSER FALLBACK */
 .live-browser-help{display:none;margin-top:12px;padding:14px;border-radius:10px;border:1px solid #6b3b00;background:#241700;color:#ffd79b;line-height:1.55}
 .live-browser-help.show{display:block}
@@ -1200,7 +1210,12 @@ AIM<span>RELAX</span>-PUBG
 </section>
 
 <!-- PUBG SCREEN LIVE -->
-<section id="live"><div class="live-wrap"><div class="section-title"><small>AIMRELAX-PUBG</small><h2>🔴 PUBG LIVE</h2></div><div class="live-grid"><div class="live-card"><video id="live-video" class="live-video" autoplay playsinline muted></video><button id="live-fullscreen-btn" type="button" style="display:block;width:100%;margin-top:8px;padding:11px;border:1px solid #333;border-radius:8px;background:#1d1d1d;color:#fff;font-weight:800;cursor:pointer">⛶ ԱՄԲՈՂՋ ԷԿՐԱՆ</button><div class="live-video-label"><span id="live-indicator" class="live-dot" style="display:none"><i></i> LIVE</span><span id="live-viewer-count">Դիտողներ՝ 0</span></div><input id="live-title-input" class="live-title-input" maxlength="100" placeholder="Live-ի վերնագիրը, օրինակ՝ AIMRELAX PUBG 🔥"><div class="live-controls"><button id="live-start-btn" class="primary" type="button">🔴 ՍԿՍԵԼ LIVE</button><button id="live-mic-btn" type="button" disabled>🎤 Միկրոֆոն՝ OFF</button><button id="live-stop-btn" class="danger" type="button" disabled>⏹️ STOP LIVE</button><button id="live-leave-btn" type="button" disabled>↩️ Դուրս գալ</button></div><div id="live-status" class="live-status">Մուտք գործեք՝ Live օգտագործելու համար։</div><div id="live-comments-panel" style="margin-top:12px;background:#090909;border:1px solid #292929;border-radius:10px;padding:12px">
+<section id="live"><div class="live-wrap"><div class="section-title"><small>AIMRELAX-PUBG</small><h2>🔴 PUBG LIVE</h2></div><div class="live-grid"><div class="live-card"><div id="live-video-stage" class="live-video-stage">
+<video id="live-video" class="live-video" autoplay playsinline muted></video>
+<div class="live-like-counter" aria-live="polite">❤️ <span id="live-like-count">0</span></div>
+<div id="live-heart-effects" class="live-heart-effects" aria-hidden="true"></div>
+<button id="live-like-btn" class="live-like-btn" type="button" aria-label="Լայքել LIVE-ը" title="Լայքել LIVE-ը" disabled>❤️</button>
+</div><button id="live-fullscreen-btn" type="button" style="display:block;width:100%;margin-top:8px;padding:11px;border:1px solid #333;border-radius:8px;background:#1d1d1d;color:#fff;font-weight:800;cursor:pointer">⛶ ԱՄԲՈՂՋ ԷԿՐԱՆ</button><div class="live-video-label"><span id="live-indicator" class="live-dot" style="display:none"><i></i> LIVE</span><span id="live-viewer-count">Դիտողներ՝ 0</span></div><input id="live-title-input" class="live-title-input" maxlength="100" placeholder="Live-ի վերնագիրը, օրինակ՝ AIMRELAX PUBG 🔥"><div class="live-controls"><button id="live-start-btn" class="primary" type="button">🔴 ՍԿՍԵԼ LIVE</button><button id="live-mic-btn" type="button" disabled>🎤 Միկրոֆոն՝ OFF</button><button id="live-stop-btn" class="danger" type="button" disabled>⏹️ STOP LIVE</button><button id="live-leave-btn" type="button" disabled>↩️ Դուրս գալ</button></div><div id="live-status" class="live-status">Մուտք գործեք՝ Live օգտագործելու համար։</div><div id="live-comments-panel" style="margin-top:12px;background:#090909;border:1px solid #292929;border-radius:10px;padding:12px">
 <div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><strong style="color:#ff7200">💬 LIVE մեկնաբանություններ</strong><span id="live-comments-status" style="font-size:11px;color:#888">Ընտրեք LIVE</span></div>
 <div id="live-comments-list" style="height:145px;overflow:auto;margin:10px 0;color:#bbb;font-size:13px">Միացեք LIVE-ին՝ մեկնաբանությունները տեսնելու համար։</div>
 <form id="live-comments-form" style="display:flex;gap:7px"><input id="live-comments-input" maxlength="300" placeholder="Գրիր մեկնաբանություն..." disabled style="flex:1;min-width:0;background:#111;border:1px solid #333;border-radius:6px;padding:10px;color:#fff"><button type="submit" disabled style="background:#ff7200;border:0;border-radius:6px;padding:0 14px;font-weight:bold">➤</button></form>
@@ -2898,6 +2913,7 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
     el('live-stop-btn').disabled=!streamer;
     el('live-mic-btn').disabled=!streamer || !liveState.micStream;
     el('live-leave-btn').disabled=!viewer;
+    renderLiveLikeCount();
     el('live-indicator').style.display=streamer?'inline-flex':'none';
   }
 
@@ -3121,6 +3137,7 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
       if(error) throw error;
       liveState.streamId=data.id;
       liveState.mode='streamer';
+      await startLiveLikes(liveState.streamId);
       await subscribeSignals(liveState.streamId,handleStreamerSignal);
       if(liveState.systemAudioAvailable){
         liveStatus('LIVE-ը սկսված է։ Browser-ը տրամադրել է էկրանի ձայնի ուղի․ անցեք PUBG և ստուգեք խաղի ձայնը դիտողի մոտ։','ok');
@@ -3151,6 +3168,7 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
       for(const pc of liveState.peers.values()){try{pc.close();}catch(e){}}
       liveState.peers.clear();
       try{await sb.from('live_streams').update({status:'ended'}).eq('id',streamId).eq('streamer_id',uid());}catch(e){}
+      await stopLiveLikes();
       try{await sb.from('live_signals').delete().eq('stream_id',streamId).or('sender_id.eq.'+uid()+',receiver_id.eq.'+uid());}catch(e){}
     }
     if(liveState.displayStream) liveState.displayStream.getTracks().forEach(t=>t.stop());
@@ -3206,6 +3224,75 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
     setButtons();
   }
 
+  let liveLikesChannel=null;
+  let liveLikesStreamId=null;
+  let liveLikesCount=0;
+  let liveLikeSending=false;
+  function renderLiveLikeCount(){
+    const count=el('live-like-count');
+    if(count) count.textContent=liveLikesCount.toLocaleString('en-US');
+    const button=el('live-like-btn');
+    if(button) button.disabled=!currentUser || liveState.mode!=='viewer' || liveLikeSending || !liveLikesStreamId;
+  }
+  function animateLiveHeart(){
+    const box=el('live-heart-effects');
+    if(!box)return;
+    const heart=document.createElement('span');
+    heart.className='live-float-heart';
+    heart.textContent=['❤️','💗','💖','💕','💘'][Math.floor(Math.random()*5)];
+    heart.style.setProperty('--heart-right',(Math.floor(Math.random()*48))+'px');
+    heart.style.setProperty('--heart-size',(22+Math.floor(Math.random()*18))+'px');
+    heart.style.setProperty('--heart-drift',(Math.floor(Math.random()*50)-25)+'px');
+    box.appendChild(heart);
+    heart.addEventListener('animationend',()=>heart.remove(),{once:true});
+    setTimeout(()=>heart.remove(),2200);
+  }
+  async function stopLiveLikes(){
+    if(liveLikesChannel){try{await sb.removeChannel(liveLikesChannel);}catch(e){}liveLikesChannel=null;}
+    liveLikesStreamId=null;
+    liveLikesCount=0;
+    const box=el('live-heart-effects');if(box)box.replaceChildren();
+    renderLiveLikeCount();
+  }
+  async function startLiveLikes(streamId){
+    if(liveLikesStreamId===streamId && liveLikesChannel)return;
+    await stopLiveLikes();
+    if(!streamId)return;
+    liveLikesStreamId=streamId;
+    try{
+      const result=await sb.from('live_likes').select('id',{count:'exact',head:true}).eq('stream_id',streamId);
+      if(result.error)throw result.error;
+      liveLikesCount=result.count||0;
+      renderLiveLikeCount();
+      liveLikesChannel=sb.channel('live-likes-'+streamId)
+        .on('postgres_changes',{event:'INSERT',schema:'public',table:'live_likes',filter:'stream_id=eq.'+streamId},payload=>{
+          liveLikesCount++;
+          renderLiveLikeCount();
+          animateLiveHeart();
+        }).subscribe();
+    }catch(error){
+      console.warn('LIVE likes unavailable:',error);
+      const status=el('live-status');
+      if(status) status.textContent='Լայքերի համակարգը միացնելու համար անհրաժեշտ է կիրառել Supabase migration-ը։';
+    }
+  }
+  async function sendLiveLike(){
+    if(!currentUser){openModal();return;}
+    const streamId=liveState.viewerStreamId;
+    if(liveState.mode!=='viewer' || !streamId || liveLikeSending)return;
+    liveLikeSending=true;renderLiveLikeCount();
+    try{
+      const result=await sb.from('live_likes').insert({stream_id:streamId,user_id:currentUser.id});
+      if(result.error)throw result.error;
+    }catch(error){
+      console.error('LIVE like failed:',error);
+      const status=el('live-status');
+      if(status)status.textContent='Լայքը չուղարկվեց։ Ստուգեք ինտերնետը կամ Supabase-ի կարգավորումները։';
+    }finally{
+      liveLikeSending=false;renderLiveLikeCount();
+    }
+  }
+  el('live-like-btn')?.addEventListener('click',sendLiveLike);
   let liveCommentsChannel=null;
   let liveCommentsRows=[];
   function renderLiveComments(){
@@ -3259,6 +3346,7 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
     const streamId=liveState.viewerStreamId;
     const streamerId=liveState.viewerStreamerId;
     await stopLiveComments();
+    await stopLiveLikes();
     const room=liveState.viewerRoom;
     try{liveState.viewerPc?.close();}catch(e){}
     if(room){
@@ -3370,6 +3458,7 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
       });
       liveStatus('Միացված եք Live-ին։','ok');
       await startLiveComments(streamId);
+      await startLiveLikes(streamId);
       setButtons();
     }catch(e){
       console.error('AIMRELAX LiveKit viewer error:',e);
