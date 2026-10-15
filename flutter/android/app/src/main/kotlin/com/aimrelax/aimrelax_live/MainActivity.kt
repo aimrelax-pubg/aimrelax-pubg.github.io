@@ -4,6 +4,10 @@ package com.aimrelax.aimrelax_live
 import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.BroadcastReceiver
+import android.content.IntentFilter
+import android.net.Uri
+import android.provider.Settings
 import android.content.pm.PackageManager
 import android.media.projection.MediaProjectionManager
 import android.os.Build
@@ -46,6 +50,24 @@ class MainActivity : FlutterActivity() {
     private var pendingResult: MethodChannel.Result? = null
     private var pendingToken: String? = null
     private var pendingUrl: String? = null
+    private var overlayReceiverRegistered = false
+
+    private val overlayMicReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: android.content.Context?, intent: Intent?) {
+            if (intent?.action != LiveOverlayService.ACTION_MIC) return
+            scope.launch(Dispatchers.IO) {
+                try {
+                    val liveRoom = room ?: return@launch
+                    val next = !micEnabled
+                    val audioModule = liveRoom.lkObjects.audioDeviceModule as? JavaAudioDeviceModule
+                        ?: return@launch
+                    audioModule.setAudioRecordEnabled(next)
+                    micEnabled = next
+                    updateOverlay(viewers = -1, mic = next)
+                } catch (_: Exception) { }
+            }
+        }
+    }
 
     private val scope =
         CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -60,8 +82,48 @@ class MainActivity : FlutterActivity() {
             CHANNEL
         )
 
+        if (!overlayReceiverRegistered) {
+            registerReceiver(overlayMicReceiver, IntentFilter(LiveOverlayService.ACTION_MIC))
+            overlayReceiverRegistered = true
+        }
+
         methodChannel.setMethodCallHandler { call, result ->
             when (call.method) {
+
+                "showOverlay" -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+                        !Settings.canDrawOverlays(this)
+                    ) {
+                        val settingsIntent = Intent(
+                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                            Uri.parse("package:$packageName")
+                        )
+                        startActivity(settingsIntent)
+                        result.success(false)
+                    } else {
+                        val intent = Intent(this, LiveOverlayService::class.java).apply {
+                            action = LiveOverlayService.ACTION_UPDATE
+                            putExtra("viewers", call.argument<Int>("viewers") ?: 0)
+                            putExtra("mic", micEnabled)
+                        }
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent)
+                        else startService(intent)
+                        result.success(true)
+                    }
+                }
+
+                "updateOverlay" -> {
+                    updateOverlay(
+                        viewers = call.argument<Int>("viewers") ?: -1,
+                        mic = call.argument<Boolean>("mic") ?: micEnabled
+                    )
+                    result.success(true)
+                }
+
+                "hideOverlay" -> {
+                    stopService(Intent(this, LiveOverlayService::class.java).setAction(LiveOverlayService.ACTION_STOP))
+                    result.success(true)
+                }
 
                 "startLive" -> {
                     val token =
@@ -328,7 +390,20 @@ class MainActivity : FlutterActivity() {
         }
     }
 
+    private fun updateOverlay(viewers: Int, mic: Boolean) {
+        val intent = Intent(this, LiveOverlayService::class.java).apply {
+            action = LiveOverlayService.ACTION_UPDATE
+            if (viewers >= 0) putExtra("viewers", viewers)
+            putExtra("mic", mic)
+        }
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent)
+            else startService(intent)
+        } catch (_: Exception) { }
+    }
+
     private fun stopLive() {
+        stopService(Intent(this, LiveOverlayService::class.java).setAction(LiveOverlayService.ACTION_STOP))
         scope.launch(Dispatchers.IO) {
             try {
                 val liveRoom = room
@@ -367,6 +442,10 @@ class MainActivity : FlutterActivity() {
     }
 
     override fun onDestroy() {
+        if (overlayReceiverRegistered) {
+            try { unregisterReceiver(overlayMicReceiver) } catch (_: Exception) { }
+            overlayReceiverRegistered = false
+        }
         stopLive()
         scope.cancel()
         super.onDestroy()
