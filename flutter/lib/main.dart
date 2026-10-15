@@ -335,6 +335,7 @@ class _LiveHomeState extends State<LiveHome> {
 
   // Microphone state
   bool micEnabled = true;
+  bool overlayVisible = false;
 
   String? streamId;
   String statusText = 'Ready to go LIVE';
@@ -430,6 +431,8 @@ class _LiveHomeState extends State<LiveHome> {
       if (shown != true) {
         showMessage('Միացրու «Display over other apps» թույլտվությունը, հետո նորից սեղմիր կոճակը։');
       } else {
+        overlayVisible = true;
+        await updateOverlay();
         showMessage('Լողացող LIVE պատուհանը միացված է։');
       }
     } catch (e) {
@@ -438,7 +441,7 @@ class _LiveHomeState extends State<LiveHome> {
   }
 
   Future<void> updateOverlay() async {
-    if (!live) return;
+    if (!live || !overlayVisible) return;
     try {
       await native.invokeMethod('updateOverlay', {
         'viewers': viewers,
@@ -653,6 +656,7 @@ class _LiveHomeState extends State<LiveHome> {
       try {
         await native.invokeMethod('hideOverlay');
       } catch (_) {}
+      overlayVisible = false;
       try {
         await native.invokeMethod('stopLive');
       } catch (_) {}
@@ -681,6 +685,7 @@ class _LiveHomeState extends State<LiveHome> {
         live = false;
         busy = false;
         micEnabled = true;
+        overlayVisible = false;
         streamId = null;
         viewers = 0;
         statusText = 'LIVE ended';
