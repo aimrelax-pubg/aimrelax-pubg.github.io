@@ -36,7 +36,7 @@ class LiveOverlayService : Service() {
             status?.text = "🔴 LIVE  •  👁 $viewerCount"
             mic?.text = if (micState) "🎙 MIC ON" else "🔇 MIC OFF"
             val lines = intent.getStringArrayListExtra("comments")
-            if (lines != null) comments?.text = lines.takeLast(3).joinToString("\\n")
+            if (lines != null) comments?.text = lines.takeLast(3).joinToString("\n")
         }
         return START_STICKY
     }
