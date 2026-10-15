@@ -9,6 +9,9 @@ on:
       - main
       - feature/tiktok-live-overlay
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build Android APK
@@ -345,3 +348,11 @@ jobs:
           name: AIMRELAX-LIVE-APK
           path: flutter/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
+
+      - name: Publish APK download release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-v${{ github.run_number }}
+          name: AIMRELAX LIVE APK build ${{ github.run_number }}
+          files: flutter/build/app/outputs/flutter-apk/app-release.apk
+          make_latest: true
