@@ -327,6 +327,8 @@ class _LiveHomeState extends State<LiveHome> {
   final SupabaseClient db = Supabase.instance.client;
 
   Timer? heartbeatTimer;
+  StreamSubscription<List<Map<String, dynamic>>>? commentSubscription;
+  List<String> recentComments = [];
 
   bool busy = false;
   bool live = false;
@@ -342,6 +344,7 @@ class _LiveHomeState extends State<LiveHome> {
   @override
   void dispose() {
     heartbeatTimer?.cancel();
+    commentSubscription?.cancel();
     titleController.dispose();
     WakelockPlus.disable();
     super.dispose();
@@ -398,12 +401,31 @@ class _LiveHomeState extends State<LiveHome> {
     }
   }
 
+  void startLiveComments() {
+    commentSubscription?.cancel();
+    final id = streamId;
+    if (id == null || id.isEmpty) return;
+    commentSubscription = db
+        .from('live_comments')
+        .stream(primaryKey: ['id'])
+        .eq('stream_id', id)
+        .order('created_at')
+        .listen((rows) {
+      recentComments = rows
+          .takeLast(3)
+          .map((row) => '${row['author_name'] ?? 'Viewer'}: ${row['message'] ?? ''}')
+          .toList();
+      updateOverlay();
+    }, onError: (_) {});
+  }
+
   Future<void> showOverlay() async {
     if (!live) return;
     try {
       final shown = await native.invokeMethod<bool>('showOverlay', {
         'viewers': viewers,
         'mic': micEnabled,
+        'comments': recentComments,
       });
       if (shown != true) {
         showMessage('Միացրու «Display over other apps» թույլտվությունը, հետո նորից սեղմիր կոճակը։');
@@ -421,6 +443,7 @@ class _LiveHomeState extends State<LiveHome> {
       await native.invokeMethod('updateOverlay', {
         'viewers': viewers,
         'mic': micEnabled,
+        'comments': recentComments,
       });
     } catch (_) {}
   }
@@ -557,6 +580,7 @@ class _LiveHomeState extends State<LiveHome> {
       );
 
       await refreshViewers();
+      startLiveComments();
     } catch (e) {
       await cleanupFailedStart();
 
@@ -645,6 +669,9 @@ class _LiveHomeState extends State<LiveHome> {
 
       heartbeatTimer?.cancel();
       heartbeatTimer = null;
+      await commentSubscription?.cancel();
+      commentSubscription = null;
+      recentComments = [];
 
       await WakelockPlus.disable();
 
