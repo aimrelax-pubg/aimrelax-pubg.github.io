@@ -425,7 +425,11 @@ class _LiveHomeState extends State<LiveHome> {
         .listen((rows) {
       recentComments = rows
           .skip(rows.length > 3 ? rows.length - 3 : 0)
-          .map((row) => '${row['author_name'] ?? 'Viewer'}: ${row['message'] ?? ''}')
+          .map((row) {
+            final author = row['author_name']?.toString() ?? 'Viewer';
+            final message = row['message']?.toString() ?? '';
+            return '$author: $message';
+          })
           .toList();
       updateOverlay();
     }, onError: (_) {});
