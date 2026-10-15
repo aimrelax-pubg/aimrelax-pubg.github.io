@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 const String supabaseUrl =
@@ -137,7 +136,7 @@ class _AppShellState extends State<AppShell> {
               if (session != null) _syncSessionToWebsite(session);
             },
           ),
-          const LiveHome(),
+          LiveHome(onOpenWebsite: () => setState(() => _selectedTab = 0)),
         ],
       ),
       bottomNavigationBar: NavigationBar(
@@ -314,7 +313,8 @@ class SitePageState extends State<SitePage> {
 }
 
 class LiveHome extends StatefulWidget {
-  const LiveHome({super.key});
+  const LiveHome({super.key, required this.onOpenWebsite});
+  final VoidCallback onOpenWebsite;
 
   @override
   State<LiveHome> createState() => _LiveHomeState();
@@ -325,81 +325,6 @@ class _LiveHomeState extends State<LiveHome> {
       TextEditingController(text: 'PUBG LIVE');
 
   final SupabaseClient db = Supabase.instance.client;
-   StreamSubscription<AuthState>? authSubscription;
-bool signingIn = false;
-String? authError;
-
-@override
-void initState() {
-  super.initState();
-
-  authSubscription = db.auth.onAuthStateChange.listen((data) {
-    if (!mounted) return;
-    setState(() {
-      signingIn = false;
-      authError = null;
-    });
-  });
-}
-
-Future<void> signInWithGoogle() async {
-  if (signingIn) return;
-
-  setState(() {
-    signingIn = true;
-    authError = null;
-  });
-
-  try {
-    final googleSignIn = GoogleSignIn(
-      scopes: const <String>['email'],
-      serverClientId:
-          '553916262884-e6t38573765ffi5jjkkccbkaot452v24.apps.googleusercontent.com',
-    );
-
-    final account = await googleSignIn.signIn();
-
-    if (account == null) {
-      if (mounted) {
-        setState(() => signingIn = false);
-      }
-      return;
-    }
-
-    final googleAuth = await account.authentication;
-    final idToken = googleAuth.idToken;
-
-    if (idToken == null || idToken.isEmpty) {
-      throw Exception(
-        'Google ID token չկա։ Ստուգիր Web Client ID-ն և Android SHA-1-ը։',
-      );
-    }
-
-    await db.auth.signInWithIdToken(
-      provider: OAuthProvider.google,
-      idToken: idToken,
-      accessToken: googleAuth.accessToken,
-    );
-
-    if (!mounted) return;
-
-    setState(() {
-      signingIn = false;
-      authError = null;
-    });
-  } catch (e) {
-    if (!mounted) return;
-
-    setState(() {
-      signingIn = false;
-      authError = 'Google մուտքը չհաջողվեց։ $e';
-    });
-  }
-}
-
-Future<void> signOut() async {
-  await db.auth.signOut();
-} 
 
   Timer? heartbeatTimer;
 
@@ -419,7 +344,6 @@ Future<void> signOut() async {
     heartbeatTimer?.cancel();
     titleController.dispose();
     WakelockPlus.disable();
-    authSubscription?.cancel();  
     super.dispose();
   }
 
@@ -790,71 +714,37 @@ Future<void> signOut() async {
 
   @override
   Widget build(BuildContext context) {
-      if (db.auth.currentSession == null) {
-  return Scaffold(
-    body: SafeArea(
-      child: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.videocam,
-                size: 76,
-                color: Colors.orange,
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'AIMRELAX LIVE',
-                style: TextStyle(
-                  fontSize: 30,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Մուտք գործիր Google-ով՝ PUBG LIVE հեռարձակելու համար',
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 28),
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: FilledButton.icon(
-                  onPressed:
-                      signingIn ? null : signInWithGoogle,
-                  icon: signingIn
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Icon(Icons.login),
-                  label: Text(
-                    signingIn
-                        ? 'ՄՈՒՏՔ...'
-                        : 'ՄՈՒՏՔ GOOGLE-ՈՎ',
+    if (db.auth.currentSession == null) {
+      return Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.videocam, size: 76, color: Colors.orange),
+                  const SizedBox(height: 20),
+                  const Text('AIMRELAX LIVE', style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 12),
+                  const Text('Մուտք գործիր միայն «Կայք» բաժնից՝ կայքի և LIVE-ի համար։', textAlign: TextAlign.center),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 54,
+                    child: FilledButton.icon(
+                      onPressed: widget.onOpenWebsite,
+                      icon: const Icon(Icons.language),
+                      label: const Text('ԲԱՑԵԼ ԿԱՅՔԻ ԲԱԺԻՆԸ'),
+                    ),
                   ),
-                ),
+                ],
               ),
-              if (authError != null) ...[
-                const SizedBox(height: 16),
-                Text(
-                  authError!,
-                  style: const TextStyle(color: Colors.redAccent),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ],
+            ),
           ),
         ),
-      ),
-    ),
-  );
-}
+      );
+    }
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
