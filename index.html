@@ -1236,6 +1236,7 @@ AIM<span>RELAX</span>-PUBG
           <span id="live-viewer-count">Դիտողներ՝ 0</span>
         </div>
         <div id="live-status" class="live-status">Ընտրեք LIVE-ը աջ կողմի ցանկից՝ դիտումը սկսելու համար։</div>
+        <button id="live-leave-btn" type="button" disabled style="display:none;width:100%;margin-top:10px;padding:11px;border:1px solid #333;border-radius:10px;background:#191919;color:#ddd;font-weight:800;cursor:pointer">↩ ԴՈՒՐՍ ԳԱԼ LIVE-ԻՑ</button>
         <div class="live-viewer-hint">📱 <strong>Ուղիղ եթեր սկսելու համար</strong> օգտագործեք AIMRELAX LIVE Android հավելվածը։ Կայքի այս բաժինը նախատեսված է դիտելու, լայքելու և մեկնաբանելու համար։</div>
         <div id="live-comments-panel" style="margin-top:12px;background:#090909;border:1px solid #292929;border-radius:10px;padding:12px">
           <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap"><strong style="color:#ff7200">💬 LIVE մեկնաբանություններ</strong><span id="live-comments-status" style="font-size:11px;color:#888">Ընտրեք LIVE</span></div>
@@ -2972,7 +2973,7 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
     const streamer=liveState.mode==='streamer' && !!liveState.streamId;
     const viewer=liveState.mode==='viewer' && (!!liveState.viewerRoom || !!liveState.viewerPc);
     const leaveButton=el('live-leave-btn');
-    if(leaveButton)leaveButton.disabled=!viewer;
+    if(leaveButton){leaveButton.disabled=!viewer;leaveButton.style.display=viewer?'block':'none';}
     renderLiveLikeCount();
     const indicator=el('live-indicator');
     if(indicator)indicator.style.display=streamer?'inline-flex':'none';
