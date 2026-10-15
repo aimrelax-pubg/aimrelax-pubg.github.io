@@ -106,8 +106,7 @@ class MainActivity : FlutterActivity() {
                             putExtra("viewers", call.argument<Int>("viewers") ?: 0)
                             putExtra("mic", micEnabled)
                         }
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent)
-                        else startService(intent)
+                        startService(intent)
                         result.success(true)
                     }
                 }
@@ -115,7 +114,8 @@ class MainActivity : FlutterActivity() {
                 "updateOverlay" -> {
                     updateOverlay(
                         viewers = call.argument<Int>("viewers") ?: -1,
-                        mic = call.argument<Boolean>("mic") ?: micEnabled
+                        mic = call.argument<Boolean>("mic") ?: micEnabled,
+                        comments = call.argument<ArrayList<String>>("comments")
                     )
                     result.success(true)
                 }
@@ -390,15 +390,15 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    private fun updateOverlay(viewers: Int, mic: Boolean) {
+    private fun updateOverlay(viewers: Int, mic: Boolean, comments: ArrayList<String>? = null) {
         val intent = Intent(this, LiveOverlayService::class.java).apply {
             action = LiveOverlayService.ACTION_UPDATE
             if (viewers >= 0) putExtra("viewers", viewers)
             putExtra("mic", mic)
+            if (comments != null) putStringArrayListExtra("comments", comments)
         }
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent)
-            else startService(intent)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startService(intent) else startService(intent)
         } catch (_: Exception) { }
     }
 
