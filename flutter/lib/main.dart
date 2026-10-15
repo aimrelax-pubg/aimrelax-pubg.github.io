@@ -76,7 +76,9 @@ class _AppShellState extends State<AppShell> {
       final session = state.session;
       if (session != null) {
         _syncSessionToWebsite(session);
-      } else {
+      } else if (state.event == AuthChangeEvent.signedOut) {
+        // Only clear the website after an explicit sign-out. INITIAL_SESSION
+        // with no native session must not erase a valid website login.
         _lastSyncedRefreshToken = null;
         _siteKey.currentState?.clearSession();
       }
@@ -92,8 +94,9 @@ class _AppShellState extends State<AppShell> {
     if (refreshToken == null ||
         refreshToken.isEmpty ||
         refreshToken == _lastSyncedRefreshToken) return;
-    _lastSyncedRefreshToken = refreshToken;
-    await _siteKey.currentState?.syncSession(session);
+    final synced = await _siteKey.currentState?.syncSession(session) ?? false;
+    // Keep it pending if the WebView is still loading; page-ready will retry.
+    if (synced) _lastSyncedRefreshToken = refreshToken;
   }
 
   Future<void> _handleWebsiteAuthMessage(String message) async {
@@ -129,6 +132,10 @@ class _AppShellState extends State<AppShell> {
           SitePage(
             key: _siteKey,
             onAuthMessage: _handleWebsiteAuthMessage,
+            onPageReady: () {
+              final session = _db.auth.currentSession;
+              if (session != null) _syncSessionToWebsite(session);
+            },
           ),
           const LiveHome(),
         ],
@@ -153,9 +160,14 @@ class _AppShellState extends State<AppShell> {
 }
 
 class SitePage extends StatefulWidget {
-  const SitePage({super.key, required this.onAuthMessage});
+  const SitePage({
+    super.key,
+    required this.onAuthMessage,
+    required this.onPageReady,
+  });
 
   final Future<void> Function(String message) onAuthMessage;
+  final VoidCallback onPageReady;
 
   @override
   State<SitePage> createState() => SitePageState();
@@ -190,6 +202,7 @@ class SitePageState extends State<SitePage> {
             _pageReady = true;
             await _installAuthBridge();
             if (mounted) setState(() => _loading = false);
+            widget.onPageReady();
           },
           onWebResourceError: (_) {
             if (mounted) setState(() => _loading = false);
@@ -244,9 +257,9 @@ class SitePageState extends State<SitePage> {
     ''');
   }
 
-  Future<void> syncSession(Session session) async {
+  Future<bool> syncSession(Session session) async {
     final refreshToken = session.refreshToken;
-    if (!_pageReady || refreshToken == null || refreshToken.isEmpty) return;
+    if (!_pageReady || refreshToken == null || refreshToken.isEmpty) return false;
     final sessionJson = jsonEncode(session.toJson());
     final encoded = jsonEncode(sessionJson);
     await _controller.runJavaScript('''
@@ -262,6 +275,7 @@ class SitePageState extends State<SitePage> {
         }
       })();
     ''');
+    return true;
   }
 
   Future<void> clearSession() async {
