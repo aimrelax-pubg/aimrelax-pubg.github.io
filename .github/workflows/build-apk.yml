@@ -1,5 +1,6 @@
 
 name: Build AIMRELAX LIVE APK
+# TikTok-style LIVE overlay build
 
 on:
   workflow_dispatch:
