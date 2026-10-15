@@ -10,10 +10,13 @@ import android.graphics.PixelFormat
 import android.os.Build
 import android.os.IBinder
 import android.view.Gravity
+import android.view.MotionEvent
+import android.view.View
 import android.view.WindowManager
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
+import kotlin.math.abs
 
 class LiveOverlayService : Service() {
     companion object {
@@ -21,19 +24,30 @@ class LiveOverlayService : Service() {
         const val ACTION_STOP = "com.aimrelax.live.OVERLAY_STOP"
         const val ACTION_UPDATE = "com.aimrelax.live.OVERLAY_UPDATE"
     }
+
     private var wm: WindowManager? = null
     private var root: LinearLayout? = null
     private var status: TextView? = null
     private var mic: Button? = null
     private var comments: TextView? = null
+    private var expandButton: TextView? = null
+    private var overlayParams: WindowManager.LayoutParams? = null
     private var viewerCount = 0
     private var micState = true
+    private var expanded = false
 
     override fun onBind(intent: Intent?): IBinder? = null
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == ACTION_STOP) { stopForeground(true); stopSelf(); return START_NOT_STICKY }
+        if (intent?.action == ACTION_STOP) {
+            stopForeground(true)
+            stopSelf()
+            return START_NOT_STICKY
+        }
+
         ensureForeground()
         if (root == null) showOverlay()
+
         if (intent?.action == ACTION_UPDATE) {
             viewerCount = intent.getIntExtra("viewers", viewerCount)
             micState = intent.getBooleanExtra("mic", micState)
@@ -44,10 +58,17 @@ class LiveOverlayService : Service() {
         }
         return START_STICKY
     }
+
     private fun ensureForeground() {
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            manager.createNotificationChannel(NotificationChannel("aimrelax_live_overlay", "AIMRELAX LIVE controls", NotificationManager.IMPORTANCE_LOW))
+            manager.createNotificationChannel(
+                NotificationChannel(
+                    "aimrelax_live_overlay",
+                    "AIMRELAX LIVE controls",
+                    NotificationManager.IMPORTANCE_LOW
+                )
+            )
         }
         val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Notification.Builder(this, "aimrelax_live_overlay")
@@ -57,7 +78,7 @@ class LiveOverlayService : Service() {
         val notification = builder
             .setSmallIcon(android.R.drawable.ic_media_play)
             .setContentTitle("AIMRELAX LIVE is running")
-            .setContentText("Floating viewer count, microphone and comments are active.")
+            .setContentText("Floating LIVE controls are active.")
             .setOngoing(true)
             .build()
         startForeground(71, notification)
@@ -65,34 +86,142 @@ class LiveOverlayService : Service() {
 
     private fun showOverlay() {
         wm = getSystemService(WINDOW_SERVICE) as WindowManager
+
         val box = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(12), dp(8), dp(12), dp(8))
-            setBackgroundColor(Color.argb(230, 18, 18, 18))
+            setPadding(dp(8), dp(5), dp(8), dp(5))
+            setBackgroundColor(Color.argb(238, 20, 20, 24))
         }
-        val line = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-        status = TextView(this).apply { setTextColor(Color.WHITE); textSize = 14f; text = "🔴 LIVE" }
+
+        val header = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+
+        status = TextView(this).apply {
+            setTextColor(Color.WHITE)
+            textSize = 12f
+            text = "🔴 LIVE  •  👁 $viewerCount"
+            setPadding(dp(5), dp(7), dp(7), dp(7))
+            contentDescription = "Drag to move LIVE window"
+        }
+
+        expandButton = TextView(this).apply {
+            text = "＋"
+            textSize = 18f
+            setTextColor(Color.WHITE)
+            gravity = Gravity.CENTER
+            setPadding(dp(8), dp(3), dp(8), dp(3))
+            setOnClickListener { setExpanded(!expanded) }
+        }
+
+        header.addView(status, LinearLayout.LayoutParams(0, dp(36), 1f))
+        header.addView(expandButton, LinearLayout.LayoutParams(dp(38), dp(36)))
+        box.addView(header)
+
         mic = Button(this).apply {
             text = "🎙 MIC ON"
+            textSize = 12f
+            minHeight = dp(40)
+            setPadding(dp(4), 0, dp(4), 0)
             setOnClickListener { sendBroadcast(Intent(ACTION_MIC).setPackage(packageName)) }
         }
-        line.addView(status, LinearLayout.LayoutParams(0, dp(48), 1f))
-        line.addView(mic, LinearLayout.LayoutParams(dp(120), dp(48)))
-        box.addView(line)
-        comments = TextView(this).apply { setTextColor(Color.LTGRAY); textSize = 12f; maxLines = 3; setPadding(4, 4, 4, 0) }
+        box.addView(mic)
+
+        comments = TextView(this).apply {
+            setTextColor(Color.LTGRAY)
+            textSize = 11f
+            maxLines = 3
+            setPadding(dp(5), dp(5), dp(5), dp(3))
+        }
         box.addView(comments)
+
         root = box
-        val type = if (Build.VERSION.SDK_INT >= 26) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY else WindowManager.LayoutParams.TYPE_PHONE
-        val p = WindowManager.LayoutParams(dp(320), WindowManager.LayoutParams.WRAP_CONTENT, type, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL, PixelFormat.TRANSLUCENT)
-        p.gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
-        p.y = dp(70)
-        try { wm?.addView(box, p) } catch (_: Exception) { root = null }
+        setExpanded(false)
+
+        val type = if (Build.VERSION.SDK_INT >= 26) {
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        } else {
+            WindowManager.LayoutParams.TYPE_PHONE
+        }
+        val p = WindowManager.LayoutParams(
+            dp(220),
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            type,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+            PixelFormat.TRANSLUCENT
+        )
+        p.gravity = Gravity.TOP or Gravity.START
+        p.x = dp(12)
+        p.y = dp(100)
+        overlayParams = p
+
+        // Drag the floating LIVE pill by holding/moving the status area.
+        status?.setOnTouchListener(object : View.OnTouchListener {
+            private var downRawX = 0f
+            private var downRawY = 0f
+            private var startX = 0
+            private var startY = 0
+            private var moved = false
+
+            override fun onTouch(view: View, event: MotionEvent): Boolean {
+                val params = overlayParams ?: return false
+                when (event.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        downRawX = event.rawX
+                        downRawY = event.rawY
+                        startX = params.x
+                        startY = params.y
+                        moved = false
+                        return true
+                    }
+                    MotionEvent.ACTION_MOVE -> {
+                        val dx = (event.rawX - downRawX).toInt()
+                        val dy = (event.rawY - downRawY).toInt()
+                        if (abs(dx) > dp(4) || abs(dy) > dp(4)) moved = true
+                        if (moved) {
+                            params.x = (startX + dx).coerceAtLeast(0)
+                            params.y = (startY + dy).coerceAtLeast(0)
+                            try { wm?.updateViewLayout(root, params) } catch (_: Exception) {}
+                        }
+                        return true
+                    }
+                    MotionEvent.ACTION_UP -> {
+                        if (!moved) setExpanded(!expanded)
+                        return true
+                    }
+                }
+                return false
+            }
+        })
+
+        try {
+            wm?.addView(box, p)
+        } catch (_: Exception) {
+            root = null
+            overlayParams = null
+        }
     }
-    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
+
+    private fun setExpanded(value: Boolean) {
+        expanded = value
+        mic?.visibility = if (expanded) View.VISIBLE else View.GONE
+        comments?.visibility = if (expanded) View.VISIBLE else View.GONE
+        expandButton?.text = if (expanded) "−" else "＋"
+        root?.let {
+            it.requestLayout()
+            try { wm?.updateViewLayout(it, overlayParams) } catch (_: Exception) {}
+        }
+    }
+
+    private fun dp(value: Int): Int =
+        (value * resources.displayMetrics.density).toInt()
 
     override fun onDestroy() {
         try { root?.let { wm?.removeView(it) } } catch (_: Exception) {}
         root = null
+        overlayParams = null
         super.onDestroy()
     }
 }
