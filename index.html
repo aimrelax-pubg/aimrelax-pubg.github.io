@@ -3197,6 +3197,7 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
     if(liveState.viewerPc) await leaveViewer();
     const pc=new RTCPeerConnection({iceServers:LIVE_STUN});
     liveState.viewerPc=pc;liveState.viewerStreamId=streamId;liveState.viewerStreamerId=streamerId;liveState.mode='viewer';
+    await startLiveLikes(streamId);
     pc.ontrack=e=>{
       const v=el('live-video');
       if(e.streams?.[0]) v.srcObject=e.streams[0];
