@@ -382,6 +382,7 @@ class _LiveHomeState extends State<LiveHome> {
             ? 'LIVE is active · Microphone ON'
             : 'LIVE is active · Microphone OFF';
       });
+      await updateOverlay();
     } catch (e) {
       if (!mounted) return;
 
@@ -395,6 +396,33 @@ class _LiveHomeState extends State<LiveHome> {
         error: true,
       );
     }
+  }
+
+  Future<void> showOverlay() async {
+    if (!live) return;
+    try {
+      final shown = await native.invokeMethod<bool>('showOverlay', {
+        'viewers': viewers,
+        'mic': micEnabled,
+      });
+      if (shown != true) {
+        showMessage('Միացրու «Display over other apps» թույլտվությունը, հետո նորից սեղմիր կոճակը։');
+      } else {
+        showMessage('Լողացող LIVE պատուհանը միացված է։');
+      }
+    } catch (e) {
+      showMessage('Չհաջողվեց բացել LIVE պատուհանը։ $e', error: true);
+    }
+  }
+
+  Future<void> updateOverlay() async {
+    if (!live) return;
+    try {
+      await native.invokeMethod('updateOverlay', {
+        'viewers': viewers,
+        'mic': micEnabled,
+      });
+    } catch (_) {}
   }
 
   Future<void> goLive() async {
@@ -580,6 +608,7 @@ class _LiveHomeState extends State<LiveHome> {
       setState(() {
         viewers = count;
       });
+      await updateOverlay();
     } catch (_) {
       // Heartbeat errors must not stop LIVE.
     }
@@ -597,6 +626,9 @@ class _LiveHomeState extends State<LiveHome> {
 
     try {
       // Stop Android LiveKit first.
+      try {
+        await native.invokeMethod('hideOverlay');
+      } catch (_) {}
       try {
         await native.invokeMethod('stopLive');
       } catch (_) {}
@@ -901,6 +933,20 @@ class _LiveHomeState extends State<LiveHome> {
                     ),
                   ),
                 ),
+
+              // TikTok-style floating overlay controls.
+              if (live) ...[
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 54,
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: showOverlay,
+                    icon: const Icon(Icons.picture_in_picture_alt),
+                    label: const Text('SHOW CONTROLS OVER GAME'),
+                  ),
+                ),
+              ],
 
               // MICROPHONE ON / OFF BUTTON
               if (live) ...[
