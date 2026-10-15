@@ -31,7 +31,7 @@ class LiveOverlayService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == ACTION_STOP) { stopForeground(STOP_FOREGROUND_REMOVE); stopSelf(); return START_NOT_STICKY }
+        if (intent?.action == ACTION_STOP) { stopForeground(true); stopSelf(); return START_NOT_STICKY }
         ensureForeground()
         if (root == null) showOverlay()
         if (intent?.action == ACTION_UPDATE) {
@@ -49,11 +49,13 @@ class LiveOverlayService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             manager.createNotificationChannel(NotificationChannel("aimrelax_live_overlay", "AIMRELAX LIVE controls", NotificationManager.IMPORTANCE_LOW))
         }
-        val notification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Notification.Builder(this, "aimrelax_live_overlay")
         } else {
-            @Suppress("DEPRECATION") Notification.Builder(this)
-        }.setSmallIcon(android.R.drawable.ic_media_play)
+            Notification.Builder(this)
+        }
+        val notification = builder
+            .setSmallIcon(android.R.drawable.ic_media_play)
             .setContentTitle("AIMRELAX LIVE is running")
             .setContentText("Floating viewer count, microphone and comments are active.")
             .setOngoing(true)
