@@ -22,6 +22,7 @@ class LiveOverlayService : Service() {
     private var root: LinearLayout? = null
     private var status: TextView? = null
     private var mic: Button? = null
+    private var comments: TextView? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -32,6 +33,8 @@ class LiveOverlayService : Service() {
             val enabled = intent.getBooleanExtra("mic", true)
             status?.text = "🔴 LIVE  •  👁 $count"
             mic?.text = if (enabled) "🎙 MIC ON" else "🔇 MIC OFF"
+            val lines = intent.getStringArrayListExtra("comments")
+            if (lines != null) comments?.text = lines.takeLast(3).joinToString("\\n")
         }
         return START_STICKY
     }
@@ -51,6 +54,8 @@ class LiveOverlayService : Service() {
         line.addView(status, LinearLayout.LayoutParams(0, 48, 1f))
         line.addView(mic, LinearLayout.LayoutParams(120, 48))
         box.addView(line)
+        comments = TextView(this).apply { setTextColor(Color.LTGRAY); textSize = 12f; maxLines = 3; setPadding(4, 4, 4, 0) }
+        box.addView(comments)
         root = box
         val type = if (Build.VERSION.SDK_INT >= 26) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY else WindowManager.LayoutParams.TYPE_PHONE
         val p = WindowManager.LayoutParams(320, WindowManager.LayoutParams.WRAP_CONTENT, type, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL, PixelFormat.TRANSLUCENT)
