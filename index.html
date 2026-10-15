@@ -1213,19 +1213,75 @@ AIM<span>RELAX</span>-PUBG
   </div>
 </section>
 
-<!-- PUBG SCREEN LIVE -->
-<section id="live"><div class="live-wrap"><div class="section-title"><small>AIMRELAX-PUBG</small><h2>🔴 PUBG LIVE</h2></div><div class="live-grid"><div class="live-card"><div id="live-video-stage" class="live-video-stage">
-<video id="live-video" class="live-video" autoplay playsinline muted></video>
-<div id="live-state-overlay" class="live-state-overlay" role="status" aria-live="polite"></div>
-<div class="live-like-counter" aria-live="polite">❤️ <span id="live-like-count">0</span></div>
-<div id="live-heart-effects" class="live-heart-effects" aria-hidden="true"></div>
-<button id="live-like-btn" class="live-like-btn" type="button" aria-label="Լայքել LIVE-ը" title="Լայքել LIVE-ը" disabled>❤️</button>
-</div><button id="live-fullscreen-btn" type="button" style="display:block;width:100%;margin-top:8px;padding:11px;border:1px solid #333;border-radius:8px;background:#1d1d1d;color:#fff;font-weight:800;cursor:pointer">⛶ ԱՄԲՈՂՋ ԷԿՐԱՆ</button><div class="live-video-label"><span id="live-indicator" class="live-dot" style="display:none"><i></i> LIVE</span><span id="live-viewer-count">Դիտողներ՝ 0</span></div><input id="live-title-input" class="live-title-input" maxlength="100" placeholder="Live-ի վերնագիրը, օրինակ՝ AIMRELAX PUBG 🔥"><div class="live-controls"><button id="live-start-btn" class="primary" type="button">🔴 ՍԿՍԵԼ LIVE</button><button id="live-mic-btn" type="button" disabled>🎤 Միկրոֆոն՝ OFF</button><button id="live-stop-btn" class="danger" type="button" disabled>⏹️ STOP LIVE</button><button id="live-leave-btn" type="button" disabled>↩️ Դուրս գալ</button></div><div id="live-status" class="live-status">Մուտք գործեք՝ Live օգտագործելու համար։</div><div id="live-comments-panel" style="margin-top:12px;background:#090909;border:1px solid #292929;border-radius:10px;padding:12px">
-<div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><strong style="color:#ff7200">💬 LIVE մեկնաբանություններ</strong><span id="live-comments-status" style="font-size:11px;color:#888">Ընտրեք LIVE</span></div>
-<div id="live-comments-list" style="height:145px;overflow:auto;margin:10px 0;color:#bbb;font-size:13px">Միացեք LIVE-ին՝ մեկնաբանությունները տեսնելու համար։</div>
-<form id="live-comments-form" style="display:flex;gap:7px"><input id="live-comments-input" maxlength="300" placeholder="Գրիր մեկնաբանություն..." disabled style="flex:1;min-width:0;background:#111;border:1px solid #333;border-radius:6px;padding:10px;color:#fff"><button type="submit" disabled style="background:#ff7200;border:0;border-radius:6px;padding:0 14px;font-weight:bold">➤</button></form>
-</div><div id="live-support" class="live-support">Այս browser-ում Screen Share-ը հասանելի չէ։</div><div id="live-browser-help" class="live-browser-help"><strong id="live-browser-help-title">📱 Բացեք AIMRELAX-ը սովորական browser-ով</strong><div id="live-browser-help-text">Screen Share-ը չի կարող աշխատել այս ներսային browser/WebView միջավայրում։ Android-ում բացեք կայքը Chrome-ով, հետո նորից սեղմեք «ՍԿՍԵԼ LIVE»։</div><span id="live-browser-url" class="live-browser-url"></span><div class="live-browser-help-actions"><button id="live-open-chrome-btn" type="button">🌐 ԲԱՑԵԼ CHROME-ՈՎ</button><button id="live-copy-url-btn" class="secondary" type="button">📋 ՊԱՏՃԵՆԵԼ ՀՂՈՒՄԸ</button></div></div><div class="live-note">🎮 Սեղմեք «ՍԿՍԵԼ LIVE» → ընտրեք <b>Entire screen / Էկրանը</b> → թույլատրեք screen share-ը → անցեք PUBG։ Եթե browser-ը system audio չի տրամադրում, Live-ը կարող է ունենալ միայն նկարը կամ microphone-ը։</div></div><div class="live-card"><div class="section-title" style="margin-bottom:15px"><small>ONLINE</small><h2 style="font-size:24px">🔴 Հիմա LIVE</h2></div><div id="live-list" class="live-list"><div class="live-empty">Բեռնվում է...</div></div></div></div></div></section>
+<!-- PUBG SCREEN LIVE: viewer-only website section -->
+<section id="live">
+  <div class="live-wrap">
+    <div class="section-title">
+      <small>AIMRELAX COMMUNITY</small>
+      <h2>🎮 PUBG LIVE</h2>
+      <p style="max-width:650px;margin:10px auto 0;color:#929292;line-height:1.7">Դիտիր խաղային ուղիղ եթերները, միացիր համայնքին ու կիսվիր քո արձագանքով։</p>
+    </div>
+    <div class="live-grid">
+      <div class="live-card live-viewer-card">
+        <div id="live-video-stage" class="live-video-stage">
+          <video id="live-video" class="live-video" autoplay playsinline muted></video>
+          <div id="live-state-overlay" class="live-state-overlay" role="status" aria-live="polite"></div>
+          <div class="live-like-counter" aria-live="polite">❤️ <span id="live-like-count">0</span></div>
+          <div id="live-heart-effects" class="live-heart-effects" aria-hidden="true"></div>
+          <button id="live-like-btn" class="live-like-btn" type="button" aria-label="Լայքել LIVE-ը" title="Լայքել LIVE-ը" disabled>❤️</button>
+        </div>
+        <button id="live-fullscreen-btn" type="button" style="display:block;width:100%;margin-top:10px;padding:12px;border:1px solid #333;border-radius:10px;background:#1b1b1b;color:#fff;font-weight:800;cursor:pointer">⛶ ԱՄԲՈՂՋ ԷԿՐԱՆ</button>
+        <div class="live-video-label">
+          <span id="live-indicator" class="live-dot" style="display:none"><i></i> LIVE</span>
+          <span id="live-viewer-count">Դիտողներ՝ 0</span>
+        </div>
+        <div id="live-status" class="live-status">Ընտրեք LIVE-ը աջ կողմի ցանկից՝ դիտումը սկսելու համար։</div>
+        <div class="live-viewer-hint">📱 <strong>Ուղիղ եթեր սկսելու համար</strong> օգտագործեք AIMRELAX LIVE Android հավելվածը։ Կայքի այս բաժինը նախատեսված է դիտելու, լայքելու և մեկնաբանելու համար։</div>
+        <div id="live-comments-panel" style="margin-top:12px;background:#090909;border:1px solid #292929;border-radius:10px;padding:12px">
+          <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap"><strong style="color:#ff7200">💬 LIVE մեկնաբանություններ</strong><span id="live-comments-status" style="font-size:11px;color:#888">Ընտրեք LIVE</span></div>
+          <div id="live-comments-list" style="height:145px;overflow:auto;margin:10px 0;color:#bbb;font-size:13px">Ընտրեք LIVE՝ մեկնաբանությունները տեսնելու համար։</div>
+          <form id="live-comments-form" style="display:flex;gap:7px"><input id="live-comments-input" maxlength="300" placeholder="Գրիր մեկնաբանություն..." disabled style="flex:1;min-width:0;background:#111;border:1px solid #333;border-radius:6px;padding:10px;color:#fff"><button type="submit" disabled aria-label="Ուղարկել մեկնաբանությունը" style="background:#ff7200;color:#111;border:0;border-radius:6px;padding:0 14px;font-weight:bold">➤</button></form>
+        </div>
+        <div id="live-support" class="live-support" aria-hidden="true"></div>
+      </div>
+      <div class="live-card">
+        <div class="section-title" style="margin-bottom:15px">
+          <small>ՄԻԱՑԻՐ ՀԻՄԱ</small>
+          <h2 style="font-size:24px">🔴 Ուղիղ եթերներ</h2>
+        </div>
+        <p style="margin:0 0 14px;color:#888;font-size:13px;line-height:1.6">Ընտրիր հասանելի եթերը։ Եթե այս պահին եթեր չկա, ցանկը կթարմացվի նոր LIVE սկսվելիս։</p>
+        <div id="live-list" class="live-list"><div class="live-empty">Բեռնվում է LIVE-երի ցանկը…</div></div>
+      </div>
+    </div>
+  </div>
+</section>
 
+<style id="aimrelax-live-viewer-refresh">
+#live{padding:clamp(36px,5vw,76px) 16px;background:radial-gradient(ellipse at 50% 0%,rgba(255,114,0,.09),transparent 48%),#070707}
+#live .section-title h2{letter-spacing:.02em}
+#live .live-grid{grid-template-columns:minmax(0,1.7fr) minmax(290px,.8fr);align-items:start;gap:18px;margin-top:26px}
+#live .live-card{padding:clamp(12px,2vw,20px);border-color:#252525;background:linear-gradient(160deg,#141414,#0b0b0b);border-radius:20px;box-shadow:0 18px 55px rgba(0,0,0,.28)}
+#live .live-video-stage{border:1px solid #303030;border-radius:16px;box-shadow:0 10px 34px rgba(0,0,0,.35)}
+#live .live-video{min-height:clamp(220px,34vw,360px);max-height:72vh;aspect-ratio:16/9;object-fit:contain}
+#live .live-video:fullscreen{aspect-ratio:auto}
+#live .live-video-label{margin:13px 2px 0;font-size:13px}
+#live .live-dot{padding:6px 10px;border-radius:999px;background:rgba(255,40,40,.1);border:1px solid rgba(255,70,70,.25)}
+#live #live-viewer-count{padding:6px 10px;border:1px solid #2b2b2b;border-radius:999px;background:#151515;color:#ddd}
+#live .live-status{border:1px solid #292929;background:#111;border-radius:12px}
+#live #live-comments-panel{margin-top:16px!important;border-color:#292929!important;border-radius:15px!important;background:#0d0d0d!important;padding:14px!important}
+#live #live-comments-list{height:clamp(145px,22vw,235px)!important}
+#live #live-comments-input{border-radius:10px!important;padding:12px!important}
+#live #live-comments-form button{min-width:46px;border-radius:10px!important;cursor:pointer}
+#live .live-list{max-height:650px;gap:12px;padding-right:2px}
+#live .live-item{padding:15px;border-radius:14px;border-color:#292929;background:linear-gradient(135deg,#171717,#101010);transition:border-color .18s,transform .18s}
+#live .live-item:hover{border-color:#6b3b18;transform:translateY(-1px)}
+#live .live-watch-btn{border-radius:10px;background:linear-gradient(135deg,#ff8a00,#ff6500);padding:12px}
+#live .live-empty{padding:32px 14px;border:1px dashed #303030;border-radius:12px;line-height:1.6}
+#live .live-note,#live .live-browser-help,#live .live-controls,#live .live-title-input,#live #live-support{display:none!important}
+#live .live-viewer-hint{margin-top:12px;padding:12px 14px;border-radius:12px;border:1px solid #282828;background:rgba(255,114,0,.045);color:#999;font-size:12px;line-height:1.6}
+#live .live-viewer-hint strong{color:#ff8a26}
+@media(max-width:800px){#live{padding:38px 10px}#live .live-grid{grid-template-columns:minmax(0,1fr);gap:14px}#live .live-video{min-height:210px;max-height:60vh}#live .live-card{padding:12px;border-radius:16px}#live .live-list{max-height:420px}#live .live-viewer-hint{font-size:12px}}
+</style>
 <!-- ԿԱՊ -->
 
 <section class="contact" id="contact">
@@ -2915,12 +2971,11 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
   function setButtons(){
     const streamer=liveState.mode==='streamer' && !!liveState.streamId;
     const viewer=liveState.mode==='viewer' && (!!liveState.viewerRoom || !!liveState.viewerPc);
-    el('live-start-btn').disabled=!!liveState.streamId || !currentUser;
-    el('live-stop-btn').disabled=!streamer;
-    el('live-mic-btn').disabled=!streamer || !liveState.micStream;
-    el('live-leave-btn').disabled=!viewer;
+    const leaveButton=el('live-leave-btn');
+    if(leaveButton)leaveButton.disabled=!viewer;
     renderLiveLikeCount();
-    el('live-indicator').style.display=streamer?'inline-flex':'none';
+    const indicator=el('live-indicator');
+    if(indicator)indicator.style.display=streamer?'inline-flex':'none';
   }
 
   async function insertSignal(streamId, receiverId, kind, payload){
@@ -3550,29 +3605,16 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
 
   async function initLive(){
     if(!currentUser){
-      liveStatus('Մուտք գործեք՝ Live օգտագործելու համար։');
-      el('live-list').innerHTML='<div class="live-empty">Մուտք գործեք՝ Live-երը դիտելու համար։</div>';
+      liveStatus('Մուտք գործեք՝ LIVE-երը դիտելու, լայքելու և մեկնաբանելու համար։');
+      el('live-list').innerHTML='<div class="live-empty">Մուտք գործեք՝ հասանելի LIVE-երը դիտելու համար։</div>';
       setButtons(); return;
     }
-    const supported=hasScreenCaptureSupport();
-    const inWebView=isLikelyInAppWebView();
-    const android=/Android/i.test(navigator.userAgent||'');
-    el('live-support').classList.toggle('show',!supported || inWebView);
-    showBrowserHelp(inWebView || !supported);
-    if(inWebView) liveStatus('AIMRELAX-ը բացված է ներսային WebView-ով։ Բացեք կայքը սովորական browser-ով։','err');
-    else if(android) liveStatus('Դու Chrome-ով ես։ Սակայն Android Chrome-ը կայքերին չի տալիս ամբողջ էկրանի Screen Share API։','err');
-    else if(!supported) liveStatus('Այս browser-ում PUBG Screen Share API-ն հասանելի չէ։','err');
-    else liveStatus('Պատրաստ է։ Սեղմեք «ՍԿՍԵԼ LIVE»։');
+    liveStatus('Ընտրեք LIVE-ը ցանկից՝ դիտումը սկսելու համար։');
     await refreshLiveList();
     setButtons();
   }
 
-  el('live-start-btn').addEventListener('click',startStreamer);
-  el('live-open-chrome-btn')?.addEventListener('click',openInChrome);
-  el('live-copy-url-btn')?.addEventListener('click',copyLiveUrl);
-  el('live-stop-btn').addEventListener('click',()=>stopStreamer());
-  el('live-mic-btn').addEventListener('click',toggleMic);
-  el('live-leave-btn').addEventListener('click',leaveViewer);
+  el('live-leave-btn')?.addEventListener('click',leaveViewer);
 
   if(!liveState.listChannel){
     liveState.listChannel=sb.channel('aimrelax-live-list')
