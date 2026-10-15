@@ -109,7 +109,8 @@ class MainActivity : FlutterActivity() {
                             putExtra("viewers", call.argument<Int>("viewers") ?: 0)
                             putExtra("mic", micEnabled)
                         }
-                        startService(intent)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent)
+                        else startService(intent)
                         result.success(true)
                     }
                 }
