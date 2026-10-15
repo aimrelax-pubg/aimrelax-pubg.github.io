@@ -336,6 +336,7 @@ class _LiveHomeState extends State<LiveHome> {
   // Microphone state
   bool micEnabled = true;
   bool overlayVisible = false;
+  bool livePaused = false;
 
   String? streamId;
   String statusText = 'Ready to go LIVE';
@@ -349,6 +350,14 @@ class _LiveHomeState extends State<LiveHome> {
       if (call.method == 'overlayMicChanged' && mounted) {
         final value = call.arguments;
         if (value is bool) setState(() => micEnabled = value);
+      } else if (call.method == 'overlayPauseChanged' && mounted) {
+        final value = call.arguments == true;
+        setState(() {
+          livePaused = value;
+          statusText = value ? 'LIVE is paused' : 'LIVE is active';
+        });
+      } else if (call.method == 'overlayStopRequested' && mounted) {
+        await endLive();
       }
     });
   }
@@ -441,6 +450,7 @@ class _LiveHomeState extends State<LiveHome> {
       final shown = await native.invokeMethod<bool>('showOverlay', {
         'viewers': viewers,
         'mic': micEnabled,
+        'paused': livePaused,
         'comments': recentComments,
       });
       if (shown != true) {
@@ -586,6 +596,7 @@ class _LiveHomeState extends State<LiveHome> {
         live = true;
         busy = false;
         micEnabled = true;
+        livePaused = false;
         viewers = 0;
         statusText = 'LIVE is active · Microphone ON';
       });
@@ -700,6 +711,7 @@ class _LiveHomeState extends State<LiveHome> {
         live = false;
         busy = false;
         micEnabled = true;
+        livePaused = false;
         overlayVisible = false;
         streamId = null;
         viewers = 0;
@@ -719,6 +731,7 @@ class _LiveHomeState extends State<LiveHome> {
         live = false;
         busy = false;
         micEnabled = true;
+        livePaused = false;
         streamId = null;
         viewers = 0;
         statusText = 'LIVE ended';
