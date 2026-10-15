@@ -83,7 +83,7 @@ class MainActivity : FlutterActivity() {
         )
 
         if (!overlayReceiverRegistered) {
-            registerReceiver(overlayMicReceiver, IntentFilter(LiveOverlayService.ACTION_MIC))
+            ContextCompat.registerReceiver(this, overlayMicReceiver, IntentFilter(LiveOverlayService.ACTION_MIC), ContextCompat.RECEIVER_NOT_EXPORTED)
             overlayReceiverRegistered = true
         }
 
