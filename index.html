@@ -3194,8 +3194,17 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
       el('live-video').muted=true;
 
       const title=(el('live-title-input').value||'AIMRELAX PUBG Live').trim()||'AIMRELAX PUBG Live';
+      // Prefer the public profile nickname over the email/login prefix.
+      let profileNickname = '';
+      try {
+        const {data:profile} = await sb.from('profiles').select('nickname').eq('id',uid()).maybeSingle();
+        profileNickname = String(profile?.nickname || '').trim();
+      } catch (profileError) {
+        console.warn('Could not load streamer profile nickname:', profileError);
+      }
+      const streamerName = profileNickname || String(currentUser?.user_metadata?.nickname || '').trim() || currentUser?.email?.split('@')[0] || 'AIMRELAX Player';
       const {data,error}=await sb.from('live_streams').insert({
-        streamer_id:uid(),streamer_name:nickname(),title,status:'live'
+        streamer_id:uid(),streamer_name:streamerName,title,status:'live'
       }).select('id').single();
       if(error) throw error;
       liveState.streamId=data.id;

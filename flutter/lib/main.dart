@@ -563,8 +563,22 @@ class _LiveHomeState extends State<LiveHome> {
     });
 
     try {
-      final userName =
-          session.user.email?.split('@').first ?? 'Streamer';
+      // Prefer the public profile nickname; only fall back to Auth metadata/email.
+      var userName = (session.user.userMetadata?['nickname'] ?? '').toString().trim();
+      try {
+        final profile = await db
+            .from('profiles')
+            .select('nickname')
+            .eq('id', session.user.id)
+            .maybeSingle();
+        final profileNickname = (profile?['nickname'] ?? '').toString().trim();
+        if (profileNickname.isNotEmpty) userName = profileNickname;
+      } catch (_) {
+        // Auth metadata/email fallback below keeps LIVE start working if profile lookup fails.
+      }
+      if (userName.isEmpty) {
+        userName = session.user.email?.split('@').first ?? 'Streamer';
+      }
 
       // 1. Create stream in Supabase.
       final created = await db.functions.invoke(
