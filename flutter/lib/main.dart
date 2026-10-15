@@ -1,11 +1,13 @@
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 const String supabaseUrl =
     'https://hvhlrbfjloiahbqmnrly.supabase.co';
@@ -44,7 +46,252 @@ class AimrelaxLiveApp extends StatelessWidget {
           brightness: Brightness.dark,
         ),
       ),
-      home: const LiveHome(),
+      home: const AppShell(),
+    );
+  }
+}
+
+
+/// Hosts the website and LIVE panel in one app and keeps their Supabase
+/// sessions synchronized. The website sends only its refresh token over a
+/// JavaScript channel available inside this app's WebView.
+class AppShell extends StatefulWidget {
+  const AppShell({super.key});
+
+  @override
+  State<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends State<AppShell> {
+  final GlobalKey<SitePageState> _siteKey = GlobalKey<SitePageState>();
+  final SupabaseClient _db = Supabase.instance.client;
+  StreamSubscription<AuthState>? _authSubscription;
+  int _selectedTab = 0;
+  String? _lastSyncedRefreshToken;
+
+  @override
+  void initState() {
+    super.initState();
+    _authSubscription = _db.auth.onAuthStateChange.listen((state) {
+      final session = state.session;
+      if (session != null) {
+        _syncSessionToWebsite(session);
+      } else {
+        _lastSyncedRefreshToken = null;
+        _siteKey.currentState?.clearSession();
+      }
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final session = _db.auth.currentSession;
+      if (session != null) _syncSessionToWebsite(session);
+    });
+  }
+
+  Future<void> _syncSessionToWebsite(Session session) async {
+    if (session.refreshToken.isEmpty ||
+        session.refreshToken == _lastSyncedRefreshToken) return;
+    _lastSyncedRefreshToken = session.refreshToken;
+    await _siteKey.currentState?.syncSession(session);
+  }
+
+  Future<void> _handleWebsiteAuthMessage(String message) async {
+    try {
+      final decoded = jsonDecode(message);
+      if (decoded is! Map) return;
+      final event = decoded['event']?.toString();
+      if (event == 'SIGNED_OUT') {
+        if (_db.auth.currentSession != null) await _db.auth.signOut();
+        return;
+      }
+      final refreshToken = decoded['refresh_token']?.toString();
+      if (refreshToken == null || refreshToken.isEmpty) return;
+      if (_db.auth.currentSession?.refreshToken == refreshToken) return;
+      await _db.auth.setSession(refreshToken);
+    } catch (_) {
+      // Ignore malformed bridge messages; normal website navigation continues.
+    }
+  }
+
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(
+        index: _selectedTab,
+        children: [
+          SitePage(
+            key: _siteKey,
+            onAuthMessage: _handleWebsiteAuthMessage,
+          ),
+          const LiveHome(),
+        ],
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedTab,
+        onDestinationSelected: (index) =>
+            setState(() => _selectedTab = index),
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.language),
+            label: 'Կայք',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.videocam),
+            label: 'LIVE',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SitePage extends StatefulWidget {
+  const SitePage({super.key, required this.onAuthMessage});
+
+  final Future<void> Function(String message) onAuthMessage;
+
+  @override
+  State<SitePage> createState() => SitePageState();
+}
+
+class SitePageState extends State<SitePage> {
+  static const String _siteUrl = 'https://aimrelax-pubg.github.io/';
+  static const String _storageKey =
+      'sb-hvhlrbfjloiahbqmnrly-auth-token';
+  late final WebViewController _controller;
+  bool _loading = true;
+  bool _pageReady = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..addJavaScriptChannel(
+        'AuthBridge',
+        onMessageReceived: (message) {
+          widget.onAuthMessage(message.message);
+        },
+      )
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageStarted: (_) {
+            if (mounted) setState(() => _loading = true);
+            _pageReady = false;
+          },
+          onPageFinished: (_) async {
+            _pageReady = true;
+            await _installAuthBridge();
+            if (mounted) setState(() => _loading = false);
+          },
+          onWebResourceError: (_) {
+            if (mounted) setState(() => _loading = false);
+          },
+        ),
+      )
+      ..loadRequest(Uri.parse(_siteUrl));
+  }
+
+  Future<void> _installAuthBridge() async {
+    // Do not send a token back to Flutter after Flutter has just written the
+    // session into WebView storage. For normal site logins, forward the token.
+    await _controller.runJavaScript('''
+      (function() {
+        const key = '$_storageKey';
+        if (window.__aimrelaxAuthBridgeInstalled) return;
+        window.__aimrelaxAuthBridgeInstalled = true;
+        const originalSetItem = Storage.prototype.setItem;
+        const originalRemoveItem = Storage.prototype.removeItem;
+        window.__aimrelaxNativeSessionWrite = false;
+        function sendCurrentSession() {
+          if (window.__aimrelaxNativeSessionWrite) return;
+          try {
+            const raw = localStorage.getItem(key);
+            if (!raw) return;
+            const session = JSON.parse(raw);
+            if (session && session.refresh_token) {
+              AuthBridge.postMessage(JSON.stringify({
+                event: 'SIGNED_IN',
+                refresh_token: session.refresh_token
+              }));
+            }
+          } catch (_) {}
+        }
+        Storage.prototype.setItem = function(k, v) {
+          originalSetItem.call(this, k, v);
+          if (k === key && this === localStorage) sendCurrentSession();
+        };
+        Storage.prototype.removeItem = function(k) {
+          originalRemoveItem.call(this, k);
+          if (k === key && this === localStorage &&
+              !window.__aimrelaxNativeSessionWrite) {
+            AuthBridge.postMessage(JSON.stringify({event: 'SIGNED_OUT'}));
+          }
+        };
+        if (sessionStorage.getItem('__aimrelax_skip_initial_auth_bridge') === '1') {
+          sessionStorage.removeItem('__aimrelax_skip_initial_auth_bridge');
+        } else {
+          sendCurrentSession();
+        }
+      })();
+    ''');
+  }
+
+  Future<void> syncSession(Session session) async {
+    if (!_pageReady || session.refreshToken.isEmpty) return;
+    final sessionJson = jsonEncode(session.toJson());
+    final encoded = jsonEncode(sessionJson);
+    await _controller.runJavaScript('''
+      (function() {
+        try {
+          window.__aimrelaxNativeSessionWrite = true;
+          sessionStorage.setItem('__aimrelax_skip_initial_auth_bridge', '1');
+          localStorage.setItem('$_storageKey', $encoded);
+          window.__aimrelaxNativeSessionWrite = false;
+          location.reload();
+        } catch (_) {
+          window.__aimrelaxNativeSessionWrite = false;
+        }
+      })();
+    ''');
+  }
+
+  Future<void> clearSession() async {
+    if (!_pageReady) return;
+    await _controller.runJavaScript('''
+      (function() {
+        try {
+          window.__aimrelaxNativeSessionWrite = true;
+          localStorage.removeItem('$_storageKey');
+          window.__aimrelaxNativeSessionWrite = false;
+          location.reload();
+        } catch (_) {
+          window.__aimrelaxNativeSessionWrite = false;
+        }
+      })();
+    ''');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Stack(
+          children: [
+            WebViewWidget(controller: _controller),
+            if (_loading)
+              const Align(
+                alignment: Alignment.topCenter,
+                child: LinearProgressIndicator(),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
