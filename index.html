@@ -726,6 +726,10 @@ section{position:relative}.section-title h2{letter-spacing:-.02em}
 <style id="aimrelax-live-style">
 #live{padding:70px 18px;background:#080808;border-top:1px solid #1b1b1b;border-bottom:1px solid #1b1b1b}.live-wrap{max-width:1400px;margin:0 auto}.live-grid{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(260px,.8fr);gap:20px;margin-top:25px}.live-card{background:#101010;border:1px solid #292929;border-radius:16px;padding:16px;box-shadow:0 12px 35px rgba(0,0,0,.22)}.live-video{width:100%;height:auto;aspect-ratio:auto;max-height:82vh;min-height:240px;background:#000;border-radius:12px;object-fit:contain;object-position:center center;display:block;border:1px solid #222;cursor:zoom-in}.live-video:fullscreen{width:100vw;height:100vh;max-height:100vh;min-height:0;aspect-ratio:auto;object-fit:contain;background:#000;border:0;border-radius:0;cursor:zoom-out}.live-video-stage{position:relative;width:100%;overflow:hidden;border-radius:12px;background:#000;isolation:isolate}
 .live-video-stage .live-video{border-radius:12px}
+.live-state-overlay{position:absolute;inset:0;z-index:5;display:none;align-items:center;justify-content:center;padding:24px;text-align:center;background:rgba(0,0,0,.84);color:#fff;font-size:clamp(20px,3vw,32px);font-weight:900;line-height:1.45;border-radius:12px}
+.live-state-overlay.show{display:flex}
+.live-state-overlay.paused{color:#ffd27a}
+.live-state-overlay.ended{color:#fff}
 .live-like-counter{position:absolute;z-index:3;top:12px;left:12px;padding:7px 11px;border-radius:999px;background:rgba(0,0,0,.62);border:1px solid rgba(255,255,255,.18);font-weight:900;font-size:14px;color:#fff;pointer-events:none;backdrop-filter:blur(6px)}
 .live-like-btn{position:absolute;z-index:4;right:16px;bottom:16px;width:58px;height:58px;border:1px solid rgba(255,255,255,.35);border-radius:50%;background:rgba(255,65,105,.94);color:#fff;font-size:29px;box-shadow:0 5px 24px rgba(255,35,85,.4);cursor:pointer;transition:transform .12s,filter .12s}
 .live-like-btn:active{transform:scale(.86)}
@@ -1212,6 +1216,7 @@ AIM<span>RELAX</span>-PUBG
 <!-- PUBG SCREEN LIVE -->
 <section id="live"><div class="live-wrap"><div class="section-title"><small>AIMRELAX-PUBG</small><h2>🔴 PUBG LIVE</h2></div><div class="live-grid"><div class="live-card"><div id="live-video-stage" class="live-video-stage">
 <video id="live-video" class="live-video" autoplay playsinline muted></video>
+<div id="live-state-overlay" class="live-state-overlay" role="status" aria-live="polite"></div>
 <div class="live-like-counter" aria-live="polite">❤️ <span id="live-like-count">0</span></div>
 <div id="live-heart-effects" class="live-heart-effects" aria-hidden="true"></div>
 <button id="live-like-btn" class="live-like-btn" type="button" aria-label="Լայքել LIVE-ը" title="Լայքել LIVE-ը" disabled>❤️</button>
@@ -2878,6 +2883,7 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
     peers: new Map(),
     viewerPc: null,
     viewerRoom: null,
+    viewerStatusChannel: null,
     viewerAudioEls: [],
     viewerStreamId: null,
     viewerStreamerId: null,
@@ -3349,6 +3355,7 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
     await stopLiveComments();
     await stopLiveLikes();
     const room=liveState.viewerRoom;
+    if(liveState.viewerStatusChannel){try{await sb.removeChannel(liveState.viewerStatusChannel);}catch(e){}liveState.viewerStatusChannel=null;}
     try{liveState.viewerPc?.close();}catch(e){}
     if(room){
       try{room.removeAllListeners?.();}catch(e){}
@@ -3374,8 +3381,49 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
     liveState.mode=null;
     const video=el('live-video');
     if(video){video.pause?.();video.srcObject=null;}
+    setViewerStateOverlay('', '');
     liveStatus('Դուրս եկաք Live-ից։');
     setButtons();
+  }
+
+  function setViewerStateOverlay(message, state){
+    const overlay=el('live-state-overlay');
+    if(!overlay)return;
+    overlay.textContent=message;
+    overlay.className='live-state-overlay'+(message?' show':'')+(state?' '+state:'');
+  }
+
+  function handleViewerStreamStatus(status){
+    if(status==='paused'){
+      setViewerStateOverlay('⏸ Հեռարձակումը ժամանակավորապես դադարեցված է','paused');
+      liveStatus('Հեռարձակումը ժամանակավորապես դադարեցված է։','warn');
+    }else if(status==='ended'){
+      setViewerStateOverlay('Ուղիղ եթերն ավարտվեց','ended');
+      liveStatus('Ուղիղ եթերն ավարտվեց։');
+      const room=liveState.viewerRoom;
+      if(room){
+        try{room.disconnect();}catch(e){}
+        liveState.viewerRoom=null;
+      }
+      const video=el('live-video');
+      if(video){video.pause?.();video.srcObject=null;}
+      (liveState.viewerAudioEls||[]).forEach(audio=>{try{audio.pause();audio.srcObject=null;audio.remove();}catch(e){}});
+      liveState.viewerAudioEls=[];
+    }else{
+      setViewerStateOverlay('', '');
+      if(liveState.mode==='viewer')liveStatus('Միացված եք Live-ին։','ok');
+    }
+  }
+
+  function subscribeViewerStatus(streamId){
+    if(liveState.viewerStatusChannel){try{sb.removeChannel(liveState.viewerStatusChannel);}catch(e){}}
+    liveState.viewerStatusChannel=sb.channel('aimrelax-live-status-'+streamId)
+      .on('postgres_changes',{event:'UPDATE',schema:'public',table:'live_streams',filter:'id=eq.'+streamId},payload=>{
+        handleViewerStreamStatus(payload.new?.status);
+      }).subscribe();
+    sb.from('live_streams').select('status').eq('id',streamId).maybeSingle()
+      .then(({data,error})=>{if(!error&&data?.status)handleViewerStreamStatus(data.status);})
+      .catch(()=>{});
   }
 
   async function watchLiveKit(streamId,streamerId){
@@ -3452,6 +3500,7 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
       room.on(trackUnsubscribedEvent,onTrackUnsubscribed);
 
       await room.connect(serverUrl,token);
+      subscribeViewerStatus(streamId);
       room.remoteParticipants?.forEach(participant=>{
         participant.trackPublications?.forEach(publication=>{
           if(publication.track) onTrackSubscribed(publication.track);
@@ -3492,10 +3541,10 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
 
   async function refreshLiveList(){
     const box=el('live-list'); if(!box)return;
-    const {data,error}=await sb.from('live_streams').select('id,streamer_id,streamer_name,title,status,created_at,livekit_room_name').eq('status','live').order('created_at',{ascending:false});
+    const {data,error}=await sb.from('live_streams').select('id,streamer_id,streamer_name,title,status,created_at,livekit_room_name').in('status',['live','paused']).order('created_at',{ascending:false});
     if(error){box.innerHTML='<div class="live-empty">Live ցուցակը հասանելի չէ։</div>';return;}
     if(!data?.length){box.innerHTML='<div class="live-empty">Այս պահին ոչ ոք LIVE չէ։</div>';return;}
-    box.innerHTML=data.map(x=>`<div class="live-item"><div class="live-item-head"><div class="live-item-name">🔴 ${esc(x.streamer_name)}</div><span style="color:#ff5252;font-size:12px;font-weight:900">LIVE</span></div><div class="live-item-title">${esc(x.title)}</div><button class="live-watch-btn" type="button" data-live-id="${esc(x.id)}" data-streamer-id="${esc(x.streamer_id)}" data-live-room="${esc(x.livekit_room_name||'')}">▶️ ԴԻՏԵԼ LIVE</button></div>`).join('');
+    box.innerHTML=data.map(x=>`<div class="live-item"><div class="live-item-head"><div class="live-item-name">🔴 ${esc(x.streamer_name)}</div><span style="color:${x.status==='paused'?'#ffd27a':'#ff5252'};font-size:12px;font-weight:900">${x.status==='paused'?'⏸ ԴԱԴԱՐ' : '🔴 LIVE'}</span></div><div class="live-item-title">${esc(x.title)}</div><button class="live-watch-btn" type="button" data-live-id="${esc(x.id)}" data-streamer-id="${esc(x.streamer_id)}" data-live-room="${esc(x.livekit_room_name||'')}">▶️ ԴԻՏԵԼ LIVE</button></div>`).join('');
     box.querySelectorAll('.live-watch-btn').forEach(b=>b.addEventListener('click',()=>watchLive(b.dataset.liveId,b.dataset.streamerId,b.dataset.liveRoom)));
   }
 
