@@ -23,16 +23,18 @@ class LiveOverlayService : Service() {
     private var status: TextView? = null
     private var mic: Button? = null
     private var comments: TextView? = null
+    private var viewerCount = 0
+    private var micState = true
 
     override fun onBind(intent: Intent?): IBinder? = null
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == ACTION_STOP) { stopSelf(); return START_NOT_STICKY }
         if (root == null) showOverlay()
         if (intent?.action == ACTION_UPDATE) {
-            val count = intent.getIntExtra("viewers", 0)
-            val enabled = intent.getBooleanExtra("mic", true)
-            status?.text = "🔴 LIVE  •  👁 $count"
-            mic?.text = if (enabled) "🎙 MIC ON" else "🔇 MIC OFF"
+            viewerCount = intent.getIntExtra("viewers", viewerCount)
+            micState = intent.getBooleanExtra("mic", micState)
+            status?.text = "🔴 LIVE  •  👁 $viewerCount"
+            mic?.text = if (micState) "🎙 MIC ON" else "🔇 MIC OFF"
             val lines = intent.getStringArrayListExtra("comments")
             if (lines != null) comments?.text = lines.takeLast(3).joinToString("\\n")
         }
