@@ -471,6 +471,7 @@ class _LiveHomeState extends State<LiveHome> {
       await native.invokeMethod('updateOverlay', {
         'viewers': viewers,
         'mic': micEnabled,
+        'paused': livePaused,
         'comments': recentComments,
       });
     } catch (_) {}
