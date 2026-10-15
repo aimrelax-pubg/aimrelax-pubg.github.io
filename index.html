@@ -3473,6 +3473,7 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
       setViewerStateOverlay('⏸ Հեռարձակումը ժամանակավորապես դադարեցված է','paused');
       liveStatus('Հեռարձակումը ժամանակավորապես դադարեցված է։','warn');
     }else if(status==='ended'){
+      if(liveState.viewerStatusTimer){clearInterval(liveState.viewerStatusTimer);liveState.viewerStatusTimer=null;}
       setViewerStateOverlay('Ուղիղ եթերն ավարտվեց','ended');
       liveStatus('Ուղիղ եթերն ավարտվեց։');
       const room=liveState.viewerRoom;
