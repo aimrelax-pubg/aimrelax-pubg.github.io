@@ -58,11 +58,7 @@ class LiveOverlayService : Service() {
             .setContentText("Floating viewer count, microphone and comments are active.")
             .setOngoing(true)
             .build()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(71, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
-        } else {
-            startForeground(71, notification)
-        }
+        startForeground(71, notification)
     }
 
     private fun showOverlay() {
