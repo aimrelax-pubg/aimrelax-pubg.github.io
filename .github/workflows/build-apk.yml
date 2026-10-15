@@ -45,6 +45,7 @@ jobs:
 
           cp android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt /tmp/aimrelax_backup/MainActivity.kt
           cp android/app/src/main/AndroidManifest.xml /tmp/aimrelax_backup/AndroidManifest.xml
+          cp android/app/src/main/kotlin/com/aimrelax/aimrelax_live/LiveOverlayService.kt /tmp/aimrelax_backup/LiveOverlayService.kt
 
       - name: Regenerate Android project
         working-directory: flutter
@@ -68,6 +69,8 @@ jobs:
 
           cp /tmp/aimrelax_backup/MainActivity.kt \
             android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
+          cp /tmp/aimrelax_backup/LiveOverlayService.kt \
+            android/app/src/main/kotlin/com/aimrelax/aimrelax_live/LiveOverlayService.kt
 
       - name: Restore AndroidManifest
         working-directory: flutter
