@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - main
+      - feature/tiktok-live-overlay
 
 jobs:
   build:
@@ -34,6 +35,7 @@ jobs:
           set -e
           test -f android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt
           test -f android/app/src/main/AndroidManifest.xml
+          test -f android/app/src/main/kotlin/com/aimrelax/aimrelax_live/LiveOverlayService.kt
           echo "Android source files OK."
 
       - name: Backup AIMRELAX Android files
