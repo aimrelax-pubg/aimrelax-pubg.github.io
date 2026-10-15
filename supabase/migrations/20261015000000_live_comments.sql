@@ -10,3 +10,6 @@ exception
   when duplicate_object then null;
   when undefined_object then null;
 end $$;
+
+grant select on public.live_comments to anon, authenticated;
+grant insert on public.live_comments to authenticated;
