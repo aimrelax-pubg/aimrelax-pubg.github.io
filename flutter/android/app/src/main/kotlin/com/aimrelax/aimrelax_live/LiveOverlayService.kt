@@ -67,7 +67,7 @@ class LiveOverlayService : Service() {
         wm = getSystemService(WINDOW_SERVICE) as WindowManager
         val box = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(12, 8, 12, 8)
+            setPadding(dp(12), dp(8), dp(12), dp(8))
             setBackgroundColor(Color.argb(230, 18, 18, 18))
         }
         val line = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
@@ -76,18 +76,20 @@ class LiveOverlayService : Service() {
             text = "🎙 MIC ON"
             setOnClickListener { sendBroadcast(Intent(ACTION_MIC).setPackage(packageName)) }
         }
-        line.addView(status, LinearLayout.LayoutParams(0, 48, 1f))
-        line.addView(mic, LinearLayout.LayoutParams(120, 48))
+        line.addView(status, LinearLayout.LayoutParams(0, dp(48), 1f))
+        line.addView(mic, LinearLayout.LayoutParams(dp(120), dp(48)))
         box.addView(line)
         comments = TextView(this).apply { setTextColor(Color.LTGRAY); textSize = 12f; maxLines = 3; setPadding(4, 4, 4, 0) }
         box.addView(comments)
         root = box
         val type = if (Build.VERSION.SDK_INT >= 26) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY else WindowManager.LayoutParams.TYPE_PHONE
-        val p = WindowManager.LayoutParams(320, WindowManager.LayoutParams.WRAP_CONTENT, type, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL, PixelFormat.TRANSLUCENT)
+        val p = WindowManager.LayoutParams(dp(320), WindowManager.LayoutParams.WRAP_CONTENT, type, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL, PixelFormat.TRANSLUCENT)
         p.gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
-        p.y = 70
+        p.y = dp(70)
         try { wm?.addView(box, p) } catch (_: Exception) { root = null }
     }
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
+
     override fun onDestroy() {
         try { root?.let { wm?.removeView(it) } } catch (_: Exception) {}
         root = null
