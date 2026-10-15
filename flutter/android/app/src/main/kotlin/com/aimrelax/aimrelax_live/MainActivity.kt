@@ -85,11 +85,11 @@ class MainActivity : FlutterActivity() {
                                 .getTrackPublication(Track.Source.MICROPHONE)?.track as? LocalAudioTrack
 
                             if (nextPaused) {
-                                screenTrack?.pauseUpstream()
-                                audioTrack?.pauseUpstream()
+                                screenTrack?.let { it.enabled = false }
+                                audioTrack?.let { it.enabled = false }
                             } else {
-                                screenTrack?.resumeUpstream()
-                                audioTrack?.resumeUpstream()
+                                screenTrack?.let { it.enabled = true }
+                                audioTrack?.let { it.enabled = true }
                             }
                             livePaused = nextPaused
                             launch(Dispatchers.Main) {
