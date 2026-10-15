@@ -47,6 +47,9 @@ class MainActivity : FlutterActivity() {
     @Volatile
     private var micEnabled = true
 
+    @Volatile
+    private var livePaused = false
+
     private var pendingResult: MethodChannel.Result? = null
     private var pendingToken: String? = null
     private var pendingUrl: String? = null
@@ -54,20 +57,53 @@ class MainActivity : FlutterActivity() {
 
     private val overlayMicReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: android.content.Context?, intent: Intent?) {
-            if (intent?.action != LiveOverlayService.ACTION_MIC) return
-            scope.launch(Dispatchers.IO) {
-                try {
-                    val liveRoom = room ?: return@launch
-                    val next = !micEnabled
-                    val audioModule = liveRoom.lkObjects.audioDeviceModule as? JavaAudioDeviceModule
-                        ?: return@launch
-                    audioModule.setAudioRecordEnabled(next)
-                    micEnabled = next
-                    launch(Dispatchers.Main) {
-                        methodChannel.invokeMethod("overlayMicChanged", next)
+            when (intent?.action) {
+                LiveOverlayService.ACTION_MIC -> {
+                    scope.launch(Dispatchers.IO) {
+                        try {
+                            val liveRoom = room ?: return@launch
+                            val next = !micEnabled
+                            val audioModule = liveRoom.lkObjects.audioDeviceModule as? JavaAudioDeviceModule
+                                ?: return@launch
+                            audioModule.setAudioRecordEnabled(next)
+                            micEnabled = next
+                            launch(Dispatchers.Main) {
+                                methodChannel.invokeMethod("overlayMicChanged", next)
+                            }
+                            updateOverlay(viewers = -1, mic = next)
+                        } catch (_: Exception) { }
                     }
-                    updateOverlay(viewers = -1, mic = next)
-                } catch (_: Exception) { }
+                }
+                LiveOverlayService.ACTION_PAUSE -> {
+                    scope.launch(Dispatchers.IO) {
+                        try {
+                            val liveRoom = room ?: return@launch
+                            val nextPaused = !livePaused
+                            val screenTrack = liveRoom.localParticipant
+                                .getTrackPublication(Track.Source.SCREEN_SHARE)?.track as? LocalVideoTrack
+                            val audioTrack = liveRoom.localParticipant
+                                .getTrackPublication(Track.Source.MICROPHONE)?.track as? LocalAudioTrack
+
+                            if (nextPaused) {
+                                screenTrack?.let { it.enabled = false }
+                                audioTrack?.let { it.enabled = false }
+                            } else {
+                                screenTrack?.let { it.enabled = true }
+                                audioTrack?.let { it.enabled = true }
+                            }
+                            livePaused = nextPaused
+                            launch(Dispatchers.Main) {
+                                methodChannel.invokeMethod("overlayPauseChanged", nextPaused)
+                            }
+                            updateOverlay(viewers = -1, mic = micEnabled, paused = nextPaused)
+                        } catch (_: Exception) { }
+                    }
+                }
+                LiveOverlayService.ACTION_END_LIVE -> {
+                    runOnUiThread {
+                        methodChannel.invokeMethod("overlayStopRequested", null)
+                    }
+                }
             }
         }
     }
@@ -86,7 +122,12 @@ class MainActivity : FlutterActivity() {
         )
 
         if (!overlayReceiverRegistered) {
-            ContextCompat.registerReceiver(this, overlayMicReceiver, IntentFilter(LiveOverlayService.ACTION_MIC), ContextCompat.RECEIVER_NOT_EXPORTED)
+            val overlayFilter = IntentFilter().apply {
+                addAction(LiveOverlayService.ACTION_MIC)
+                addAction(LiveOverlayService.ACTION_PAUSE)
+                addAction(LiveOverlayService.ACTION_END_LIVE)
+            }
+            ContextCompat.registerReceiver(this, overlayMicReceiver, overlayFilter, ContextCompat.RECEIVER_NOT_EXPORTED)
             overlayReceiverRegistered = true
         }
 
@@ -108,6 +149,7 @@ class MainActivity : FlutterActivity() {
                             action = LiveOverlayService.ACTION_UPDATE
                             putExtra("viewers", call.argument<Int>("viewers") ?: 0)
                             putExtra("mic", micEnabled)
+                            putExtra("paused", livePaused)
                         }
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent)
                         else startService(intent)
@@ -119,7 +161,8 @@ class MainActivity : FlutterActivity() {
                     updateOverlay(
                         viewers = call.argument<Int>("viewers") ?: -1,
                         mic = call.argument<Boolean>("mic") ?: micEnabled,
-                        comments = call.argument<ArrayList<String>>("comments")
+                        comments = call.argument<ArrayList<String>>("comments"),
+                        paused = call.argument<Boolean>("paused") ?: livePaused
                     )
                     result.success(true)
                 }
@@ -378,6 +421,7 @@ class MainActivity : FlutterActivity() {
 
                 launch(Dispatchers.Main) {
                     micEnabled = true
+                    livePaused = false
                     pendingResult?.success(true)
                     clearPending()
                 }
@@ -394,11 +438,12 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    private fun updateOverlay(viewers: Int, mic: Boolean, comments: ArrayList<String>? = null) {
+    private fun updateOverlay(viewers: Int, mic: Boolean, comments: ArrayList<String>? = null, paused: Boolean = livePaused) {
         val intent = Intent(this, LiveOverlayService::class.java).apply {
             action = LiveOverlayService.ACTION_UPDATE
             if (viewers >= 0) putExtra("viewers", viewers)
             putExtra("mic", mic)
+            putExtra("paused", paused)
             if (comments != null) putStringArrayListExtra("comments", comments)
         }
         try {
@@ -436,6 +481,7 @@ class MainActivity : FlutterActivity() {
 
             room = null
             micEnabled = true
+            livePaused = false
         }
     }
 
