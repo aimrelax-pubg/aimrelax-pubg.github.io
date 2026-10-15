@@ -3233,7 +3233,7 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
     const count=el('live-like-count');
     if(count) count.textContent=liveLikesCount.toLocaleString('en-US');
     const button=el('live-like-btn');
-    if(button) button.disabled=!currentUser || liveState.mode!=='viewer' || liveLikeSending || !liveLikesStreamId;
+    if(button) button.disabled=!currentUser || liveState.mode!=='viewer' || !liveLikesStreamId;
   }
   function animateLiveHeart(){
     const box=el('live-heart-effects');
@@ -3280,7 +3280,7 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
   async function sendLiveLike(){
     if(!currentUser){openModal();return;}
     const streamId=liveState.viewerStreamId;
-    if(liveState.mode!=='viewer' || !streamId || liveLikeSending)return;
+    if(liveState.mode!=='viewer' || !streamId)return;
     liveLikeSending=true;renderLiveLikeCount();
     try{
       const result=await sb.from('live_likes').insert({stream_id:streamId,user_id:currentUser.id});
