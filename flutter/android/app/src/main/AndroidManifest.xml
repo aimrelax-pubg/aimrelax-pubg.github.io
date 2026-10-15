@@ -25,7 +25,7 @@
 
         </activity>
         <meta-data android:name="flutterEmbedding" android:value="2" />
-        <service android:name=".LiveOverlayService" android:exported="false" android:foregroundServiceType="specialUse"><property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="Live streaming overlay controls and viewer comments" /></service>
+        <service android:name=".LiveOverlayService" android:exported="false" android:foregroundServiceType="specialUse|microphone"><property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="Live streaming overlay controls and viewer comments" /></service>
         <service android:name="io.livekit.android.screen_capture.ScreenCaptureService"
             android:foregroundServiceType="mediaProjection" android:exported="false" />
     </application>
