@@ -356,6 +356,22 @@ class _LiveHomeState extends State<LiveHome> {
           livePaused = value;
           statusText = value ? 'LIVE is paused' : 'LIVE is active';
         });
+        final id = streamId;
+        if (id != null && id.isNotEmpty) {
+          try {
+            await db.from('live_streams')
+                .update({'status': value ? 'paused' : 'live'})
+                .eq('id', id);
+          } catch (_) {
+            if (mounted) {
+              setState(() {
+                statusText = value
+                    ? 'LIVE paused, but viewer status could not sync'
+                    : 'LIVE resumed, but viewer status could not sync';
+              });
+            }
+          }
+        }
       } else if (call.method == 'overlayStopRequested' && mounted) {
         await endLive();
       }
