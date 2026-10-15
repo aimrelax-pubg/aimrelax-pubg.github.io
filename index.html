@@ -3323,7 +3323,7 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
     if(!streamId)return;
     liveLikesStreamId=streamId;
     try{
-      const result=await sb.from('live_likes').select('id',{count:'exact',head:true}).eq('stream_id',streamId);
+      const result=await sb.from('live_likes').select('stream_id',{count:'exact',head:true}).eq('stream_id',streamId);
       if(result.error)throw result.error;
       liveLikesCount=result.count||0;
       renderLiveLikeCount();
@@ -3350,7 +3350,7 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
     }catch(error){
       console.error('LIVE like failed:',error);
       const status=el('live-status');
-      if(status)status.textContent='Լայքը չուղարկվեց։ Ստուգեք ինտերնետը կամ Supabase-ի կարգավորումները։';
+      if(status)status.textContent='Լայքը չուղարկվեց։ '+(error?.message||'Ստուգեք Supabase-ի live_likes աղյուսակի թույլտվությունները։');
     }finally{
       liveLikeSending=false;renderLiveLikeCount();
     }
@@ -3512,7 +3512,7 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
         throw new Error('live-token ֆունկցիան չվերադարձրեց LiveKit token-ը կամ URL-ը։');
       }
 
-      room=new LK.Room({adaptiveStream:true,dynacast:true});
+      room=new LK.Room({adaptiveStream:false,dynacast:false});
       liveState.viewerRoom=room;
 
       const onTrackSubscribed=(track)=>{
