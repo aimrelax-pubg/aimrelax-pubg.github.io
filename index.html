@@ -3026,7 +3026,19 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
     if(old) try{old.close();}catch(e){}
     const pc=new RTCPeerConnection({iceServers:LIVE_STUN});
     liveState.peers.set(viewerId,pc);
-    liveState.localStream.getTracks().forEach(track=>pc.addTrack(track,liveState.localStream));
+    liveState.localStream.getTracks().forEach(track=>{
+      const sender=pc.addTrack(track,liveState.localStream);
+      if(track.kind==='video' && sender?.getParameters && sender?.setParameters){
+        try{
+          const params=sender.getParameters();
+          params.encodings=params.encodings?.length ? params.encodings : [{}];
+          params.encodings[0].maxBitrate=6000000;
+          params.encodings[0].maxFramerate=60;
+          params.degradationPreference='maintain-resolution';
+          sender.setParameters(params).catch(err=>console.warn('LIVE video quality setting:',err));
+        }catch(err){console.warn('LIVE video quality setting unavailable:',err);}
+      }
+    });
     pc.onicecandidate=e=>{ if(e.candidate) insertSignal(streamId,viewerId,'ice',{candidate:e.candidate.toJSON()}); };
     pc.onconnectionstatechange=()=>{
       if(['failed','closed','disconnected'].includes(pc.connectionState)){
@@ -3171,7 +3183,11 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
     liveStatus('Բացվում է էկրանի հեռարձակումը… հաստատեք համակարգի պատուհանում։','warn');
     try{
       const display=await md.getDisplayMedia({
-        video:{frameRate:{ideal:30,max:60}},
+        video:{
+          width:{ideal:1920},
+          height:{ideal:1080},
+          frameRate:{ideal:60,max:60}
+        },
         audio:true,
         selfBrowserSurface:'exclude',
         preferCurrentTab:false,
