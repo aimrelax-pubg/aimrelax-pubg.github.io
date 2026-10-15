@@ -327,6 +327,8 @@ class _LiveHomeState extends State<LiveHome> {
   final SupabaseClient db = Supabase.instance.client;
 
   Timer? heartbeatTimer;
+  Timer? commentRefreshTimer;
+  bool commentsRefreshBusy = false;
   StreamSubscription<List<Map<String, dynamic>>>? commentSubscription;
   List<String> recentComments = [];
 
@@ -381,6 +383,7 @@ class _LiveHomeState extends State<LiveHome> {
   @override
   void dispose() {
     heartbeatTimer?.cancel();
+    commentRefreshTimer?.cancel();
     commentSubscription?.cancel();
     titleController.dispose();
     WakelockPlus.disable();
@@ -440,24 +443,62 @@ class _LiveHomeState extends State<LiveHome> {
 
   void startLiveComments() {
     commentSubscription?.cancel();
+    commentRefreshTimer?.cancel();
     final id = streamId;
     if (id == null || id.isEmpty) return;
+
+    // Realtime stream for instant updates.
     commentSubscription = db
         .from('live_comments')
         .stream(primaryKey: ['id'])
         .eq('stream_id', id)
         .order('created_at')
         .listen((rows) {
-      recentComments = rows
-          .skip(rows.length > 3 ? rows.length - 3 : 0)
-          .map((row) {
-            final author = row['author_name']?.toString() ?? 'Viewer';
-            final message = row['message']?.toString() ?? '';
-            return '$author: $message';
-          })
-          .toList();
-      updateOverlay();
-    }, onError: (_) {});
+      _applyRecentComments(rows);
+    }, onError: (error) {
+      debugPrint('LIVE comments realtime error: $error');
+    });
+
+    // Polling fallback also works if the table is missing from supabase_realtime.
+    refreshRecentComments();
+    commentRefreshTimer = Timer.periodic(
+      const Duration(seconds: 3),
+      (_) => refreshRecentComments(),
+    );
+  }
+
+  void _applyRecentComments(List<Map<String, dynamic>> rows) {
+    final next = rows
+        .skip(rows.length > 3 ? rows.length - 3 : 0)
+        .map((row) {
+          final author = row['author_name']?.toString() ?? 'Viewer';
+          final message = row['message']?.toString() ?? '';
+          return '$author: $message';
+        })
+        .toList();
+    if (next.join('\\n') == recentComments.join('\\n')) return;
+    recentComments = next;
+    updateOverlay();
+  }
+
+  Future<void> refreshRecentComments() async {
+    final id = streamId;
+    if (id == null || id.isEmpty || !live || commentsRefreshBusy) return;
+    commentsRefreshBusy = true;
+    try {
+      final rows = await db
+          .from('live_comments')
+          .select('id,author_name,message,created_at')
+          .eq('stream_id', id)
+          .order('created_at', ascending: false)
+          .limit(3);
+      final latest = List<Map<String, dynamic>>.from(rows).reversed.toList();
+      _applyRecentComments(latest);
+    } catch (error) {
+      debugPrint('LIVE comments polling error: $error');
+    } finally {
+      commentsRefreshBusy = false;
+    }
   }
 
   Future<void> showOverlay() async {
@@ -716,6 +757,8 @@ class _LiveHomeState extends State<LiveHome> {
 
       heartbeatTimer?.cancel();
       heartbeatTimer = null;
+      commentRefreshTimer?.cancel();
+      commentRefreshTimer = null;
       await commentSubscription?.cancel();
       commentSubscription = null;
       recentComments = [];
@@ -764,6 +807,10 @@ class _LiveHomeState extends State<LiveHome> {
   Future<void> cleanupFailedStart() async {
     heartbeatTimer?.cancel();
     heartbeatTimer = null;
+    commentRefreshTimer?.cancel();
+    commentRefreshTimer = null;
+    await commentSubscription?.cancel();
+    commentSubscription = null;
 
     try {
       await native.invokeMethod('stopLive');
