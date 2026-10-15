@@ -211,6 +211,19 @@ class SitePageState extends State<SitePage> {
       ..loadRequest(Uri.parse(_siteUrl));
   }
 
+  Future<void> _refreshSite() async {
+    if (!mounted) return;
+    setState(() => _loading = true);
+    try {
+      // Clear cached web resources so the latest published site is fetched.
+      await _controller.clearCache();
+      await _controller.reload();
+    } catch (error) {
+      if (mounted) setState(() => _loading = false);
+      debugPrint('AIMRELAX site refresh failed: $error');
+    }
+  }
+
   Future<void> _installAuthBridge() async {
     // Do not send a token back to Flutter after Flutter has just written the
     // session into WebView storage. For normal site logins, forward the token.
@@ -305,6 +318,20 @@ class SitePageState extends State<SitePage> {
                 alignment: Alignment.topCenter,
                 child: LinearProgressIndicator(),
               ),
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Material(
+                color: Colors.black.withValues(alpha: 0.72),
+                shape: const CircleBorder(),
+                elevation: 4,
+                child: IconButton(
+                  tooltip: 'Թարմացնել կայքը',
+                  onPressed: _loading ? null : _refreshSite,
+                  icon: const Icon(Icons.refresh, color: Colors.white),
+                ),
+              ),
+            ),
           ],
         ),
       ),
