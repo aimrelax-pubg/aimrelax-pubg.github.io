@@ -12,7 +12,20 @@
           "package_name": "com.aimrelax.aimrelax_live"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "964763424824-07b9nqv54siuooufhl4cc4ljklqik7ub.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.aimrelax.aimrelax_live",
+            "certificate_hash": "d2523a3ab05d919583e48a4bbfe6d53060ab2eda"
+          }
+        },
+        {
+          "client_id": "964763424824-bjp1jcjp41s14485mup84vpt339fien8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAuuXpsP7PhzRXFEXDVEFfcdPQKy1P7ciM"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "964763424824-bjp1jcjp41s14485mup84vpt339fien8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
