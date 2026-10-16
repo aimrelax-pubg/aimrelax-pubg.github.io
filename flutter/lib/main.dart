@@ -186,7 +186,19 @@ class _AppShellState extends State<AppShell> {
       final refreshToken = decoded['refresh_token']?.toString();
       if (refreshToken == null || refreshToken.isEmpty) return;
       if (_db.auth.currentSession?.refreshToken == refreshToken) return;
-      await _db.auth.setSession(refreshToken);
+
+      // The website already owns this login session. Mark it as synchronized
+      // before setSession emits AuthStateChange; otherwise the listener echoes
+      // the same session back into the WebView and forces location.reload().
+      // That reload can interrupt the Google Identity callback and leave the
+      // WebView showing a blank screen after Google sign-in.
+      _lastSyncedRefreshToken = refreshToken;
+      try {
+        await _db.auth.setSession(refreshToken);
+      } catch (_) {
+        _lastSyncedRefreshToken = null;
+        rethrow;
+      }
     } catch (_) {
       // Ignore malformed bridge messages; normal website navigation continues.
     }
