@@ -6,8 +6,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -403,9 +401,22 @@ class SitePageState extends State<SitePage> {
     await _controller.runJavaScript('''
       (function() {
         try {
+          const key = '$_storageKey';
+          let existingRefreshToken = null;
+          try {
+            const existing = JSON.parse(localStorage.getItem(key) || 'null');
+            existingRefreshToken = existing && existing.refresh_token
+              ? existing.refresh_token : null;
+          } catch (_) {}
+
+          // Google login already saves its session in the website. Do not
+          // reload the WebView when it already has this session: doing so
+          // can interrupt the Google callback and leave a white screen.
+          if (existingRefreshToken === ${jsonEncode(refreshToken)}) return;
+
           window.__aimrelaxNativeSessionWrite = true;
           sessionStorage.setItem('__aimrelax_skip_initial_auth_bridge', '1');
-          localStorage.setItem('$_storageKey', $encoded);
+          localStorage.setItem(key, $encoded);
           window.__aimrelaxNativeSessionWrite = false;
           location.reload();
         } catch (_) {
