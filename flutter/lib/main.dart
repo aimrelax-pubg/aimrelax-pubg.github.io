@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -18,6 +19,9 @@ const String supabaseAnonKey =
 
 const MethodChannel native =
     MethodChannel('aimrelax.live/livekit');
+
+const String googleWebClientId =
+    '553916262884-e6t38573765ffi5jjkkccbkaot452v24.apps.googleusercontent.com';
 
 final GlobalKey<ScaffoldMessengerState> appMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
@@ -124,6 +128,12 @@ class _AppShellState extends State<AppShell> {
   final SupabaseClient _db = Supabase.instance.client;
   StreamSubscription<AuthState>? _authSubscription;
   StreamSubscription<String>? _fcmTokenSubscription;
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: const ['email', 'profile'],
+    serverClientId: googleWebClientId,
+  );
+  bool _googleSignInBusy = false;
+  bool _handlingWebsiteSession = false;
   int _selectedTab = 0;
   String? _lastSyncedRefreshToken;
 
@@ -137,7 +147,7 @@ class _AppShellState extends State<AppShell> {
     _authSubscription = _db.auth.onAuthStateChange.listen((state) {
       final session = state.session;
       if (session != null) {
-        _syncSessionToWebsite(session);
+        if (!_handlingWebsiteSession) _syncSessionToWebsite(session);
         _registerPushToken(session.user.id);
       } else if (state.event == AuthChangeEvent.signedOut) {
         // Only clear the website after an explicit sign-out. INITIAL_SESSION
@@ -189,6 +199,34 @@ class _AppShellState extends State<AppShell> {
     if (synced) _lastSyncedRefreshToken = refreshToken;
   }
 
+  Future<void> _handleGoogleSignInRequested() async {
+    if (_googleSignInBusy) return;
+    _googleSignInBusy = true;
+    _siteKey.currentState?.showGoogleStatus('Google մուտք...');
+    try {
+      final account = await _googleSignIn.signIn();
+      if (account == null) {
+        _siteKey.currentState?.showGoogleStatus('Google մուտքը չեղարկվեց։');
+        return;
+      }
+      final authentication = await account.authentication;
+      final idToken = authentication.idToken;
+      if (idToken == null || idToken.isEmpty) {
+        throw Exception('Google ID token-ը չի ստացվել։ Ստուգեք Firebase-ում Android հավելվածի SHA-1-ը։');
+      }
+      await _db.auth.signInWithIdToken(
+        provider: OAuthProvider.google,
+        idToken: idToken,
+        accessToken: authentication.accessToken,
+      );
+      _siteKey.currentState?.showGoogleStatus('Մուտքը հաջողվեց։ Բեռնվում է կայքը…');
+    } catch (error) {
+      _siteKey.currentState?.showGoogleStatus('Google մուտքը չհաջողվեց։ $error');
+    } finally {
+      _googleSignInBusy = false;
+    }
+  }
+
   Future<void> _handleWebsiteAuthMessage(String message) async {
     try {
       final decoded = jsonDecode(message);
@@ -208,11 +246,14 @@ class _AppShellState extends State<AppShell> {
       // That reload can interrupt the Google Identity callback and leave the
       // WebView showing a blank screen after Google sign-in.
       _lastSyncedRefreshToken = refreshToken;
+      _handlingWebsiteSession = true;
       try {
         await _db.auth.setSession(refreshToken);
       } catch (_) {
         _lastSyncedRefreshToken = null;
         rethrow;
+      } finally {
+        _handlingWebsiteSession = false;
       }
     } catch (_) {
       // Ignore malformed bridge messages; normal website navigation continues.
@@ -235,6 +276,7 @@ class _AppShellState extends State<AppShell> {
           SitePage(
             key: _siteKey,
             onAuthMessage: _handleWebsiteAuthMessage,
+            onGoogleSignInRequested: _handleGoogleSignInRequested,
             onPageReady: () {
               final session = _db.auth.currentSession;
               if (session != null) _syncSessionToWebsite(session);
@@ -266,10 +308,12 @@ class SitePage extends StatefulWidget {
   const SitePage({
     super.key,
     required this.onAuthMessage,
+    required this.onGoogleSignInRequested,
     required this.onPageReady,
   });
 
   final Future<void> Function(String message) onAuthMessage;
+  final Future<void> Function() onGoogleSignInRequested;
   final VoidCallback onPageReady;
 
   @override
@@ -293,6 +337,12 @@ class SitePageState extends State<SitePage> {
         'AuthBridge',
         onMessageReceived: (message) {
           widget.onAuthMessage(message.message);
+        },
+      )
+      ..addJavaScriptChannel(
+        'GoogleAuthBridge',
+        onMessageReceived: (_) {
+          widget.onGoogleSignInRequested();
         },
       )
       ..setNavigationDelegate(
@@ -371,6 +421,45 @@ class SitePageState extends State<SitePage> {
         }
       })();
     ''');
+    // Use native Google sign-in in Android WebView; redirect-based Google auth can
+    // return to the app without the WebView's browser session and show a blank page.
+    await _controller.runJavaScript('''
+      (function() {
+        const host = document.getElementById('google-login-btn');
+        if (!host || document.getElementById('aimrelax-native-google-btn')) return;
+        host.innerHTML = '';
+        const button = document.createElement('button');
+        button.id = 'aimrelax-native-google-btn';
+        button.type = 'button';
+        button.textContent = 'G  Շարունակել Google-ով';
+        button.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:10px;width:240px;max-width:100%;min-height:42px;margin:12px auto 0;padding:10px 14px;background:#fff;color:#202124;border:1px solid #dadce0;border-radius:4px;font:500 14px Arial,sans-serif;cursor:pointer;';
+        button.addEventListener('click', function() {
+          button.disabled = true;
+          button.textContent = 'Google մուտք…';
+          if (window.GoogleAuthBridge) GoogleAuthBridge.postMessage('SIGN_IN');
+          else { button.disabled = false; button.textContent = 'G  Շարունակել Google-ով'; }
+        });
+        host.appendChild(button);
+      })();
+    ''');
+  }
+
+  Future<void> showGoogleStatus(String message) async {
+    if (!_pageReady) return;
+    final encoded = jsonEncode(message);
+    try {
+      await _controller.runJavaScript('''
+        (function() {
+          const status = document.getElementById('m-login-status');
+          if (status) status.textContent = $encoded;
+          const button = document.getElementById('aimrelax-native-google-btn');
+          if (button) {
+            button.disabled = false;
+            button.textContent = 'G  Շարունակել Google-ով';
+          }
+        })();
+      ''');
+    } catch (_) {}
   }
 
   Future<bool> syncSession(Session session) async {
