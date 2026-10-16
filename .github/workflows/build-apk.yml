@@ -136,13 +136,13 @@ jobs:
               closing = settings_text.find("}", opening)
               if closing == -1:
                   raise SystemExit("Could not find end of Gradle plugins block")
-              settings_text = settings_text[:closing] + '\\n    id("com.google.gms.google-services") version "4.4.2" apply false' + settings_text[closing:]
+              settings_text = settings_text[:closing] + '\n    id("com.google.gms.google-services") version "4.4.2" apply false' + settings_text[closing:]
 
           if 'id("com.google.gms.google-services")' not in app_text:
               marker = 'id("dev.flutter.flutter-gradle-plugin")'
               if marker not in app_text:
                   raise SystemExit("Flutter Gradle plugin missing from app build file")
-              app_text = app_text.replace(marker, marker + '\\n    id("com.google.gms.google-services")', 1)
+              app_text = app_text.replace(marker, marker + '\n    id("com.google.gms.google-services")', 1)
 
           app_gradle.write_text(app_text)
 
