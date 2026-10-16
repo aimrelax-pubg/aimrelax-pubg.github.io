@@ -133,7 +133,10 @@ class _AppShellState extends State<AppShell> {
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final session = _db.auth.currentSession;
-      if (session != null) _syncSessionToWebsite(session);
+      if (session != null) {
+        _syncSessionToWebsite(session);
+        _registerPushToken(session.user.id);
+      }
     });
   }
 
