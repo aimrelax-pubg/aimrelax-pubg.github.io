@@ -21,7 +21,7 @@ const MethodChannel native =
     MethodChannel('aimrelax.live/livekit');
 
 const String googleWebClientId =
-    '553916262884-e6t38573765ffi5jjkkccbkaot452v24.apps.googleusercontent.com';
+    '964763424824-bjp1jcjp41s14485mup84vpt339fien8.apps.googleusercontent.com';
 
 final GlobalKey<ScaffoldMessengerState> appMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
