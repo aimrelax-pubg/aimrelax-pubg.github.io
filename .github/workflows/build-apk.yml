@@ -85,6 +85,13 @@ jobs:
           cp /tmp/aimrelax_backup/AndroidManifest.xml \
             android/app/src/main/AndroidManifest.xml
 
+      - name: Generate AR launcher icons
+        working-directory: flutter
+        run: |
+          set -e
+          python3 -m pip install --user Pillow
+          python3 scripts/generate_launcher_icons.py
+
       - name: Configure Gradle repositories
         working-directory: flutter
         run: |
