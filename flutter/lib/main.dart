@@ -4,6 +4,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -20,12 +22,38 @@ const MethodChannel native =
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  await Firebase.initializeApp();
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  final messaging = FirebaseMessaging.instance;
+  final notificationSettings = await messaging.requestPermission(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
+  debugPrint('AIMRELAX FCM permission: ${notificationSettings.authorizationStatus}');
+  final fcmToken = await messaging.getToken();
+  if (fcmToken != null) {
+    debugPrint('AIMRELAX FCM TOKEN: $fcmToken');
+  }
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    debugPrint('AIMRELAX foreground push: ${message.notification?.title ?? message.data}');
+  });
+  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    debugPrint('AIMRELAX push opened: ${message.messageId}');
+  });
+
   await Supabase.initialize(
     url: supabaseUrl,
     anonKey: supabaseAnonKey,
   );
 
   runApp(const AimrelaxLiveApp());
+}
+
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  debugPrint('AIMRELAX background push: ${message.messageId}');
 }
 
 class AimrelaxLiveApp extends StatelessWidget {
