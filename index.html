@@ -2681,6 +2681,18 @@ async function enablePushNotifications(){
   if(!currentUser){ status.textContent='Նախ մուտք գործեք։'; return; }
 
   try{
+    // Android app WebView uses Firebase Cloud Messaging, not browser Web Push.
+    if(window.__aimrelaxNativeApp){
+      if(!window.aimrelaxNativeFcmToken){
+        status.textContent='Չհաջողվեց ստանալ Android ծանուցումների token-ը։ Փակեք և նորից բացեք հավելվածը։';
+        return;
+      }
+      status.textContent='Android հավելվածի ծանուցումները միացված են ✅';
+      btn.textContent='🔔 Android ծանուցումները միացված են';
+      btn.disabled=true;
+      return;
+    }
+
     if(!('Notification' in window) || !('PushManager' in window)){
       status.textContent='Այս browser-ը Web Push չի աջակցում։';
       return;
@@ -2728,6 +2740,12 @@ async function refreshPushStatus(){
   if(!currentUser){
     status.textContent='Մուտք գործեք՝ ծանուցումները միացնելու համար։';
     btn.disabled=false;
+    return;
+  }
+  if(window.__aimrelaxNativeApp){
+    status.textContent=window.aimrelaxNativeFcmToken ? 'Android հավելվածի ծանուցումները միացված են ✅' : 'Android ծանուցումները պատրաստվում են…';
+    btn.textContent='🔔 Android ծանուցումներ';
+    btn.disabled=!!window.aimrelaxNativeFcmToken;
     return;
   }
   try{
