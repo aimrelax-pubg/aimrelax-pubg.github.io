@@ -93,16 +93,22 @@ class _AppShellState extends State<AppShell> {
   final GlobalKey<SitePageState> _siteKey = GlobalKey<SitePageState>();
   final SupabaseClient _db = Supabase.instance.client;
   StreamSubscription<AuthState>? _authSubscription;
+  StreamSubscription<String>? _fcmTokenSubscription;
   int _selectedTab = 0;
   String? _lastSyncedRefreshToken;
 
   @override
   void initState() {
     super.initState();
+    _fcmTokenSubscription = FirebaseMessaging.instance.onTokenRefresh.listen((token) {
+      final userId = _db.auth.currentUser?.id;
+      if (userId != null) _savePushToken(userId, token);
+    });
     _authSubscription = _db.auth.onAuthStateChange.listen((state) {
       final session = state.session;
       if (session != null) {
         _syncSessionToWebsite(session);
+        _registerPushToken(session.user.id);
       } else if (state.event == AuthChangeEvent.signedOut) {
         // Only clear the website after an explicit sign-out. INITIAL_SESSION
         // with no native session must not erase a valid website login.
@@ -114,6 +120,29 @@ class _AppShellState extends State<AppShell> {
       final session = _db.auth.currentSession;
       if (session != null) _syncSessionToWebsite(session);
     });
+  }
+
+  Future<void> _registerPushToken(String userId) async {
+    try {
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token != null && token.isNotEmpty) await _savePushToken(userId, token);
+    } catch (error) {
+      debugPrint('AIMRELAX push token registration failed: $error');
+    }
+  }
+
+  Future<void> _savePushToken(String userId, String token) async {
+    try {
+      await _db.from('device_push_tokens').upsert({
+        'user_id': userId,
+        'token': token,
+        'platform': 'android',
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      }, onConflict: 'token');
+    } catch (error) {
+      // This needs the device_push_tokens table and its RLS policy in Supabase.
+      debugPrint('AIMRELAX push token could not be saved to Supabase: $error');
+    }
   }
 
   Future<void> _syncSessionToWebsite(Session session) async {
@@ -147,6 +176,7 @@ class _AppShellState extends State<AppShell> {
   @override
   void dispose() {
     _authSubscription?.cancel();
+    _fcmTokenSubscription?.cancel();
     super.dispose();
   }
 
