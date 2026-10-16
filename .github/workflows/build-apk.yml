@@ -318,6 +318,18 @@ jobs:
             --no-daemon \
             --stacktrace
 
+      - name: Regenerate AR launcher icons before build
+        working-directory: flutter
+        run: |
+          set -e
+          python3 -m pip install --user Pillow
+          python3 scripts/generate_launcher_icons.py
+          test -f android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+          test -f android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
+          test -f android/app/src/main/res/drawable/ar_launcher_foreground.png
+          grep -q 'android:icon="@mipmap/ic_launcher"' android/app/src/main/AndroidManifest.xml
+          echo "AR launcher icon resources verified."
+
       - name: Build APK
         working-directory: flutter
         run: |
