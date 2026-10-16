@@ -379,6 +379,9 @@ class SitePageState extends State<SitePage> {
   }
 
   Future<void> _installAuthBridge() async {
+    // Identify the native Android shell so the website uses FCM instead of Web Push.
+    final fcmToken = await FirebaseMessaging.instance.getToken();
+    await _controller.runJavaScript('window.__aimrelaxNativeApp = true; window.aimrelaxNativeFcmToken = ${jsonEncode(fcmToken ?? '')};');
     // Do not send a token back to Flutter after Flutter has just written the
     // session into WebView storage. For normal site logins, forward the token.
     await _controller.runJavaScript('''
