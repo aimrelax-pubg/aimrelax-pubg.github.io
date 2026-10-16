@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "964763424824",
+    "project_id": "aimrelax",
+    "storage_bucket": "aimrelax.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:964763424824:android:54ef8bf56001c2665aeecd",
+        "android_client_info": {
+          "package_name": "com.aimrelax.aimrelax_live"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAuuXpsP7PhzRXFEXDVEFfcdPQKy1P7ciM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
