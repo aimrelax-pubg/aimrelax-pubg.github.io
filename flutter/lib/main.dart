@@ -389,10 +389,11 @@ class SitePageState extends State<SitePage> {
               ? existing.refresh_token : null;
           } catch (_) {}
 
-          // Google login already saves its session in the website. Do not
-          // reload the WebView when it already has this session: doing so
-          // can interrupt the Google callback and leave a white screen.
-          if (existingRefreshToken === ${jsonEncode(refreshToken)}) return;
+          // The website is authoritative for browser sign-in. If it already
+          // has any session, never overwrite it from Flutter or reload here.
+          // Google Identity Services may still be completing its callback;
+          // replacing its session at that moment can blank the WebView.
+          if (existingRefreshToken) return;
 
           window.__aimrelaxNativeSessionWrite = true;
           sessionStorage.setItem('__aimrelax_skip_initial_auth_bridge', '1');
