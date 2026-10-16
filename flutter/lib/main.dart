@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -18,6 +20,15 @@ const String supabaseAnonKey =
 
 const MethodChannel native =
     MethodChannel('aimrelax.live/livekit');
+
+final GlobalKey<ScaffoldMessengerState> appMessengerKey =
+    GlobalKey<ScaffoldMessengerState>();
+
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  debugPrint('FCM background message: ${message.messageId}');
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,6 +53,9 @@ Future<void> main() async {
     debugPrint('AIMRELAX push opened: ${message.messageId}');
   });
 
+  await Firebase.initializeApp();
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
   await Supabase.initialize(
     url: supabaseUrl,
     anonKey: supabaseAnonKey,
@@ -63,6 +77,7 @@ class AimrelaxLiveApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      scaffoldMessengerKey: appMessengerKey,
       title: 'AIMRELAX LIVE',
       theme: ThemeData(
         brightness: Brightness.dark,
@@ -142,6 +157,47 @@ class _AppShellState extends State<AppShell> {
     } catch (error) {
       // This needs the device_push_tokens table and its RLS policy in Supabase.
       debugPrint('AIMRELAX push token could not be saved to Supabase: $error');
+    }
+  }
+
+
+  Future<void> _initializePushNotifications() async {
+    try {
+      final messaging = FirebaseMessaging.instance;
+      final settings = await messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+      debugPrint('FCM notification permission: ${settings.authorizationStatus}');
+
+      final token = await messaging.getToken();
+      if (token != null && token.isNotEmpty) {
+        // Token is logged temporarily for verification. Next step is securely
+        // registering it to the signed-in user's push-token table.
+        debugPrint('AIMRELAX FCM TOKEN: $token');
+      }
+
+      messaging.onTokenRefresh.listen((newToken) {
+        debugPrint('AIMRELAX FCM TOKEN REFRESHED: $newToken');
+      });
+
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        final notification = message.notification;
+        final title = notification?.title ?? 'AIMRELAX';
+        final body = notification?.body ?? '';
+        appMessengerKey.currentState
+          ?..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(body.isEmpty ? title : '$title\n$body'),
+              duration: const Duration(seconds: 5),
+            ),
+          );
+      });
+    } catch (error, stackTrace) {
+      debugPrint('FCM initialization failed: $error');
+      debugPrint('$stackTrace');
     }
   }
 
