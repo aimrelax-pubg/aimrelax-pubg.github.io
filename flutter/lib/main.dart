@@ -2,6 +2,8 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -61,7 +63,42 @@ Future<void> main() async {
     debugPrint('AIMRELAX push opened: ${message.messageId}');
   });
 
+  await _initializePushNotifications();
+
   runApp(const AimrelaxLiveApp());
+}
+
+Future<void> _initializePushNotifications() async {
+  try {
+    final messaging = FirebaseMessaging.instance;
+    final settings = await messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+      provisional: false,
+    );
+    debugPrint('FCM notification permission: ${settings.authorizationStatus}');
+
+    final token = await messaging.getToken();
+    if (token != null && token.isNotEmpty) {
+      // The token is needed by the secure backend to target this device.
+      // Do not expose it in the UI or send it to an untrusted service.
+      debugPrint('AIMRELAX FCM token received.');
+    }
+
+    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
+      // Backend token registration will be connected in the next step.
+      debugPrint('AIMRELAX FCM token refreshed.');
+    });
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      debugPrint('AIMRELAX foreground push received: ${message.messageId}');
+    });
+  } catch (error, stackTrace) {
+    // Push setup failure must not prevent the website or LIVE features opening.
+    debugPrint('AIMRELAX push setup failed: $error');
+    debugPrintStack(stackTrace: stackTrace);
+  }
 }
 
 @pragma('vm:entry-point')
