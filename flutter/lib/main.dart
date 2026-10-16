@@ -28,20 +28,12 @@ Future<void> main() async {
   await Firebase.initializeApp();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-  final messaging = FirebaseMessaging.instance;
-  final notificationSettings = await messaging.requestPermission(
-    alert: true,
-    badge: true,
-    sound: true,
-  );
-  debugPrint(
-    'AIMRELAX FCM permission: ${notificationSettings.authorizationStatus}',
-  );
-
   await Supabase.initialize(
     url: supabaseUrl,
     anonKey: supabaseAnonKey,
   );
+
+  await _initializePushNotifications();
 
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     final notification = message.notification;
@@ -61,8 +53,6 @@ Future<void> main() async {
     debugPrint('AIMRELAX push opened: ${message.messageId}');
   });
 
-  await _initializePushNotifications();
-
   runApp(const AimrelaxLiveApp());
 }
 
@@ -79,19 +69,9 @@ Future<void> _initializePushNotifications() async {
 
     final token = await messaging.getToken();
     if (token != null && token.isNotEmpty) {
-      // The token is needed by the secure backend to target this device.
-      // Do not expose it in the UI or send it to an untrusted service.
+      // Token registration is tied to the signed-in Supabase account in AppShell.
       debugPrint('AIMRELAX FCM token received.');
     }
-
-    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
-      // Backend token registration will be connected in the next step.
-      debugPrint('AIMRELAX FCM token refreshed.');
-    });
-
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      debugPrint('AIMRELAX foreground push received: ${message.messageId}');
-    });
   } catch (error, stackTrace) {
     // Push setup failure must not prevent the website or LIVE features opening.
     debugPrint('AIMRELAX push setup failed: $error');
