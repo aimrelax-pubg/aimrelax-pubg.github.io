@@ -52,6 +52,7 @@ jobs:
           cp android/app/src/main/kotlin/com/aimrelax/aimrelax_live/MainActivity.kt /tmp/aimrelax_backup/MainActivity.kt
           cp android/app/src/main/AndroidManifest.xml /tmp/aimrelax_backup/AndroidManifest.xml
           cp android/app/src/main/kotlin/com/aimrelax/aimrelax_live/LiveOverlayService.kt /tmp/aimrelax_backup/LiveOverlayService.kt
+          if [ -f android/app/google-services.json ]; then cp android/app/google-services.json /tmp/aimrelax_backup/google-services.json; else echo 'ERROR: flutter/android/app/google-services.json is missing'; exit 1; fi
 
       - name: Regenerate Android project
         working-directory: flutter
@@ -84,6 +85,7 @@ jobs:
           set -e
           cp /tmp/aimrelax_backup/AndroidManifest.xml \
             android/app/src/main/AndroidManifest.xml
+          cp /tmp/aimrelax_backup/google-services.json android/app/google-services.json
 
       - name: Generate AR launcher icons
         working-directory: flutter
@@ -123,6 +125,24 @@ jobs:
                   )
               else:
                   app_text += "\n\ndependencies {\n    " + livekit + "\n}\n"
+
+          # Apply Google's services plugin to the regenerated Flutter Android project.
+          if 'id("com.google.gms.google-services")' not in settings_text:
+              marker = 'plugins {'
+              start = settings_text.find(marker)
+              if start == -1:
+                  raise SystemExit("Gradle plugins block missing from settings.gradle.kts")
+              opening = settings_text.find("{", start)
+              closing = settings_text.find("}", opening)
+              if closing == -1:
+                  raise SystemExit("Could not find end of Gradle plugins block")
+              settings_text = settings_text[:closing] + '\\n    id("com.google.gms.google-services") version "4.4.2" apply false' + settings_text[closing:]
+
+          if 'id("com.google.gms.google-services")' not in app_text:
+              marker = 'id("dev.flutter.flutter-gradle-plugin")'
+              if marker not in app_text:
+                  raise SystemExit("Flutter Gradle plugin missing from app build file")
+              app_text = app_text.replace(marker, marker + '\\n    id("com.google.gms.google-services")', 1)
 
           app_gradle.write_text(app_text)
 
@@ -240,6 +260,10 @@ jobs:
           set -e
           grep -q 'io.livekit:livekit-android:2.29.0' android/app/build.gradle.kts
           echo "LiveKit 2.29.0 configured."
+          grep -q "com.google.gms.google-services" android/settings.gradle.kts
+          grep -q "com.google.gms.google-services" android/app/build.gradle.kts
+          test -f android/app/google-services.json
+          echo "Firebase Android configuration verified."
 
       - name: Verify Flutter V2 embedding
         working-directory: flutter
