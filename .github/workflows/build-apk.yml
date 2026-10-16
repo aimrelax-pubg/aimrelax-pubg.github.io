@@ -385,6 +385,31 @@ jobs:
 
           ls -lh "$APK"
 
+      - name: Print APK signing certificate fingerprints
+        working-directory: flutter
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="build/app/outputs/flutter-apk/app-release.apk"
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          if [ -z "$APKSIGNER" ]; then
+            echo "ERROR: apksigner was not found."
+            exit 1
+          fi
+          "$APKSIGNER" verify --print-certs "$APK" | tee "$GITHUB_WORKSPACE/apk-signing-certificate.txt"
+          SHA1="$(sed -n 's/.*certificate SHA-1 digest: //p' "$GITHUB_WORKSPACE/apk-signing-certificate.txt" | head -n 1)"
+          SHA256="$(sed -n 's/.*certificate SHA-256 digest: //p' "$GITHUB_WORKSPACE/apk-signing-certificate.txt" | head -n 1)"
+          echo "APK_SIGNING_SHA1=$SHA1"
+          echo "APK_SIGNING_SHA256=$SHA256"
+          echo "::notice title=APK signing SHA-1::$SHA1"
+
+      - name: Upload APK signing certificate
+        uses: actions/upload-artifact@v4
+        with:
+          name: AIMRELAX-APK-SIGNING-CERTIFICATE
+          path: apk-signing-certificate.txt
+          if-no-files-found: error
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
