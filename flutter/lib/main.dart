@@ -365,10 +365,12 @@ class SitePageState extends State<SitePage> {
             if (mounted) setState(() => _loading = true);
             _pageReady = false;
           },
-          onPageFinished: (_) async {
+          onPageFinished: (_) {
             _pageReady = true;
-            await _installAuthBridge();
+            // Never keep a loading overlay on top of a successfully loaded page
+            // while Firebase token retrieval or JavaScript setup is pending.
             if (mounted) setState(() => _loading = false);
+            unawaited(_installAuthBridge());
             widget.onPageReady();
           },
           onWebResourceError: (_) {
@@ -393,9 +395,23 @@ class SitePageState extends State<SitePage> {
   }
 
   Future<void> _installAuthBridge() async {
-    // Identify the native Android shell so the website uses FCM instead of Web Push.
-    final fcmToken = await FirebaseMessaging.instance.getToken();
-    await _controller.runJavaScript('window.__aimrelaxNativeApp = true; window.aimrelaxNativeFcmToken = ${jsonEncode(fcmToken ?? '')};');
+    // Token lookup must not block the WebView or leave a blank/loading screen.
+    String? fcmToken;
+    try {
+      fcmToken = await FirebaseMessaging.instance
+          .getToken()
+          .timeout(const Duration(seconds: 4));
+    } catch (error) {
+      debugPrint('AIMRELAX WebView FCM token lookup failed: $error');
+    }
+    if (!mounted) return;
+    try {
+      // Identify the native Android shell so the website uses FCM instead of Web Push.
+      await _controller.runJavaScript('window.__aimrelaxNativeApp = true; window.aimrelaxNativeFcmToken = ${jsonEncode(fcmToken ?? '')};');
+    } catch (error) {
+      debugPrint('AIMRELAX WebView native bridge setup failed: $error');
+      return;
+    }
     // Do not send a token back to Flutter after Flutter has just written the
     // session into WebView storage. For normal site logins, forward the token.
     await _controller.runJavaScript('''
