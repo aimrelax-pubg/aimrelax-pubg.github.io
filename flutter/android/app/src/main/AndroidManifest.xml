@@ -24,7 +24,7 @@
 </intent-filter>
 
         </activity>
-        <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="aimrelax_push_sound_v2" />
+        <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="default" />
         <meta-data android:name="flutterEmbedding" android:value="2" />
         <service android:name=".LiveOverlayService" android:exported="false" android:foregroundServiceType="specialUse|microphone"><property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="Live streaming overlay controls and viewer comments" /></service>
         <service android:name="io.livekit.android.screen_capture.ScreenCaptureService"
