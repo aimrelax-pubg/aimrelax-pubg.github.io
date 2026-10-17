@@ -2435,14 +2435,29 @@ navigator.serviceWorker?.addEventListener('message',async event=>{
   }
 });
 
-/* Initial page load: only process a ?chat= route when one actually exists.
-   Do not delay normal page startup waiting for the notification route. */
+/* Initial page load: route notification taps after the signed-in user is restored. */
 (function(){
-  const hasChatRoute = new URLSearchParams(location.search).has('chat');
+  const params = new URLSearchParams(location.search);
+  const hasChatRoute = params.has('chat');
+  const hasFriendsRoute = params.has('friends');
   if(hasChatRoute){
     refreshUser().then(()=>openChatFromNotification()).catch(()=>{
       document.documentElement.classList.remove('notification-route');
     });
+  }else if(hasFriendsRoute){
+    refreshUser().then(async()=>{
+      if(!currentUser){
+        openModal();
+        return;
+      }
+      const popup = $('friend-notify-popup');
+      if(popup){
+        popup.classList.add('open');
+        popup.setAttribute('aria-hidden','false');
+        await loadFriendNotifications();
+      }
+      history.replaceState({},'',location.pathname+location.hash);
+    }).catch(error=>console.error('Friend notification route failed:',error));
   }else{
     refreshUser().catch(()=>{});
   }
