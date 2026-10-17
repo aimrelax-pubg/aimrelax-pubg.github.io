@@ -38,7 +38,11 @@ Future<void> main() async {
     anonKey: supabaseAnonKey,
   );
 
-  await _initializePushNotifications();
+  // Start the UI before requesting or repairing the FCM registration token.
+  // Network/token operations must not leave the app stuck on a blank screen.
+  runApp(const AimrelaxLiveApp());
+
+  unawaited(_initializePushNotifications());
 
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     final notification = message.notification;
@@ -57,8 +61,6 @@ Future<void> main() async {
   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
     debugPrint('AIMRELAX push opened: ${message.messageId}');
   });
-
-  runApp(const AimrelaxLiveApp());
 }
 
 Future<void> _initializePushNotifications() async {
