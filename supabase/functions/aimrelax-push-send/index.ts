@@ -182,6 +182,91 @@ Deno.serve(async (request) => {
         : cleanText(record.message, "Նոր հաղորդագրություն", 900);
       type = "private_chat";
       url = "https://aimrelax-pubg.github.io/?chat=" + encodeURIComponent(chatId);
+    } else if (table === "live_streams") {
+      // Broadcast a push to every registered Android device when a streamer starts LIVE.
+      if (event !== "INSERT" || String(record.status ?? "").toLowerCase() !== "live") {
+        return new Response(JSON.stringify({ ok: true, skipped: "live stream is not a new LIVE session" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const streamId = String(record.id ?? "");
+      const streamerId = String(record.streamer_id ?? "");
+      if (!streamId || !streamerId) {
+        return new Response(JSON.stringify({ ok: true, skipped: "missing live stream id or streamer id" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const streamer = cleanText(record.streamer_name, "Օգտատեր", 80);
+      const streamTitle = cleanText(record.title, "AIMRELAX LIVE", 100);
+      title = "🔴 " + streamer + " — LIVE է";
+      messageBody = streamTitle + " · Միացիր ուղիղ եթերին";
+      type = "live_started";
+      url = "https://aimrelax-pubg.github.io/?live=" + encodeURIComponent(streamId);
+      chatId = "";
+      const { data: devices, error: deviceError } = await admin
+        .from("device_push_tokens")
+        .select("token")
+        .eq("platform", "android")
+        .neq("user_id", streamerId);
+      if (deviceError) throw deviceError;
+      if (!devices?.length) {
+        return new Response(JSON.stringify({ ok: true, sent: 0, reason: "no Android tokens for other users" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const accessToken = await getFirebaseAccessToken(account);
+      const dataPayload: Record<string, string> = {
+        type,
+        url,
+        liveId: streamId,
+        streamerId,
+      };
+      const results = await Promise.all(devices.map(async (device) => {
+        const token = String(device.token ?? "");
+        if (!token) return { ok: false, skipped: true };
+        const fcmResponse = await fetch(
+          `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`,
+          {
+            method: "POST",
+            headers: {
+              "Authorization": "Bearer " + accessToken,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              message: {
+                token,
+                notification: { title, body: messageBody },
+                data: dataPayload,
+                android: {
+                  priority: "HIGH",
+                  notification: {
+                    channel_id: "default",
+                    sound: "default",
+                    default_sound: true,
+                    default_vibrate_timings: true,
+                    tag: type + "-" + streamId,
+                  },
+                },
+              },
+            }),
+          },
+        );
+        const result = await fcmResponse.json().catch(() => ({}));
+        if (!fcmResponse.ok) {
+          const details = JSON.stringify(result);
+          if (details.includes("UNREGISTERED")) {
+            await admin.from("device_push_tokens").delete().eq("token", token);
+          }
+          return { ok: false, status: fcmResponse.status, error: result };
+        }
+        return { ok: true };
+      }));
+      return new Response(JSON.stringify({
+        ok: true,
+        type,
+        sent: results.filter((item) => item.ok).length,
+        failed: results.filter((item) => !item.ok).length,
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     } else if (table === "clan_notifications") {
       userId = String(record.user_id ?? "");
       title = cleanText(record.title, "Կլանի ծանուցում");
