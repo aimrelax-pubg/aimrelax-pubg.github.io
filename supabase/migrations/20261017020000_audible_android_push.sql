@@ -48,6 +48,7 @@ set search_path = public, net, vault
 as $$
 declare
   v_push_secret text;
+  v_endpoint text;
   v_old_record jsonb := '{}'::jsonb;
 begin
   -- Never fail a website action just because push configuration is incomplete.
@@ -66,15 +67,25 @@ begin
     v_old_record := to_jsonb(old);
   end if;
 
+  -- Keep the already-deployed sender for friend/clan events. The new sender
+  -- adds Android delivery for the website's general user_notifications rows.
+  v_endpoint := case
+    when tg_table_name = 'user_notifications'
+      then 'https://hvhlrbfjloiahbqmnrly.supabase.co/functions/v1/aimrelax-push-send'
+    else 'https://hvhlrbfjloiahbqmnrly.supabase.co/functions/v1/send-push'
+  end;
+
   perform net.http_post(
-    url := 'https://hvhlrbfjloiahbqmnrly.supabase.co/functions/v1/aimrelax-push-send',
+    url := v_endpoint,
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
       'x-push-secret', v_push_secret
     ),
     body := jsonb_build_object(
-      'table', tg_table_name,
+      'type', tg_op,
       'event', tg_op,
+      'schema', 'public',
+      'table', tg_table_name,
       'record', to_jsonb(new),
       'old_record', v_old_record
     ),
