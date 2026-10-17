@@ -36,6 +36,8 @@ Future<void> main() async {
 
 bool _supabaseInitialized = false;
 bool _messagingListenersRegistered = false;
+RemoteMessage? _pendingPushMessage;
+final GlobalKey<_AppShellState> appShellKey = GlobalKey<_AppShellState>();
 
 Future<void> _initializeAppServices() async {
   if (Firebase.apps.isEmpty) {
@@ -80,7 +82,13 @@ Future<void> _initializeAppServices() async {
     });
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       debugPrint('AIMRELAX push opened: ${message.messageId}');
+      appShellKey.currentState?.openPushTarget(message);
     });
+  }
+  try {
+    _pendingPushMessage = await FirebaseMessaging.instance.getInitialMessage();
+  } catch (error) {
+    debugPrint('AIMRELAX initial push lookup failed: $error');
   }
   unawaited(_initializePushNotifications());
 }
@@ -169,7 +177,7 @@ class _StartupGateState extends State<StartupGate> {
 
   @override
   Widget build(BuildContext context) {
-    if (_ready) return const AppShell();
+    if (_ready) return AppShell(key: appShellKey);
     return Scaffold(
       backgroundColor: const Color(0xFF080808),
       body: SafeArea(
@@ -286,6 +294,39 @@ class _AppShellState extends State<AppShell> {
         _syncSessionToWebsite(session);
         _registerPushToken(session.user.id);
       }
+      final initialMessage = _pendingPushMessage;
+      _pendingPushMessage = null;
+      if (initialMessage != null) openPushTarget(initialMessage);
+    });
+  }
+
+  void openPushTarget(RemoteMessage message) {
+    final data = message.data;
+    final type = (data['type'] ?? '').toString().toLowerCase();
+    final chatId = (data['chatId'] ?? data['chat_id'] ?? '').toString().trim();
+    Uri target = Uri.parse('https://aimrelax-pubg.github.io/');
+
+    if (type == 'private_chat' && chatId.isNotEmpty) {
+      target = Uri.parse('https://aimrelax-pubg.github.io/?chat=${Uri.encodeQueryComponent(chatId)}');
+    } else if (type == 'friend_request' || type == 'friend_accepted') {
+      target = Uri.parse('https://aimrelax-pubg.github.io/?friends=1');
+    } else {
+      final rawUrl = (data['url'] ?? '').toString().trim();
+      final parsed = Uri.tryParse(rawUrl);
+      if (parsed != null &&
+          parsed.scheme == 'https' &&
+          parsed.host == 'aimrelax-pubg.github.io') {
+        target = parsed;
+        if (target.queryParameters.containsKey('chat') &&
+            !target.queryParameters.containsKey('friends')) {
+          // The website already understands the ?chat= route.
+        }
+      }
+    }
+
+    if (mounted && _selectedTab != 0) setState(() => _selectedTab = 0);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _siteKey.currentState?.openNotificationTarget(target.toString());
     });
   }
 
@@ -451,6 +492,7 @@ class SitePageState extends State<SitePage> {
   late final WebViewController _controller;
   bool _loading = true;
   bool _pageReady = false;
+  String? _pendingNotificationUrl;
 
   @override
   void initState() {
@@ -480,8 +522,7 @@ class SitePageState extends State<SitePage> {
             // Never keep a loading overlay on top of a successfully loaded page
             // while Firebase token retrieval or JavaScript setup is pending.
             if (mounted) setState(() => _loading = false);
-            unawaited(_installAuthBridge());
-            widget.onPageReady();
+            unawaited(_finishPageLoad());
           },
           onWebResourceError: (_) {
             if (mounted) setState(() => _loading = false);
@@ -489,6 +530,38 @@ class SitePageState extends State<SitePage> {
         ),
       )
       ..loadRequest(Uri.parse(_siteUrl));
+  }
+
+  Future<void> _finishPageLoad() async {
+    await _installAuthBridge();
+    if (!mounted) return;
+    widget.onPageReady();
+    final pending = _pendingNotificationUrl;
+    if (pending != null && _pageReady) {
+      _pendingNotificationUrl = null;
+      try {
+        await _controller.loadRequest(Uri.parse(pending));
+      } catch (error) {
+        debugPrint('AIMRELAX notification navigation failed: $error');
+      }
+    }
+  }
+
+  Future<void> openNotificationTarget(String targetUrl) async {
+    final uri = Uri.tryParse(targetUrl);
+    if (uri == null || uri.scheme != 'https' || uri.host != 'aimrelax-pubg.github.io') {
+      debugPrint('AIMRELAX ignored an invalid notification URL.');
+      return;
+    }
+    _pendingNotificationUrl = uri.toString();
+    if (_pageReady && mounted) {
+      _pendingNotificationUrl = null;
+      try {
+        await _controller.loadRequest(uri);
+      } catch (error) {
+        debugPrint('AIMRELAX notification navigation failed: $error');
+      }
+    }
   }
 
   Future<void> _refreshSite() async {
