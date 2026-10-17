@@ -4,6 +4,9 @@
 --   FIREBASE_SERVICE_ACCOUNT_JSON = the Firebase service-account JSON
 -- The service-role key is intentionally never stored in this repository.
 
+create schema if not exists net;
+create extension if not exists pg_net with schema net;
+
 create table if not exists public.device_push_tokens (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
