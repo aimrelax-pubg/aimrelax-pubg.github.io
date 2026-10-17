@@ -1,8 +1,7 @@
 -- AIMRELAX Android push delivery.
--- Before push sending can work, add the Supabase service-role key to Vault as
--- aimrelax_supabase_service_role_key and configure the Edge Function secrets:
---   FIREBASE_SERVICE_ACCOUNT_JSON = the Firebase service-account JSON
--- The service-role key is intentionally never stored in this repository.
+-- The existing send-push function already handles private_messages. This trigger
+-- dispatches other app notification events to aimrelax-push-send.
+-- Add the existing PUSH_API_KEY to Supabase Vault as aimrelax_push_api_key.
 
 create schema if not exists net;
 create extension if not exists pg_net with schema net;
@@ -48,18 +47,18 @@ security definer
 set search_path = public, net, vault
 as $$
 declare
-  v_service_role_key text;
+  v_push_secret text;
   v_old_record jsonb := '{}'::jsonb;
 begin
   -- Never fail a website action just because push configuration is incomplete.
   select decrypted_secret
-    into v_service_role_key
+    into v_push_secret
     from vault.decrypted_secrets
-   where name = 'aimrelax_supabase_service_role_key'
+   where name = 'aimrelax_push_api_key'
    limit 1;
 
-  if v_service_role_key is null or length(v_service_role_key) < 20 then
-    raise warning 'AIMRELAX push is not configured: add the service-role key to Vault.';
+  if v_push_secret is null or length(v_push_secret) < 20 then
+    raise warning 'AIMRELAX push is not configured: add PUSH_API_KEY to Supabase Vault as aimrelax_push_api_key.';
     return new;
   end if;
 
@@ -71,7 +70,7 @@ begin
     url := 'https://hvhlrbfjloiahbqmnrly.supabase.co/functions/v1/aimrelax-push-send',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
-      'Authorization', 'Bearer ' || v_service_role_key
+      'x-push-secret', v_push_secret
     ),
     body := jsonb_build_object(
       'table', tg_table_name,
@@ -103,10 +102,6 @@ create trigger aimrelax_push_friend_requests
   after insert or update of status on public.friend_requests
   for each row execute function public.aimrelax_dispatch_push();
 
-drop trigger if exists aimrelax_push_private_messages on public.private_messages;
-create trigger aimrelax_push_private_messages
-  after insert on public.private_messages
-  for each row execute function public.aimrelax_dispatch_push();
 
 drop trigger if exists aimrelax_push_clan_notifications on public.clan_notifications;
 create trigger aimrelax_push_clan_notifications
