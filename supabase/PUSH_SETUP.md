@@ -5,20 +5,16 @@ The Android client and server sender are now in the repository. Push delivery ne
 ## One-time Supabase setup
 
 1. In Firebase Console for project **aimrelax**, open **Project settings → Service accounts** and create a private service-account JSON key. Keep it private.
-2. In Supabase **Project Settings → Edge Functions → Secrets**, add:
-   - Name: `FIREBASE_SERVICE_ACCOUNT_JSON`
-   - Value: the entire Firebase service-account JSON file contents.
-3. In Supabase **SQL Editor**, run `supabase/migrations/20261017020000_audible_android_push.sql`.
-4. In Supabase **Vault**, add a secret:
-   - Name: `aimrelax_supabase_service_role_key`
-   - Value: the project's **service_role** API key (not the publishable/anon key).
-5. Deploy the Edge Function from the repository root with the Supabase CLI:
+2. The existing Edge Function secrets `PUSH_API_KEY` and `FIREBASE_SERVICE_ACCOUNT` are reused; do not place either value in GitHub source.
+3. In Supabase **Vault**, add a secret named `aimrelax_push_api_key` with the exact same value as the existing Edge Function secret `PUSH_API_KEY`.
+4. In Supabase **SQL Editor**, run `supabase/migrations/20261017020000_audible_android_push.sql`.
+5. Deploy the new Edge Function from the repository root with the Supabase CLI:
    ```sh
    supabase link --project-ref hvhlrbfjloiahbqmnrly
    supabase functions deploy aimrelax-push-send
    ```
 
-The database trigger calls the function using the service-role JWT from Vault. The function uses Firebase HTTP v1 and sends notification payloads on the Android channel `aimrelax_push_sound_v2`.
+The database triggers call the new function using the shared `x-push-secret`. The existing `send-push` webhook for `private_messages` is left intact. The new function uses Firebase HTTP v1 and sends notification payloads on the Android channel `aimrelax_push_sound_v2`.
 
 ## Android install
 
