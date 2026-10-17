@@ -29,38 +29,48 @@ final GlobalKey<ScaffoldMessengerState> appMessengerKey =
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Render a visible startup screen immediately. Firebase/Supabase startup
+  // failures should never leave Android showing only a blank native splash.
+  runApp(const AimrelaxLiveApp());
+}
 
-  await Firebase.initializeApp();
+bool _supabaseInitialized = false;
+bool _messagingListenersRegistered = false;
+
+Future<void> _initializeAppServices() async {
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp().timeout(const Duration(seconds: 25));
+  }
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-  await Supabase.initialize(
-    url: supabaseUrl,
-    anonKey: supabaseAnonKey,
-  );
+  if (!_supabaseInitialized) {
+    await Supabase.initialize(
+      url: supabaseUrl,
+      anonKey: supabaseAnonKey,
+    ).timeout(const Duration(seconds: 25));
+    _supabaseInitialized = true;
+  }
 
-  // Start the UI before requesting or repairing the FCM registration token.
-  // Network/token operations must not leave the app stuck on a blank screen.
-  runApp(const AimrelaxLiveApp());
-
+  if (!_messagingListenersRegistered) {
+    _messagingListenersRegistered = true;
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      final notification = message.notification;
+      final title = notification?.title ?? 'AIMRELAX';
+      final body = notification?.body ?? '';
+      appMessengerKey.currentState
+        ?..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(body.isEmpty ? title : '$title\\n$body'),
+            duration: const Duration(seconds: 5),
+          ),
+        );
+    });
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      debugPrint('AIMRELAX push opened: ${message.messageId}');
+    });
+  }
   unawaited(_initializePushNotifications());
-
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    final notification = message.notification;
-    final title = notification?.title ?? 'AIMRELAX';
-    final body = notification?.body ?? '';
-    appMessengerKey.currentState
-      ?..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(body.isEmpty ? title : '$title\n$body'),
-          duration: const Duration(seconds: 5),
-        ),
-      );
-  });
-
-  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    debugPrint('AIMRELAX push opened: ${message.messageId}');
-  });
 }
 
 Future<void> _initializePushNotifications() async {
@@ -103,6 +113,94 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint('AIMRELAX background push: ${message.messageId}');
 }
 
+class StartupGate extends StatefulWidget {
+  const StartupGate({super.key});
+
+  @override
+  State<StartupGate> createState() => _StartupGateState();
+}
+
+class _StartupGateState extends State<StartupGate> {
+  bool _ready = false;
+  bool _busy = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _start();
+  }
+
+  Future<void> _start() async {
+    if (_busy) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await _initializeAppServices();
+      if (!mounted) return;
+      setState(() {
+        _ready = true;
+        _busy = false;
+      });
+    } catch (error, stackTrace) {
+      debugPrint('AIMRELAX startup failed: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _error = error.toString();
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_ready) return const AppShell();
+    return Scaffold(
+      backgroundColor: const Color(0xFF080808),
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.videocam, color: Colors.orange, size: 64),
+                const SizedBox(height: 18),
+                const Text(
+                  'AIMRELAX LIVE',
+                  style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 18),
+                if (_busy) ...[
+                  const CircularProgressIndicator(color: Colors.orange),
+                  const SizedBox(height: 14),
+                  const Text('Հավելվածը գործարկվում է…', textAlign: TextAlign.center),
+                ],
+                if (_error != null) ...[
+                  const Text(
+                    'Հավելվածի մեկնարկի սխալ։ Ստուգիր ինտերնետը և փորձիր կրկին։',
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                  const SizedBox(height: 18),
+                  FilledButton(
+                    onPressed: _start,
+                    child: const Text('ԿՐԿԻՆ ՓՈՐՁԵԼ'),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class AimrelaxLiveApp extends StatelessWidget {
   const AimrelaxLiveApp({super.key});
 
@@ -121,7 +219,7 @@ class AimrelaxLiveApp extends StatelessWidget {
           brightness: Brightness.dark,
         ),
       ),
-      home: const AppShell(),
+      home: const StartupGate(),
     );
   }
 }
