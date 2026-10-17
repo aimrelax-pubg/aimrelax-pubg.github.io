@@ -226,7 +226,7 @@ Deno.serve(async (request) => {
               android: {
                 priority: "HIGH",
                 notification: {
-                  channel_id: "aimrelax_push_sound_v2",
+                  channel_id: "default",
                   sound: "default",
                   default_sound: true,
                   default_vibrate_timings: true,
