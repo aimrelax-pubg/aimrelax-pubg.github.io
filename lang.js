@@ -6,9 +6,9 @@
   const DEFAULT_LANG = "hy";
 
   const LANGS = [
-    ["hy", "🇦🇲 Հայերեն"],
-    ["ru", "🇷🇺 Русский"],
-    ["en", "🇬🇧 English"]
+    ["hy", "🇦🇲"],
+    ["ru", "🇷🇺"],
+    ["en", "🇬🇧"]
   ];
 
   function getLang() {
@@ -119,22 +119,18 @@
 
     s.textContent = `
       #aimrelax-language-box {
-        position: static !important;
+        position: fixed !important;
+        top: 10px !important;
+        right: 10px !important;
         display: inline-flex !important;
         align-items: center;
-        flex: 0 0 auto;
         z-index: 1001 !important;
 
         background: rgba(12,12,12,.96);
         border: 1px solid #ff7200;
         border-radius: 9px;
-        padding: 4px;
-        margin-right: 8px;
+        padding: 3px;
         box-shadow: 0 4px 18px rgba(0,0,0,.45);
-      }
-
-      .notification-center-wrap {
-        gap: 8px;
       }
 
       #aimrelax-language-select {
@@ -146,9 +142,9 @@
 
         border-radius: 6px;
 
-        padding: 7px 8px;
-
-        font-size: 12px;
+        padding: 5px 4px;
+        min-width: 48px;
+        font-size: 16px;
 
         font-weight: 700;
 
@@ -188,11 +184,15 @@
       }
 
       @media (max-width: 650px) {
+        #aimrelax-language-box {
+          top: 10px !important;
+          right: 10px !important;
+        }
 
         #aimrelax-language-select {
-          font-size: 11px;
-
-          padding: 6px;
+          font-size: 16px;
+          min-width: 48px;
+          padding: 4px;
         }
       }
     `;
@@ -245,14 +245,7 @@
 
     box.appendChild(select);
 
-    const notificationWrap = document.querySelector(".notification-center-wrap");
-    const notificationBell = document.getElementById("notification-bell-btn");
-
-    if (notificationWrap && notificationBell) {
-      notificationWrap.insertBefore(box, notificationBell);
-    } else {
-      document.body.appendChild(box);
-    }
+    document.body.appendChild(box);
 
     const hidden =
       document.createElement("div");
