@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -70,6 +71,17 @@ Future<void> _initializePushNotifications() async {
       provisional: false,
     );
     debugPrint('FCM notification permission: ${settings.authorizationStatus}');
+
+    // One-time repair for installations that stored an FCM token which Firebase
+    // later marked UNREGISTERED. Delete the cached registration only once per
+    // app install, then obtain a fresh token and save it after account sign-in.
+    final preferences = await SharedPreferences.getInstance();
+    const repairKey = 'aimrelax_fcm_token_repaired_v1';
+    if (!(preferences.getBool(repairKey) ?? false)) {
+      await messaging.deleteToken();
+      await preferences.setBool(repairKey, true);
+      debugPrint('AIMRELAX stale FCM token cleared; requesting a fresh token.');
+    }
 
     final token = await messaging.getToken();
     if (token != null && token.isNotEmpty) {
