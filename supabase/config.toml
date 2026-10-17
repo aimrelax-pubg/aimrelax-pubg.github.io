@@ -1,4 +1,4 @@
 project_id = "hvhlrbfjloiahbqmnrly"
 
 [functions.aimrelax-push-send]
-verify_jwt = true
+verify_jwt = false
