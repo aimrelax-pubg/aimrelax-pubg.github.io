@@ -17,6 +17,11 @@ create table if not exists public.device_push_tokens (
 
 alter table public.device_push_tokens enable row level security;
 
+drop policy if exists "Users can read own push tokens" on public.device_push_tokens;
+create policy "Users can read own push tokens"
+  on public.device_push_tokens for select to authenticated
+  using (auth.uid() = user_id);
+
 drop policy if exists "Users can register own push tokens" on public.device_push_tokens;
 create policy "Users can register own push tokens"
   on public.device_push_tokens for insert to authenticated
@@ -33,7 +38,7 @@ create policy "Users can remove own push tokens"
   on public.device_push_tokens for delete to authenticated
   using (auth.uid() = user_id);
 
-grant insert, update, delete on public.device_push_tokens to authenticated;
+grant select, insert, update, delete on public.device_push_tokens to authenticated;
 grant select, insert, update, delete on public.device_push_tokens to service_role;
 
 create or replace function public.aimrelax_dispatch_push()
