@@ -55,8 +55,20 @@ Future<void> _initializeAppServices() async {
     _messagingListenersRegistered = true;
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       final notification = message.notification;
-      final title = notification?.title ?? 'AIMRELAX';
-      final body = notification?.body ?? '';
+      final title = notification?.title ??
+          message.data['title']?.toString() ??
+          'AIMRELAX';
+      final body = notification?.body ??
+          message.data['body']?.toString() ??
+          '';
+      // Android notification channel is configured natively with sound + vibration.
+      unawaited(native.invokeMethod<void>('showPushNotification', {
+        'title': title,
+        'body': body,
+        'id': message.messageId?.hashCode ?? DateTime.now().millisecondsSinceEpoch,
+      }).catchError((Object error) {
+        debugPrint('AIMRELAX foreground system notification failed: $error');
+      }));
       appMessengerKey.currentState
         ?..hideCurrentSnackBar()
         ..showSnackBar(
