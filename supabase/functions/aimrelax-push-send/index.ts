@@ -95,18 +95,25 @@ Deno.serve(async (request) => {
   }
 
   try {
-    // Supabase Edge gateway JWT verification must remain enabled. Database trigger
-    // requests are signed with the service-role JWT read from Supabase Vault.
-    const body = await request.json() as { table?: string; event?: string; record?: JsonRecord };
+    // This endpoint is called by trusted database triggers using the existing PUSH_API_KEY.
+    const expectedSecret = Deno.env.get("PUSH_API_KEY");
+    if (!expectedSecret || request.headers.get("x-push-secret") !== expectedSecret) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const body = await request.json() as { table?: string; event?: string; record?: JsonRecord; old_record?: JsonRecord };
     const table = String(body.table ?? "");
     const record = body.record ?? {};
     const event = String(body.event ?? "INSERT");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    const firebaseJson = Deno.env.get("FIREBASE_SERVICE_ACCOUNT_JSON");
+    const firebaseJson = Deno.env.get("FIREBASE_SERVICE_ACCOUNT_JSON") ??
+      Deno.env.get("FIREBASE_SERVICE_ACCOUNT");
     if (!supabaseUrl || !serviceRoleKey || !firebaseJson) {
-      throw new Error("Required server secrets are not configured.");
+      throw new Error("Required server secrets are not configured. Expected SUPABASE_SERVICE_ROLE_KEY and FIREBASE_SERVICE_ACCOUNT.");
     }
 
     const account = JSON.parse(firebaseJson) as JsonRecord;
@@ -143,7 +150,7 @@ Deno.serve(async (request) => {
         type = "friend_request";
         url = "https://aimrelax-pubg.github.io/";
       } else if (event === "UPDATE" && status === "accepted" &&
-          String((body as { old_record?: JsonRecord }).old_record?.status ?? "") !== "accepted") {
+          String(body.old_record?.status ?? "") !== "accepted") {
         userId = String(record.requester_id ?? "");
         title = "Ընկերության հայտը ընդունվել է ✅";
         messageBody = "Ձեր ընկերության հայտը ընդունվել է։";
