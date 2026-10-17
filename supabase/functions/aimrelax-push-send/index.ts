@@ -132,6 +132,14 @@ Deno.serve(async (request) => {
     let chatId = "";
 
     if (table === "user_notifications") {
+      const notificationType = String(record.type ?? "").toLowerCase();
+      // Friend, clan, and private-message events are sent by their own database
+      // triggers/webhook. Avoid a duplicate when the site also writes a feed row.
+      if (["friend_request", "friend_accepted", "clan_notification", "clan_application", "private_chat"].includes(notificationType)) {
+        return new Response(JSON.stringify({ ok: true, skipped: "event sent by its dedicated trigger" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       userId = String(record.user_id ?? "");
       title = cleanText(record.title, "AIMRELAX");
       messageBody = cleanText(record.body, "Դուք նոր ծանուցում ունեք։", 900);
