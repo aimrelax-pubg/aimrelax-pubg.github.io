@@ -14,7 +14,7 @@ The Android client and server sender are now in the repository. Push delivery ne
    supabase functions deploy aimrelax-push-send
    ```
 
-The database triggers call the new function using the shared `x-push-secret`. The existing `send-push` webhook for `private_messages` is left intact. The new function uses Firebase HTTP v1 and sends notification payloads on the Android channel `aimrelax_push_sound_v2`.
+The database triggers call the new function using the shared `x-push-secret`. The existing `send-push` webhook for `private_messages` is left intact. The new function uses Firebase HTTP v1 and sends notification payloads on the Android channel `default`.
 
 ## Android install
 
