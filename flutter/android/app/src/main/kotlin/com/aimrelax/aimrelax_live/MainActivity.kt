@@ -3,6 +3,12 @@ package com.aimrelax.aimrelax_live
 
 import android.Manifest
 import android.app.Activity
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.media.AudioAttributes
+import android.media.RingtoneManager
 import android.content.Intent
 import android.content.BroadcastReceiver
 import android.content.IntentFilter
@@ -40,6 +46,70 @@ class MainActivity : FlutterActivity() {
     }
 
     private lateinit var methodChannel: MethodChannel
+
+    companion object {
+        private const val PUSH_CHANNEL_ID = "aimrelax_push_sound_v2"
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        createPushNotificationChannel()
+    }
+
+    private fun createPushNotificationChannel() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        val channel = NotificationChannel(
+            PUSH_CHANNEL_ID,
+            "AIMRELAX ծանուցումներ",
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
+            description = "Ընկերության հայտեր, հաղորդագրություններ և կայքի ծանուցումներ"
+            enableVibration(true)
+            vibrationPattern = longArrayOf(0, 250, 120, 250)
+            setSound(
+                RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION),
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build()
+            )
+            setShowBadge(true)
+        }
+        manager.createNotificationChannel(channel)
+    }
+
+    private fun showPushNotification(title: String, body: String, id: Int) {
+        createPushNotificationChannel()
+        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        val openApp = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            id,
+            openApp,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Notification.Builder(this, PUSH_CHANNEL_ID)
+        } else {
+            Notification.Builder(this)
+                .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
+                .setVibrate(longArrayOf(0, 250, 120, 250))
+        }
+        val notification = builder
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setContentTitle(title.ifBlank { "AIMRELAX" })
+            .setContentText(body)
+            .setStyle(Notification.BigTextStyle().bigText(body))
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .setCategory(Notification.CATEGORY_MESSAGE)
+            .setPriority(Notification.PRIORITY_HIGH)
+            .build()
+        manager.notify(id, notification)
+    }
 
     private var room: Room? = null
     private var audioCapturer: ScreenAudioCapturer? = null
@@ -133,6 +203,14 @@ class MainActivity : FlutterActivity() {
 
         methodChannel.setMethodCallHandler { call, result ->
             when (call.method) {
+
+                "showPushNotification" -> {
+                    val title = call.argument<String>("title") ?: "AIMRELAX"
+                    val body = call.argument<String>("body") ?: ""
+                    val id = call.argument<Number>("id")?.toInt() ?: (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
+                    showPushNotification(title, body, id)
+                    result.success(true)
+                }
 
                 "showOverlay" -> {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
