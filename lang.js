@@ -119,21 +119,22 @@
 
     s.textContent = `
       #aimrelax-language-box {
-        position: fixed !important;
-        top: 10px !important;
-        right: 10px !important;
-        z-index: 2147483647 !important;
+        position: static !important;
+        display: inline-flex !important;
+        align-items: center;
+        flex: 0 0 auto;
+        z-index: 1001 !important;
 
         background: rgba(12,12,12,.96);
-
         border: 1px solid #ff7200;
-
         border-radius: 9px;
-
         padding: 4px;
+        margin-right: 8px;
+        box-shadow: 0 4px 18px rgba(0,0,0,.45);
+      }
 
-        box-shadow:
-          0 4px 18px rgba(0,0,0,.45);
+      .notification-center-wrap {
+        gap: 8px;
       }
 
       #aimrelax-language-select {
@@ -187,11 +188,6 @@
       }
 
       @media (max-width: 650px) {
-
-        #aimrelax-language-box {
-          top: 7px !important;
-          right: 7px !important;
-        }
 
         #aimrelax-language-select {
           font-size: 11px;
@@ -249,7 +245,14 @@
 
     box.appendChild(select);
 
-    document.body.appendChild(box);
+    const notificationWrap = document.querySelector(".notification-center-wrap");
+    const notificationBell = document.getElementById("notification-bell-btn");
+
+    if (notificationWrap && notificationBell) {
+      notificationWrap.insertBefore(box, notificationBell);
+    } else {
+      document.body.appendChild(box);
+    }
 
     const hidden =
       document.createElement("div");
