@@ -2440,7 +2440,28 @@ navigator.serviceWorker?.addEventListener('message',async event=>{
   const params = new URLSearchParams(location.search);
   const hasChatRoute = params.has('chat');
   const hasFriendsRoute = params.has('friends');
-  if(hasChatRoute){
+  const liveId = params.get('live');
+  if(liveId){
+    refreshUser().then(async()=>{
+      if(!currentUser){
+        openModal();
+        return;
+      }
+      const {data:stream,error} = await sb.from('live_streams')
+        .select('id,streamer_id,streamer_name,title,status,livekit_room_name')
+        .eq('id',liveId)
+        .in('status',['live','paused'])
+        .maybeSingle();
+      if(error) throw error;
+      if(!stream){
+        alert('Այս LIVE-ն արդեն ավարտվել է։');
+        history.replaceState({},'',location.pathname+location.hash);
+        return;
+      }
+      await watchLive(stream.id,stream.streamer_id,stream.livekit_room_name||null);
+      history.replaceState({},'',location.pathname+location.hash);
+    }).catch(error=>console.error('LIVE notification route failed:',error));
+  }else if(hasChatRoute){
     refreshUser().then(()=>openChatFromNotification()).catch(()=>{
       document.documentElement.classList.remove('notification-route');
     });
