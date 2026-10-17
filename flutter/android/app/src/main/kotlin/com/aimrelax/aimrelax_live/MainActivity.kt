@@ -43,7 +43,7 @@ class MainActivity : FlutterActivity() {
         private const val CHANNEL = "aimrelax.live/livekit"
         private const val SCREEN_CAPTURE_REQUEST = 9001
         private const val RECORD_AUDIO_REQUEST = 9002
-        private const val PUSH_CHANNEL_ID = "aimrelax_push_sound_v2"
+        private const val PUSH_CHANNEL_ID = "default"
     }
 
     private lateinit var methodChannel: MethodChannel
