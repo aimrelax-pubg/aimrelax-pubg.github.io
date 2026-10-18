@@ -847,7 +847,7 @@ section{position:relative}.section-title h2{letter-spacing:-.02em}
       </div>
       <div id="admin-online-list" class="admin-online-list"><div class="loading-text">Բեռնվում է...</div></div>
     </div>
-    <input id="admin-user-search" class="admin-search" type="text" placeholder="Փնտրել nickname-ով կամ email-ով">
+    <input id="admin-user-search" class="admin-search" type="text" placeholder="Փնտրել nickname-ով">
     <div id="admin-status" class="auth-status"></div>
     <div id="admin-user-list" class="admin-user-list"><div class="loading-text">Բեռնվում է...</div></div>
   </div>
@@ -1949,7 +1949,7 @@ function renderAdminOnlineUsers(){
   const q=($(`admin-user-search`)?.value||'').trim().toLowerCase();
   const rows=(adminUsersCache||[]).filter(u=>{
     if(!q)return true;
-    return String(u.nickname||'').toLowerCase().includes(q)||String(u.email||'').toLowerCase().includes(q);
+    return String(u.nickname||'').toLowerCase().includes(q)||(mySiteRole==='owner'&&String(u.email||'').toLowerCase().includes(q));
   }).sort((a,b)=>{
     const ao=onlineIds.has(a.id)?0:1, bo=onlineIds.has(b.id)?0:1;
     if(ao!==bo)return ao-bo;
@@ -2658,7 +2658,7 @@ async function loadAdminUsers(){
 }
 function renderAdminUsers(){
   const q=($('admin-user-search').value||'').trim().toLowerCase();
-  const rows=adminUsersCache.filter(u=>!q || String(u.nickname||'').toLowerCase().includes(q)||String(u.email||'').toLowerCase().includes(q));
+  const rows=adminUsersCache.filter(u=>!q || String(u.nickname||'').toLowerCase().includes(q)||(mySiteRole==='owner'&&String(u.email||'').toLowerCase().includes(q)));
   $('admin-user-list').innerHTML=rows.map(u=>{
     const isMe=u.id===currentUser?.id;
     const canManage=mySiteRole==='owner' && !isMe;
@@ -2667,7 +2667,7 @@ function renderAdminUsers(){
     const canDelete=mySiteRole==='owner' && !isMe && role!=='owner';
     const deleteBtn=canDelete ? `<button class="danger" type="button" data-delete-user="${u.id}">🗑️ Ջնջել</button>` : '';
     const btn=roleBtn+deleteBtn;
-    return `<div class="admin-user-row"><div class="admin-user-info"><strong>${esc(u.nickname||'Օգտատեր')}${isMe?' (Դուք)':''}</strong><small>${esc(u.email||'')}</small><div class="admin-role">Դեր՝ ${role==='owner'?'👑 Owner':role==='admin'?'🛡️ Admin':'👤 User'}</div></div><div class="admin-user-actions">${btn}</div></div>`;
+    return `<div class="admin-user-row"><div class="admin-user-info"><strong>${esc(u.nickname||'Օգտատեր')}${isMe?' (Դուք)':''}</strong>${mySiteRole==='owner'?`<small>${esc(u.email||'')}</small>`:''}<div class="admin-role">Դեր՝ ${role==='owner'?'👑 Owner':role==='admin'?'🛡️ Admin':'👤 User'}</div></div><div class="admin-user-actions">${btn}</div></div>`;
   }).join('') || '<div class="loading-text">Օգտատեր չի գտնվել։</div>';
   document.querySelectorAll('[data-delete-user]').forEach(btn=>{
     btn.addEventListener('click',()=>deleteSiteUser(btn.dataset.deleteUser));
