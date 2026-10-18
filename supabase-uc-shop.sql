@@ -139,3 +139,64 @@ $$;
 
 REVOKE ALL ON FUNCTION public.list_my_uc_orders() FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.list_my_uc_orders() TO authenticated;
+
+-- Admin-only UC order management. Only the site owner's authenticated UUID may use these RPCs.
+CREATE OR REPLACE FUNCTION public.admin_list_uc_orders()
+RETURNS TABLE (
+  id uuid, user_id uuid, package_title text, uc_amount integer, price_amd integer,
+  player_id text, player_nickname text, payment_method text, payment_status text,
+  delivery_status text, created_at timestamptz
+)
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = ''
+AS $$
+BEGIN
+  IF auth.uid() IS DISTINCT FROM '5f1c951f-1e76-4f82-9849-46becf038b55'::uuid THEN
+    RAISE EXCEPTION 'Մուտքն արգելված է։';
+  END IF;
+
+  RETURN QUERY
+  SELECT o.id, o.user_id, p.title, o.uc_amount, o.price_amd,
+         o.player_id, o.player_nickname, o.payment_method, o.payment_status,
+         o.delivery_status, o.created_at
+  FROM public.uc_orders o
+  JOIN public.uc_packages p ON p.id = o.package_id
+  ORDER BY o.created_at DESC;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.admin_update_uc_order(
+  p_order_id uuid,
+  p_payment_status text,
+  p_delivery_status text
+)
+RETURNS boolean
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = ''
+AS $$
+BEGIN
+  IF auth.uid() IS DISTINCT FROM '5f1c951f-1e76-4f82-9849-46becf038b55'::uuid THEN
+    RAISE EXCEPTION 'Մուտքն արգելված է։';
+  END IF;
+
+  IF p_payment_status NOT IN ('pending','paid','failed','refunded') THEN
+    RAISE EXCEPTION 'Վճարման կարգավիճակը սխալ է։';
+  END IF;
+  IF p_delivery_status NOT IN ('pending','processing','delivered','failed') THEN
+    RAISE EXCEPTION 'Առաքման կարգավիճակը սխալ է։';
+  END IF;
+
+  UPDATE public.uc_orders
+  SET payment_status = p_payment_status,
+      delivery_status = p_delivery_status
+  WHERE id = p_order_id;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Պատվերը չի գտնվել։';
+  END IF;
+  RETURN true;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.admin_list_uc_orders() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.admin_list_uc_orders() TO authenticated;
+REVOKE ALL ON FUNCTION public.admin_update_uc_order(uuid, text, text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.admin_update_uc_order(uuid, text, text) TO authenticated;
