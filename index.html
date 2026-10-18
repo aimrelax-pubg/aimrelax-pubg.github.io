@@ -831,6 +831,14 @@ section{position:relative}.section-title h2{letter-spacing:-.02em}
     <button id="admin-close" class="admin-close" type="button">×</button>
     <h2>🛡️ Ադմին պանել</h2>
     <p class="admin-help">Այստեղ կարող եք տեսնել գրանցված օգտատերերին, նրանց օնլայն/օֆլայն վիճակը և կառավարել նրանց դերը։ Ադմին դարձնել կամ հանել կարող է միայն գլխավոր Owner-ը։</p>
+    <div id="owner-broadcast-box" style="display:none;margin:0 0 16px;padding:14px;border:1px solid rgba(255,114,0,.6);border-radius:10px;background:#0b0b0b">
+      <h3 style="margin:0 0 8px;color:#ff7200">📢 Ծանուցում բոլոր օգտատերերին</h3>
+      <p style="margin:0 0 10px;color:#999;font-size:13px">Ուղարկված հաղորդագրությունը կհայտնվի օգտատերերի ծանուցումների 🔔 բաժնում։</p>
+      <input id="owner-broadcast-title" maxlength="100" type="text" placeholder="Ծանուցման վերնագիր" style="box-sizing:border-box;width:100%;margin:0 0 8px;padding:11px;background:#111;color:#fff;border:1px solid #333;border-radius:7px">
+      <textarea id="owner-broadcast-body" maxlength="1000" rows="4" placeholder="Գրիր հաղորդագրությունը..." style="box-sizing:border-box;width:100%;margin:0 0 8px;padding:11px;background:#111;color:#fff;border:1px solid #333;border-radius:7px;resize:vertical"></textarea>
+      <button id="owner-broadcast-send" type="button" onclick="sendOwnerBroadcastNotification()" style="width:100%;padding:12px;border:0;border-radius:7px;background:#ff7200;color:#000;font-weight:900;cursor:pointer">📨 Ուղարկել բոլորին</button>
+      <div id="owner-broadcast-status" role="status" style="margin-top:8px;font-size:13px;color:#bbb"></div>
+    </div>
     <button id="clan-applications-admin-btn" type="button" style="width:100%;margin:0 0 14px;padding:13px;border:1px solid #ff7200;border-radius:8px;background:#ff7200;color:#000;font-weight:900;cursor:pointer">📋 Կլանի հայտեր</button>
     <div id="admin-online-users" class="admin-online-panel">
       <div class="admin-online-head">
@@ -2611,8 +2619,33 @@ async function loadMySiteRole(){
   }
   try{await loadPlayers();await loadVotes();}catch(e){console.warn('Player admin controls refresh failed',e);}
 }
+async function sendOwnerBroadcastNotification(){
+  if(mySiteRole!=='owner'||!currentUser)return;
+  const titleEl=document.getElementById('owner-broadcast-title');
+  const bodyEl=document.getElementById('owner-broadcast-body');
+  const status=document.getElementById('owner-broadcast-status');
+  const btn=document.getElementById('owner-broadcast-send');
+  const title=(titleEl?.value||'').trim();
+  const body=(bodyEl?.value||'').trim();
+  if(!title||!body){if(status)status.textContent='Լրացրու վերնագիրն ու հաղորդագրությունը։';return;}
+  if(!confirm('Ուղարկե՞լ այս ծանուցումը բոլոր գրանցված օգտատերերին։'))return;
+  if(btn)btn.disabled=true;
+  if(status)status.textContent='Ուղարկվում է...';
+  try{
+    const {data,error}=await sb.rpc('owner_broadcast_notification',{notification_title:title,notification_body:body});
+    if(error)throw error;
+    if(status)status.textContent='✅ Ծանուցումն ուղարկվեց '+Number(data||0)+' օգտատիրոջ։';
+    if(titleEl)titleEl.value='';
+    if(bodyEl)bodyEl.value='';
+  }catch(e){
+    console.error('Owner broadcast notification error:',e);
+    if(status)status.textContent='Չհաջողվեց ուղարկել։ Ստուգիր Supabase SQL ֆունկցիան։';
+  }finally{if(btn)btn.disabled=false;}
+}
 async function openAdminPanel(){
   if(mySiteRole!=='owner' && mySiteRole!=='admin'){return;}
+  const broadcastBox=document.getElementById('owner-broadcast-box');
+  if(broadcastBox)broadcastBox.style.display=mySiteRole==='owner'?'block':'none';
   $('admin-modal').classList.add('open');$('admin-modal').setAttribute('aria-hidden','false');
   await loadAdminUsers();
 }
