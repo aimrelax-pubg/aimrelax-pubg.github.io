@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#080808">
+<title>AIMRELAX PUBG | UC Խանութ</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--gold:#ffb000;--bg:#080808;--panel:#131313;--muted:#999;--line:#303030}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#291900 0,#080808 48%,#000 100%);color:#fff;font-family:Arial,Helvetica,sans-serif;min-height:100vh}
+header{border-bottom:1px solid #292929;background:rgba(0,0,0,.88);position:sticky;top:0;z-index:5;backdrop-filter:blur(12px)}
+.nav{max-width:1100px;margin:auto;padding:15px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px}.logo{font-size:20px;font-weight:900;letter-spacing:1px;color:var(--gold);text-decoration:none}.logo span{color:white}.back{color:#fff;text-decoration:none;border:1px solid #444;background:#161616;border-radius:9px;padding:10px 13px;font-size:13px;font-weight:800}
+main{max-width:1050px;margin:auto;padding:34px 16px 60px}.hero{text-align:center;padding:22px 0 30px}.eyebrow{color:var(--gold);letter-spacing:4px;font-size:12px;font-weight:900}.hero h1{font-size:clamp(34px,7vw,62px);margin:12px 0 8px}.hero h1 span{color:var(--gold)}.hero p{color:#aaa;max-width:600px;margin:0 auto;line-height:1.7}.notice{margin:0 auto 22px;max-width:850px;border:1px solid #6a4800;background:#201600;color:#f5d48a;border-radius:12px;padding:13px 15px;font-size:13px;line-height:1.6}
+.section-title{font-size:22px;margin:28px 0 15px}.packages{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}.pack{position:relative;text-align:center;background:linear-gradient(160deg,#191919,#0d0d0d);border:1px solid #353535;border-radius:16px;padding:21px 12px;cursor:pointer;transition:.18s}.pack:hover,.pack.selected{border-color:var(--gold);box-shadow:0 0 22px #ffb00018}.coin{font-size:32px;filter:drop-shadow(0 0 10px #ffb00055)}.pack h3{font-size:22px;margin:9px 0 5px}.pack .amount{font-size:12px;color:#999}.price{font-size:18px;color:var(--gold);font-weight:900;margin-top:13px}.pack input{position:absolute;opacity:0;pointer-events:none}
+.columns{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;margin-top:24px}.panel{background:#121212;border:1px solid #303030;border-radius:16px;padding:20px}.panel h2{margin:0 0 16px;font-size:20px}.field{margin:13px 0}.field label{display:block;color:#bbb;font-size:13px;margin-bottom:7px}.field input,.field select{width:100%;padding:13px;background:#080808;border:1px solid #383838;border-radius:9px;color:white;font-size:15px;outline:none}.field input:focus,.field select:focus{border-color:var(--gold)}.hint{color:#777;font-size:12px;line-height:1.6;margin-top:6px}.btn{width:100%;padding:14px;border:0;border-radius:10px;background:var(--gold);color:#080808;font-weight:900;font-size:15px;cursor:pointer}.btn:disabled{opacity:.45;cursor:not-allowed}.status{padding:12px;border-radius:9px;margin-top:12px;font-size:13px;line-height:1.6;display:none;overflow-wrap:anywhere}.status.show{display:block}.status.error{background:#301212;border:1px solid #7a2929;color:#ffaaaa}.status.ok{background:#102716;border:1px solid #28663b;color:#a5ffc0}.status.info{background:#211a0a;border:1px solid #654b15;color:#ffdc91}.order{border-top:1px solid #292929;padding:13px 0;font-size:13px;display:flex;justify-content:space-between;gap:12px}.order:first-of-type{border-top:0}.order small{display:block;color:#888;margin-top:5px;overflow-wrap:anywhere}.pill{display:inline-block;border-radius:99px;padding:5px 8px;background:#27200d;color:#ffdb7a;font-size:11px;font-weight:800;white-space:nowrap}.empty{color:#888;font-size:13px;padding:12px 0}.foot{text-align:center;color:#666;font-size:12px;margin-top:30px;line-height:1.7}
+@media(max-width:720px){.packages{grid-template-columns:repeat(2,minmax(0,1fr))}.columns{grid-template-columns:1fr}.nav{padding:13px}.logo{font-size:17px}.panel{padding:16px}}@media(max-width:380px){.packages{grid-template-columns:1fr 1fr}.pack{padding:17px 7px}.pack h3{font-size:19px}}
+</style>
+</head>
+<body>
+<header><div class="nav"><a class="logo" href="index.html">AIM<span>RELAX</span> PUBG</a><a class="back" href="index.html">← Գլխավոր էջ</a></div></header>
+<main>
+<section class="hero"><div class="eyebrow">OFFICIAL UC SHOP</div><h1>Գնիր <span>UC</span></h1><p>Ընտրիր փաթեթը, մուտքագրիր PUBG Mobile Player ID-ն և ուղարկիր պատվերը։ UC-ն կուղարկվի միայն վճարման ու պատվերի հաստատումից հետո։</p></section>
+<div class="notice">⚠️ Խանութի պատվերների համակարգը նախնական տարբերակով է։ Idram-ի իրական վճարումը և UC մատակարարի ավտոմատ առաքումը կմիացվեն համապատասխան ծառայությունների պայմանագրային տվյալներն ու API հասանելիությունը ստանալուց հետո։</div>
+<h2 class="section-title">Ընտրիր UC փաթեթը</h2>
+<div id="packages" class="packages"><div class="empty">Փաթեթները բեռնվում են…</div></div>
+<div class="columns">
+<section class="panel"><h2>🛒 Պատվերի տվյալներ</h2>
+<div class="field"><label for="playerId">PUBG Mobile Player ID *</label><input id="playerId" inputmode="numeric" autocomplete="off" maxlength="32" placeholder="Մուտքագրիր խաղացողի ID-ն"></div>
+<div class="field"><label for="nickname">Խաղային նիկ (ըստ ցանկության)</label><input id="nickname" maxlength="40" autocomplete="off" placeholder="Օրինակ՝ AIMRELAX"></div>
+<div class="field"><label for="payment">Վճարման եղանակ</label><select id="payment"><option value="idram">Idram (միացումը սպասման փուլում է)</option><option value="bank_transfer">Բանկային փոխանցում (ձեռքով հաստատում)</option></select></div>
+<div class="hint">Պատվերը կապվում է քո մուտք գործած AIMRELAX հաշվի հետ։ Երբ վճարային համակարգը միացված չէ, այս էջը չի գանձում գումար և չի ձևացնում, թե վճարումը կատարված է։</div>
+<button id="orderBtn" class="btn" disabled>Ընտրիր փաթեթը</button><div id="status" class="status"></div>
+</section>
+<section class="panel"><h2>📦 Իմ պատվերները</h2><div id="orders"><div class="empty">Մուտք գործիր՝ պատվերները տեսնելու համար։</div></div><button id="refreshOrders" class="btn" style="margin-top:10px;background:#252525;color:#fff">Թարմացնել պատվերները</button></section>
+</div>
+<div class="foot">AIMRELAX PUBG · UC-ի գները և հասանելիությունը կհաստատվեն մինչև վաճառքի մեկնարկը։<br>PUBG MOBILE-ը և UC-ն համապատասխան սեփականատերերի ապրանքանիշերն են։ AIMRELAX-ը անկախ համայնքային նախագիծ է։</div>
+</main>
+<script>
+const SUPABASE_URL="https://hvhlrbfjloiahbqmnrly.supabase.co";
+const SUPABASE_ANON_KEY="sb_publishable_EcZUkLdUCVv3qWDD7jlvhg_OjTYu1jA";
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+let packages=[],selected=null,currentUser=null;
+function dram(v){return Number(v||0).toLocaleString("hy-AM")+" ֏"}
+function showStatus(message,type="info"){const el=$("status");el.textContent=message;el.className="status show "+type}
+function renderPackages(){
+ const root=$("packages");
+ if(!packages.length){root.innerHTML='<div class="empty">Փաթեթները հասանելի չեն։ Նախ ստուգիր Supabase SQL-ը։</div>';return}
+ root.innerHTML=packages.map(p=>'<label class="pack '+(selected===p.id?'selected':'')+'"><input type="radio" name="pack" value="'+esc(p.id)+'" '+(selected===p.id?'checked':'')+'><div class="coin">🪙</div><h3>'+esc(p.title)+'</h3><div class="amount">PUBG MOBILE UC</div><div class="price">'+(Number(p.price_amd)>0?dram(p.price_amd):"Գինը շուտով")+'</div></label>').join("");
+ root.querySelectorAll(".pack").forEach((el,i)=>el.addEventListener("click",()=>{selected=packages[i].id;renderPackages();updateOrderButton()}));
+}
+function updateOrderButton(){const p=packages.find(x=>x.id===selected);const b=$("orderBtn");b.disabled=!p||Number(p.price_amd)<=0;b.textContent=!p?"Ընտրիր փաթեթը":Number(p.price_amd)<=0?"Գինը դեռ սահմանված չէ":"Պատվիրել · "+dram(p.price_amd)}
+async function loadPackages(){
+ const {data,error}=await sb.rpc("list_uc_packages");
+ if(error){$("packages").innerHTML='<div class="empty">Չհաջողվեց բեռնել փաթեթները։ Նախ գործարկիր Supabase SQL-ը։</div>';console.error(error);return}
+ packages=Array.isArray(data)?data:[];
+ selected=packages[0]?.id||null;renderPackages();updateOrderButton();
+}
+async function refreshUser(){const {data}=await sb.auth.getUser();currentUser=data?.user||null;return currentUser}
+async function loadOrders(){
+ if(!currentUser){$("orders").innerHTML='<div class="empty">Մուտք գործիր կայք՝ պատվերների պատմությունը տեսնելու համար։</div>';return}
+ const {data,error}=await sb.rpc("list_my_uc_orders");
+ if(error){$("orders").innerHTML='<div class="empty">Պատվերները բեռնել չհաջողվեց։ Ստուգիր SQL-ը։</div>';console.error(error);return}
+ if(!data?.length){$("orders").innerHTML='<div class="empty">Դեռ պատվեր չունես։</div>';return}
+ $("orders").innerHTML=data.map(o=>'<div class="order"><div><strong>'+esc(o.uc_amount)+' UC · '+dram(o.price_amd)+'</strong><small>ID: '+esc(o.id)+'<br>Player ID: '+esc(o.player_id)+'<br>'+new Date(o.created_at).toLocaleString("hy-AM")+'</small></div><div><span class="pill">'+esc(o.payment_status==="paid"?"Վճարված":o.payment_status==="failed"?"Վճարումը ձախողվել է":"Սպասում է")+'</span><small>'+esc(o.delivery_status==="delivered"?"Ուղարկված":o.delivery_status==="processing"?"Ընթացքում":o.delivery_status==="failed"?"Առաքման սխալ":"Առաքման սպասում")+'</small></div></div>').join("");
+}
+$("orderBtn").addEventListener("click",async()=>{
+ const user=await refreshUser();
+ if(!user){showStatus("Պատվեր ստեղծելու համար նախ մուտք գործիր AIMRELAX կայքի քո հաշվով։","error");return}
+ const p=packages.find(x=>x.id===selected);
+ if(!p||Number(p.price_amd)<=0){showStatus("Այս փաթեթի գինը դեռ սահմանված չէ։","error");return}
+ const playerId=$("playerId").value.trim(),nickname=$("nickname").value.trim(),payment=$("payment").value;
+ if(!/^\d{5,32}$/.test(playerId)){showStatus("Մուտքագրիր ճիշտ Player ID՝ 5–32 թվանշան։","error");return}
+ const btn=$("orderBtn");btn.disabled=true;btn.textContent="Պատվերը ստեղծվում է…";
+ try{
+ const {data,error}=await sb.rpc("create_uc_order",{p_package_id:p.id,p_player_id:playerId,p_player_nickname:nickname||null,p_payment_method:payment});
+ if(error)throw error;
+ const o=Array.isArray(data)?data[0]:data;
+ showStatus("Պատվերը գրանցվեց։ Համար՝ "+o.order_id+". Վճարումը դեռ ավտոմատ չի կատարվում․ սպասիր վճարման եղանակի միացմանը կամ ադմինի հրահանգին։","ok");
+ await loadOrders();
+ }catch(e){showStatus(e.message||"Պատվերը ստեղծել չհաջողվեց։","error")}
+ finally{updateOrderButton()}
+});
+$("refreshOrders").addEventListener("click",async()=>{await refreshUser();await loadOrders()});
+(async()=>{await refreshUser();await loadPackages();await loadOrders();sb.auth.onAuthStateChange(()=>{setTimeout(async()=>{await refreshUser();await loadOrders()},0)})})();
+</script>
+<script src="./lang.js"></script>
+</body>
+</html>
