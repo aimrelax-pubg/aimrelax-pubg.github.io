@@ -1159,25 +1159,9 @@ async function loadResults(){
       data,
       error
     } =
-      await supabaseClient
-        .from("pubg_exam_results")
-        .select(`
-          id,
-          user_id,
-          user_email,
-          correct_answers,
-          total_questions,
-          percentage,
-          completed_at,
-          created_at,
-          answers
-        `)
-        .order(
-          "completed_at",
-          {
-            ascending:false
-          }
-        );
+      await supabaseClient.rpc(
+        "get_owner_exam_results"
+      );
 
 
     if(error){
