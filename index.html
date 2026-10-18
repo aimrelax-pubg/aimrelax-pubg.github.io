@@ -2631,7 +2631,7 @@ function renderAdminUsers(){
     const canManage=mySiteRole==='owner' && !isMe;
     const role=u.role||'user';
     const roleBtn=canManage ? (role==='admin' ? `<button class="danger" onclick="changeSiteRole('${u.id}','user')">Հանել ադմինից</button>` : `<button onclick="changeSiteRole('${u.id}','admin')">Դարձնել ադմին</button>`) : '';
-    const canDelete=(mySiteRole==='owner'||mySiteRole==='admin') && !isMe && role!=='owner' && (mySiteRole==='owner' || role==='user');
+    const canDelete=mySiteRole==='owner' && !isMe && role!=='owner';
     const deleteBtn=canDelete ? `<button class="danger" type="button" data-delete-user="${u.id}">🗑️ Ջնջել</button>` : '';
     const btn=roleBtn+deleteBtn;
     return `<div class="admin-user-row"><div class="admin-user-info"><strong>${esc(u.nickname||'Օգտատեր')}${isMe?' (Դուք)':''}</strong><small>${esc(u.email||'')}</small><div class="admin-role">Դեր՝ ${role==='owner'?'👑 Owner':role==='admin'?'🛡️ Admin':'👤 User'}</div></div><div class="admin-user-actions">${btn}</div></div>`;
@@ -2641,7 +2641,7 @@ function renderAdminUsers(){
   });
 }
 async function deleteSiteUser(id){
-  if(mySiteRole!=='owner' && mySiteRole!=='admin') return;
+  if(mySiteRole!=='owner') return;
   if(!id || id===currentUser?.id) return;
   const target=adminUsersCache.find(u=>String(u.id)===String(id));
   const name=target?.nickname||target?.email||'այս օգտատիրոջը';
