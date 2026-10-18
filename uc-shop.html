@@ -29,7 +29,8 @@ main{max-width:1050px;margin:auto;padding:34px 16px 60px}.hero{text-align:center
 <div class="field"><label for="playerId">PUBG Mobile Player ID *</label><input id="playerId" inputmode="numeric" autocomplete="off" maxlength="32" placeholder="Մուտքագրիր խաղացողի ID-ն"></div>
 <div class="field"><label for="nickname">Խաղային նիկ (ըստ ցանկության)</label><input id="nickname" maxlength="40" autocomplete="off" placeholder="Օրինակ՝ AIMRELAX"></div>
 <div class="field"><label for="payment">Վճարման եղանակ</label><select id="payment"><option value="idram">Idram (միացումը սպասման փուլում է)</option><option value="bank_transfer">Բանկային փոխանցում (ձեռքով հաստատում)</option></select></div>
-<div class="hint">Պատվերը կապվում է քո մուտք գործած AIMRELAX հաշվի հետ։ Երբ վճարային համակարգը միացված չէ, այս էջը չի գանձում գումար և չի ձևացնում, թե վճարումը կատարված է։</div>
+<div class="notice" style="margin:12px 0;padding:12px"><strong>Idram փոխանցման տվյալներ</strong><br>Idram ID՝ <strong>701364542</strong><br>Հեռախոս՝ <strong>+374 98 685567</strong><br><span style="font-size:12px">Պատվեր ստեղծելուց հետո փոխանցիր ընտրված փաթեթի ճշգրիտ գումարը և պահիր կտրոնը։ Այս տարբերակում վճարումը հաստատվում է ադմինի կողմից ձեռքով։ Միայն այս տվյալները ցույց տալը չի նշանակում, որ կայքը ավտոմատ ստուգում է Idram փոխանցումը։</span></div>
+<div class="hint">Պատվերը կապվում է քո մուտք գործած AIMRELAX հաշվի հետ։ Վճարումը կատարելուց հետո ադմինը ձեռքով կհաստատի այն։</div>
 <button id="orderBtn" class="btn" disabled>Ընտրիր փաթեթը</button><div id="status" class="status"></div>
 </section>
 <section class="panel"><h2>📦 Իմ պատվերները</h2><div id="orders"><div class="empty">Մուտք գործիր՝ պատվերները տեսնելու համար։</div></div><button id="refreshOrders" class="btn" style="margin-top:10px;background:#252525;color:#fff">Թարմացնել պատվերները</button></section>
@@ -78,7 +79,7 @@ $("orderBtn").addEventListener("click",async()=>{
  const {data,error}=await sb.rpc("create_uc_order",{p_package_id:p.id,p_player_id:playerId,p_player_nickname:nickname||null,p_payment_method:payment});
  if(error)throw error;
  const o=Array.isArray(data)?data[0]:data;
- showStatus("Պատվերը գրանցվեց։ Համար՝ "+o.order_id+". Վճարումը դեռ ավտոմատ չի կատարվում․ սպասիր վճարման եղանակի միացմանը կամ ադմինի հրահանգին։","ok");
+ showStatus("Պատվերը գրանցվեց։ Համար՝ "+o.order_id+". Փոխանցիր "+dram(o.price_amd)+" Idram ID 701364542-ին կամ +374 98 685567 համարին։ Պահիր կտրոնը․ վճարումը կհաստատի ադմինը։","ok");
  await loadOrders();
  }catch(e){showStatus(e.message||"Պատվերը ստեղծել չհաջողվեց։","error")}
  finally{updateOrderButton()}
