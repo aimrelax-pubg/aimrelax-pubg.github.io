@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#080808">
+<title>AIMRELAX | UC պատվերների կառավարում</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#090909;color:#f5f5f5;font:15px Arial,sans-serif}main{max-width:1100px;margin:auto;padding:24px 15px 60px}h1{color:#ffb000;font-size:clamp(25px,5vw,38px)}a{color:#ffb000}.panel{background:#151515;border:1px solid #333;border-radius:13px;padding:16px;margin:16px 0}.hint{color:#aaa;line-height:1.6;font-size:13px}.btn{border:0;border-radius:8px;background:#ffb000;color:#111;padding:10px 13px;font-weight:800;cursor:pointer}.btn.secondary{background:#333;color:#fff}.status{margin:12px 0;padding:12px;border-radius:8px;display:none;overflow-wrap:anywhere}.status.show{display:block}.status.err{background:#351414;color:#ffbaba}.status.ok{background:#102b19;color:#b8ffca}.orders{display:grid;gap:12px}.order{background:#101010;border:1px solid #333;border-radius:11px;padding:14px}.orderhead{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.ordergrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:14px 0}.field label{display:block;color:#aaa;font-size:12px;margin-bottom:5px}.field select{width:100%;background:#080808;color:#fff;border:1px solid #444;border-radius:7px;padding:10px}.controls{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end}.muted{color:#888;font-size:12px;overflow-wrap:anywhere}@media(max-width:560px){.controls{grid-template-columns:1fr}.panel{padding:12px}}
+</style>
+</head>
+<body><main>
+<a href="uc-shop.html">← UC խանութ</a>
+<h1>UC պատվերների կառավարում</h1>
+<div class="panel"><p class="hint">Մուտք գործիր կայքի սեփականատիրոջ հաշվով։ Այս էջը թույլ է տալիս ձեռքով հաստատել միայն իրականում ստացված վճարումները և նշել UC-ի առաքման կարգավիճակը։ Մի նշիր «Վճարված», մինչև գումարը չստուգես Idram-ում։</p><button id="reload" class="btn secondary">Թարմացնել</button><div id="status" class="status"></div></div>
+<div id="orders" class="orders"><div class="panel hint">Բեռնվում է…</div></div>
+</main>
+<script>
+const SUPABASE_URL="https://hvhlrbfjloiahbqmnrly.supabase.co";
+const SUPABASE_ANON_KEY="sb_publishable_EcZUkLdUCVv3qWDD7jlvhg_OjTYu1jA";
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+function notice(msg,err=false){const e=$("status");e.textContent=msg;e.className="status show "+(err?"err":"ok")}
+function options(values,selected){return values.map(([v,label])=>'<option value="'+v+'" '+(v===selected?'selected':'')+'>'+label+'</option>').join("")}
+const payment=[["pending","Սպասում է վճարմանը"],["paid","Վճարված է"],["failed","Վճարումը ձախողվել է"],["refunded","Վերադարձված է"]];
+const delivery=[["pending","Սպասում է UC-ին"],["processing","Ընթացքում է"],["delivered","UC-ն ուղարկված է"],["failed","Առաքման խնդիր"]];
+async function load(){
+ $("orders").innerHTML='<div class="panel hint">Բեռնվում է…</div>';
+ const {data:userData}=await sb.auth.getUser();
+ if(!userData?.user){$("orders").innerHTML='<div class="panel">Նախ մուտք գործիր AIMRELAX կայքի հաշվով։ Եթե մուտքի էջը բաց չէ, վերադարձիր գլխավոր էջ և մուտք գործիր, ապա նորից բացիր այս էջը։</div>';return}
+ const {data,error}=await sb.rpc("admin_list_uc_orders");
+ if(error){$("orders").innerHTML='<div class="panel">Պատվերները հասանելի չեն։ Համոզվիր, որ Supabase SQL-ի վերջին տարբերակը գործարկել ես և մուտք ես գործել սեփականատիրոջ հաշվով։</div>';notice(error.message,true);return}
+ if(!data?.length){$("orders").innerHTML='<div class="panel hint">Պատվերներ դեռ չկան։</div>';return}
+ $("orders").innerHTML=data.map(o=>'<article class="order" data-id="'+esc(o.id)+'"><div class="orderhead"><strong>'+esc(o.package_title)+' · '+Number(o.price_amd).toLocaleString("hy-AM")+' ֏</strong><span class="muted">'+new Date(o.created_at).toLocaleString("hy-AM")+'</span></div><div class="ordergrid"><div><div class="muted">Պատվերի ID</div><div>'+esc(o.id)+'</div></div><div><div class="muted">Հաճախորդի User ID</div><div>'+esc(o.user_id)+'</div></div><div><div class="muted">PUBG Player ID</div><strong>'+esc(o.player_id)+'</strong></div><div><div class="muted">Խաղային նիկ</div>'+esc(o.player_nickname||"Չի նշվել")+'</div><div><div class="muted">Վճարում</div>'+esc(o.payment_method==="idram"?"Idram":"Բանկային փոխանցում")+'</div></div><div class="controls"><div class="field"><label>Վճարման կարգավիճակ</label><select class="pay">'+options(payment,o.payment_status)+'</select></div><div class="field"><label>UC-ի տրամադրման կարգավիճակ</label><select class="delivery">'+options(delivery,o.delivery_status)+'</select></div><button class="btn save">Պահպանել</button></div></article>').join("");
+ $("orders").querySelectorAll(".save").forEach(btn=>btn.addEventListener("click",async()=>{
+   const card=btn.closest(".order");btn.disabled=true;btn.textContent="Պահպանում…";
+   const {error}=await sb.rpc("admin_update_uc_order",{p_order_id:card.dataset.id,p_payment_status:card.querySelector(".pay").value,p_delivery_status:card.querySelector(".delivery").value});
+   if(error)notice(error.message,true);else notice("Պատվերի կարգավիճակը պահպանվեց։");
+   btn.disabled=false;btn.textContent="Պահպանել";
+ }));
+}
+$("reload").addEventListener("click",load);load();
+</script>
+</body></html>
