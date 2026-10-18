@@ -1330,7 +1330,11 @@ async function loadResults(){
 
         const email =
           item.user_email ||
-          "Օգտատեր";
+          "Email չկա";
+
+        const nickname =
+          String(item.nickname || "").trim() ||
+          (email.includes("@") ? email.split("@")[0] : "Օգտատեր");
 
 
         const date =
@@ -1366,8 +1370,8 @@ async function loadResults(){
             <div class="player-top">
 
               <div class="player-name">
-                👤
-                ${escapeHtml(email)}
+                🎮
+                ${escapeHtml(nickname)}
               </div>
 
               <div class="player-number">
@@ -1376,6 +1380,10 @@ async function loadResults(){
 
             </div>
 
+
+            <div class="player-email">
+              ✉️ ${escapeHtml(email)}
+            </div>
 
             <div class="player-result">
 
