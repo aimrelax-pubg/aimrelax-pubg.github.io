@@ -1625,40 +1625,72 @@ async function removeRosterPlayer(playerId,nickname){
   }
 }
 async function loadPlayers(){
-  const playerCards=[...document.querySelectorAll('#players .players-grid .player')];
-  const rosterNicknames=playerCards.map(card=>card.querySelector('h3')?.textContent.trim()||'').filter(Boolean);
-  const {data:dbPlayers,error}=await sb.from('players').select('id,nickname,active');
+  const grid=document.querySelector('#players .players-grid');
+  if(!grid)return;
   const normalize=v=>String(v||'').normalize('NFKC')
-    .replace(/[\u200B-\u200D\uFEFF]/g,'')
+    .replace(/[\\u200B-\\u200D\\uFEFF]/g,'')
     .replace(/[«»“”]/g,'')
-    .replace(/\s+/g,' ').trim().toLocaleLowerCase('hy-AM');
-  const compact=v=>normalize(v).replace(/[\s_\-.'’`]/g,'');
+    .replace(/\\s+/g,' ').trim().toLocaleLowerCase('hy-AM');
+  const compact=v=>normalize(v).replace(/[\\s_\\-.'’`]/g,'');
+  const initialCards=[...grid.querySelectorAll('.player')];
+  const staticNames=initialCards.map(card=>card.querySelector('h3')?.textContent.trim()||'').filter(Boolean);
+  const {data:dbPlayers,error}=await sb.from('players').select('id,nickname,active').order('nickname');
+  if(error){
+    console.error('players load error',error);
+    playersCache=staticNames.map(nickname=>({id:null,nickname,dbNickname:null,active:true}));
+    $('player-options').innerHTML=playersCache.map(p=>`
+      <label class="player-option player-option-missing"><input type="radio" name="vote-player" value="" disabled><span>${esc(p.nickname)}</span> <small class="player-sync-hint">(տվյալները հասանելի չեն)</small></label>`).join('');
+    if(typeof window.updateTeamPlayerCount==='function')window.updateTeamPlayerCount();
+    return;
+  }
   const byExact=new Map(),byCompact=new Map();
-  if(error)console.error('players load error',error);
   (dbPlayers||[]).forEach(p=>{
     if(!p?.id||!p?.nickname)return;
     if(!byExact.has(normalize(p.nickname)))byExact.set(normalize(p.nickname),p);
     if(!byCompact.has(compact(p.nickname)))byCompact.set(compact(p.nickname),p);
   });
-  playerCards.forEach(card=>{
-    const nickname=card.querySelector('h3')?.textContent.trim()||'';
-    const p=byExact.get(normalize(nickname))||byCompact.get(compact(nickname))||null;
-    card.hidden=!!(p && p.active===false);
-    let remove=card.querySelector('.roster-remove-btn');
-    if(canManageRoster() && p && p.active!==false){
-      if(!remove){
-        remove=document.createElement('button');
-        remove.type='button';remove.className='roster-remove-btn';
-        remove.textContent='🗑 Հեռացնել';
-        card.appendChild(remove);
-      }
-      remove.onclick=()=>removeRosterPlayer(p.id,nickname);
-    }else if(remove)remove.remove();
+  const represented=new Set();
+  initialCards.forEach(card=>{
+    const heading=card.querySelector('h3');
+    const oldNickname=heading?.textContent.trim()||'';
+    const p=byExact.get(normalize(oldNickname))||byCompact.get(compact(oldNickname))||null;
+    if(p){
+      represented.add(String(p.id));
+      if(heading)heading.textContent=p.nickname;
+      card.dataset.playerId=String(p.id);
+      card.hidden=p.active===false;
+      let remove=card.querySelector('.roster-remove-btn');
+      if(canManageRoster()&&p.active!==false){
+        if(!remove){remove=document.createElement('button');remove.type='button';remove.className='roster-remove-btn';remove.textContent='🗑 Հեռացնել';card.appendChild(remove);}
+        remove.onclick=()=>removeRosterPlayer(p.id,p.nickname);
+      }else if(remove)remove.remove();
+    }else{
+      card.hidden=false;
+      delete card.dataset.playerId;
+      const remove=card.querySelector('.roster-remove-btn');
+      if(remove)remove.remove();
+    }
   });
-  playersCache=rosterNicknames.map(nickname=>{
+  (dbPlayers||[]).filter(p=>p?.id&&p?.nickname&&p.active!==false&&!represented.has(String(p.id))).forEach(p=>{
+    const card=document.createElement('div');
+    card.className='player';
+    card.dataset.playerId=String(p.id);
+    const avatar=document.createElement('div');avatar.className='player-avatar';avatar.textContent='👤';
+    const heading=document.createElement('h3');heading.textContent=p.nickname;
+    card.append(avatar,heading);
+    if(canManageRoster()){
+      const remove=document.createElement('button');remove.type='button';remove.className='roster-remove-btn';remove.textContent='🗑 Հեռացնել';
+      remove.onclick=()=>removeRosterPlayer(p.id,p.nickname);card.appendChild(remove);
+    }
+    grid.appendChild(card);
+    represented.add(String(p.id));
+  });
+  const activeDbPlayers=(dbPlayers||[]).filter(p=>p?.id&&p?.nickname&&p.active!==false);
+  const legacyOnly=staticNames.map(nickname=>{
     const p=byExact.get(normalize(nickname))||byCompact.get(compact(nickname))||null;
-    return {id:p?.id||null,nickname,dbNickname:p?.nickname||null,active:p?.active!==false};
-  }).filter(p=>p.active);
+    return p?null:{id:null,nickname,dbNickname:null,active:true};
+  }).filter(Boolean);
+  playersCache=[...activeDbPlayers.map(p=>({id:p.id,nickname:p.nickname,dbNickname:p.nickname,active:true})),...legacyOnly];
   $('player-options').innerHTML=playersCache.map(p=>`
     <label class="player-option${p.id?'':' player-option-missing'}">
       <input type="radio" name="vote-player" value="${esc(p.id||'')}" ${p.id?'':'disabled'}>
@@ -1673,6 +1705,14 @@ async function loadPlayers(){
   });
   if(!currentUser||!selectedPlayerId)$('vote-btn').disabled=true;
   if(typeof window.updateTeamPlayerCount==='function')window.updateTeamPlayerCount();
+  if(!window.__aimrelaxPlayersRealtime && sb.channel){
+    window.__aimrelaxPlayersRealtime=true;
+    sb.channel('aimrelax-shared-player-roster')
+      .on('postgres_changes',{event:'*',schema:'public',table:'players'},async()=>{
+        await loadPlayers();
+        await loadVotes();
+      }).subscribe();
+  }
 }
 
 async function loadVotes(){
