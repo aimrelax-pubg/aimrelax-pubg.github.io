@@ -1566,8 +1566,7 @@ async function removeRosterPlayer(playerId,nickname){
   }
 }
 async function loadPlayers(){
-  const playerCards=[...document.querySelectorAll('#players .players-grid .player')];
-  const rosterNicknames=playerCards.map(card=>card.querySelector('h3')?.textContent.trim()||'').filter(Boolean);
+  let playerCards=[...document.querySelectorAll('#players .players-grid .player')];
   const {data:dbPlayers,error}=await sb.from('players').select('id,nickname,active');
   const normalize=v=>String(v||'').normalize('NFKC')
     .replace(/[\u200B-\u200D\uFEFF]/g,'')
@@ -1581,6 +1580,26 @@ async function loadPlayers(){
     if(!byExact.has(normalize(p.nickname)))byExact.set(normalize(p.nickname),p);
     if(!byCompact.has(compact(p.nickname)))byCompact.set(compact(p.nickname),p);
   });
+  // Render active database players that are not part of the old hardcoded roster.
+  // This allows additions made through the app to appear on the website without rebuilding the APK.
+  const grid=document.querySelector('#players .players-grid');
+  const existingNames=new Set(playerCards.map(card=>normalize(card.querySelector('h3')?.textContent||'')));
+  if(grid && !error){
+    (dbPlayers||[]).forEach(p=>{
+      if(!p?.id||!p?.nickname||p.active===false)return;
+      const key=normalize(p.nickname);
+      if(existingNames.has(key))return;
+      const card=document.createElement('div');
+      card.className='player';
+      card.dataset.dbPlayerId=p.id;
+      card.innerHTML='<div class="player-avatar">👤</div><h3></h3>';
+      card.querySelector('h3').textContent=p.nickname;
+      grid.appendChild(card);
+      playerCards.push(card);
+      existingNames.add(key);
+    });
+  }
+  const rosterNicknames=playerCards.map(card=>card.querySelector('h3')?.textContent.trim()||'').filter(Boolean);
   playerCards.forEach(card=>{
     const nickname=card.querySelector('h3')?.textContent.trim()||'';
     const p=byExact.get(normalize(nickname))||byCompact.get(compact(nickname))||null;
