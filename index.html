@@ -1641,7 +1641,8 @@ async function loadPlayers(){
     }else if(remove)remove.remove();
   });
   const playerStatCount=document.getElementById('player-stat-count');
-  if(playerStatCount)playerStatCount.textContent=String(playerCards.filter(card=>!card.hidden).length);
+  const activeUniquePlayerCount=new Set((dbPlayers||[]).filter(p=>p?.id&&p?.nickname&&p.active!==false).map(p=>normalize(p.nickname))).size;
+  if(playerStatCount)playerStatCount.textContent=String(error?24:activeUniquePlayerCount);
   playersCache=rosterNicknames.map(nickname=>{
     const p=byExact.get(normalize(nickname))||byCompact.get(compact(nickname))||null;
     return {id:p?.id||null,nickname,dbNickname:p?.nickname||null,active:p?.active!==false};
