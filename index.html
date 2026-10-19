@@ -1142,15 +1142,18 @@ AIM<span>RELAX</span>-PUBG
 <!-- Ավտոմատ հաշվարկել թիմի խաղացողների թիվը -->
 <script id="aimrelax-team-player-count">
 (function () {
-  function updateTeamPlayerCount() {
-    var count = document.querySelectorAll('#players .players-grid .player').length;
+  window.updateTeamPlayerCount = function () {
+    var cards = document.querySelectorAll('#players .players-grid .player');
+    var count = Array.from(cards).filter(function (card) {
+      return !card.hidden && getComputedStyle(card).display !== 'none';
+    }).length;
     var counter = document.getElementById('team-player-count');
     if (counter) counter.textContent = count;
-  }
+  };
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', updateTeamPlayerCount);
+    document.addEventListener('DOMContentLoaded', window.updateTeamPlayerCount);
   } else {
-    updateTeamPlayerCount();
+    window.updateTeamPlayerCount();
   }
 })();
 </script>
@@ -1669,6 +1672,7 @@ async function loadPlayers(){
     $('vote-status').textContent='';
   });
   if(!currentUser||!selectedPlayerId)$('vote-btn').disabled=true;
+  if(typeof window.updateTeamPlayerCount==='function')window.updateTeamPlayerCount();
 }
 
 async function loadVotes(){
