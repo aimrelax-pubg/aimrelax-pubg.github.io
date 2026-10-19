@@ -3950,6 +3950,18 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
       .subscribe();
   }
 
+  // Re-fetch LIVE status after the tab/WebView returns from background.
+  let lastLiveListRefresh=0;
+  const refreshLiveListOnReturn=()=>{
+    if(document.visibilityState==='hidden'||!navigator.onLine)return;
+    const now=Date.now();
+    if(now-lastLiveListRefresh<5000)return;
+    lastLiveListRefresh=now;
+    refreshLiveList().catch(error=>console.warn('LIVE list refresh failed:',error));
+  };
+  document.addEventListener('visibilitychange',refreshLiveListOnReturn);
+  window.addEventListener('focus',refreshLiveListOnReturn);
+
   window.addEventListener('beforeunload',()=>{
     if(liveState.mode==='streamer' && liveState.streamId){
       try{navigator.sendBeacon?.('', '');}catch(e){}
