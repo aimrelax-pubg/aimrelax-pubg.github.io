@@ -1103,6 +1103,7 @@ AIM<span>RELAX</span>-PUBG
 <div class="section-title">
 <small>Մեր Թիմը</small>
 <h2>Խաղացողներ</h2>
+<button id="admin-add-player-btn" type="button" class="roster-remove-btn" style="display:none;margin:14px auto 0">➕ Ավելացնել խաղացող</button>
 </div>
 
 <div class="players-grid">
@@ -1610,6 +1611,28 @@ $('header-logout-btn').onclick=doLogout;
 function canManageRoster(){
   return !!currentUser && (currentUser.id==='5f1c951f-1e76-4f82-9849-46becf038b55' || mySiteRole==='owner' || mySiteRole==='admin');
 }
+const addRosterButton=$('admin-add-player-btn');
+if(addRosterButton){
+  addRosterButton.onclick=async()=>{
+    if(!canManageRoster()){alert('Այս գործողությունը հասանելի է միայն ադմինին։');return;}
+    const nickname=prompt('Մուտքագրեք նոր խաղացողի նիկը։');
+    if(nickname===null)return;
+    const clean=nickname.trim();
+    if(!clean){alert('Նիկը չի կարող դատարկ լինել։');return;}
+    if(clean.length>80){alert('Նիկը պետք է լինի առավելագույնը 80 նիշ։');return;}
+    addRosterButton.disabled=true;
+    try{
+      const {error}=await sb.rpc('admin_add_player',{p_nickname:clean});
+      if(error)throw error;
+      await loadPlayers();
+      await loadVotes();
+      alert('Խաղացողը ավելացվեց։ Կայքն ու հավելվածը կօգտագործեն նույն տվյալը։');
+    }catch(error){
+      console.error('Player add failed:',error);
+      alert('Չհաջողվեց ավելացնել խաղացողին։ '+(error?.message||'Ստուգեք admin_add_player SQL ֆունկցիան Supabase-ում։'));
+    }finally{addRosterButton.disabled=false;}
+  };
+}
 async function removeRosterPlayer(playerId,nickname){
   if(!canManageRoster()){alert('Այս գործողությունը հասանելի է միայն ադմինին։');return;}
   if(!confirm('Հեռացնե՞լ «'+nickname+'»-ին Խաղացողներ և Քվեարկություն բաժիններից։'))return;
@@ -1625,6 +1648,7 @@ async function removeRosterPlayer(playerId,nickname){
   }
 }
 async function loadPlayers(){
+  if(addRosterButton)addRosterButton.style.display=canManageRoster()?'block':'none';
   const grid=document.querySelector('#players .players-grid');
   if(!grid)return;
   const normalize=v=>String(v||'').normalize('NFKC')
