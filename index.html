@@ -1466,6 +1466,47 @@ status.innerHTML="Չհաջողվեց ուղարկել նամակը ❌";
     <script>function updateArmeniaTime() { const now = new Date(); const time = new Intl.DateTimeFormat('hy-AM', { timeZone: 'Asia/Yerevan', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(now); const date = new Intl.DateTimeFormat('hy-AM', { timeZone: 'Asia/Yerevan', day: 'numeric', month: 'long', year: 'numeric' }).format(now); document.getElementById('arm-time').textContent = time; document.getElementById('arm-date').textContent = date; } async function updateWeather() { try { const url = 'https://api.open-meteo.com/v1/forecast?latitude=40.1872&longitude=44.5152&current=temperature_2m,weather_code&timezone=Asia%2FYerevan'; const response = await fetch(url); const data = await response.json(); const temp = Math.round(data.current.temperature_2m); const code = data.current.weather_code; let weather = '☀️ Պարզ'; if (code === 1 || code === 2) weather = '🌤️ Մասամբ ամպամած'; else if (code === 3) weather = '☁️ Ամպամած'; else if (code >= 51 && code <= 67) weather = '🌧️ Անձրև'; else if (code >= 71 && code <= 77) weather = '❄️ Ձյուն'; else if (code >= 80 && code <= 82) weather = '🌦️ Անձրևային'; else if (code >= 95) weather = '⛈️ Ամպրոպ'; document.getElementById('arm-weather').textContent = weather + ' ' + temp + '°C'; } catch (error) { document.getElementById('arm-weather').textContent = 'Եղանակը հասանելի չէ'; } } updateArmeniaTime(); updateWeather(); setInterval(updateArmeniaTime, 1000); setInterval(updateWeather, 600000);</script>
 
 
+<!-- Emergency auth-modal opener: keeps login choices reachable if another page script fails. -->
+<script id="aimrelax-auth-modal-bootstrap">
+(function(){
+  function showAuth(which){
+    var modal=document.getElementById('account-modal');
+    if(!modal)return;
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden','false');
+    ['modal-login','modal-register','modal-reset','modal-account'].forEach(function(id){
+      var panel=document.getElementById(id);
+      if(panel)panel.style.display='none';
+    });
+    ['tab-login','tab-register'].forEach(function(id){
+      var tab=document.getElementById(id);
+      if(tab)tab.classList.remove('active');
+    });
+    var panel=document.getElementById(which==='register'?'modal-register':which==='reset'?'modal-reset':'modal-login');
+    if(panel)panel.style.display='block';
+    var tab=document.getElementById(which==='register'?'tab-register':'tab-login');
+    if(tab)tab.classList.add('active');
+  }
+  document.addEventListener('click',function(e){
+    var target=e.target;
+    if(!target||!target.closest)return;
+    if(target.closest('#account-open-btn')){
+      e.preventDefault();
+      var modal=document.getElementById('account-modal');
+      if(modal&&modal.classList.contains('open'))return;
+      showAuth('login');
+    }else if(target.closest('#tab-login')){showAuth('login');}
+    else if(target.closest('#tab-register')){showAuth('register');}
+    else if(target.closest('#m-show-reset')){showAuth('reset');}
+    else if(target.closest('#m-back-login')){showAuth('login');}
+    else if(target.id==='account-close'||target===document.getElementById('account-modal')) {
+      var modal=document.getElementById('account-modal');
+      if(modal){modal.classList.remove('open');modal.setAttribute('aria-hidden','true');}
+    }
+  },true);
+})();
+</script>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://accounts.google.com/gsi/client"></script>
 <script>
