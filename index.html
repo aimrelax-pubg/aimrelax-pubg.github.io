@@ -1266,6 +1266,7 @@ AIM<span>RELAX</span>-PUBG
       <div class="community-card">
         <h3>🗳 Քվեարկություն</h3>
         <p class="community-help">Մուտք գործեք և ընտրեք խաղացողին։ Յուրաքանչյուր հաշիվ կարող է քվեարկել միայն մեկ անգամ։</p>
+        <button id="vote-admin-add-player" type="button" style="display:none;margin:8px 0 14px;padding:9px 14px;border:0;border-radius:9px;background:#2563eb;color:#fff;font-weight:700;cursor:pointer">＋ Ավելացնել խաղացող</button>
         <div id="player-options" class="player-options"><div class="loading-text">Խաղացողները բեռնվում են...</div></div>
         <button id="vote-btn" type="button" disabled>ՔՎԵԱՐԿԵԼ</button>
         <p class="vote-status" id="vote-status"></p>
@@ -1555,8 +1556,27 @@ function canManageRoster(){
 function updateRosterAdminControls(){
   const button=$('add-roster-player-btn');
   if(button)button.style.display=canManageRoster()?'inline-block':'none';
+  const voteButton=$('vote-admin-add-player');
+  if(voteButton)voteButton.style.display=canManageRoster()?'inline-block':'none';
 }
 $('add-roster-player-btn')?.addEventListener('click',addRosterPlayer);
+$('vote-admin-add-player')?.addEventListener('click',addRosterPlayer);
+
+async function setPlayerVoting(playerId, currentlyEnabled){
+  if(!canManageRoster()){alert('Այս գործողությունը հասանելի է միայն ադմինին։');return;}
+  const nextEnabled=!currentlyEnabled;
+  if(!confirm('Ցանկանո՞ւմ եք '+(nextEnabled?'միացնել':'անջատել')+' այս խաղացողի քվեարկությունը։'))return;
+  try{
+    const {error}=await sb.rpc('admin_set_player_voting_enabled',{p_player_id:playerId,p_enabled:nextEnabled});
+    if(error)throw error;
+    if(String(selectedPlayerId)===String(playerId))selectedPlayerId=null;
+    await loadPlayers();
+    await loadVotes();
+  }catch(error){
+    console.error('Player voting toggle failed:',error);
+    alert('Չհաջողվեց փոխել քվեարկության կարգավիճակը։ '+(error?.message||'Գործարկեք նոր SQL migration-ը Supabase-ում։'));
+  }
+}
 async function addRosterPlayer(){
   if(!canManageRoster()){alert('Այս գործողությունը հասանելի է միայն ադմինին։');return;}
   const nickname=prompt('Մուտքագրեք նոր խաղացողի նիկը։');
@@ -1592,7 +1612,7 @@ async function removeRosterPlayer(playerId,nickname){
 async function loadPlayers(){
   updateRosterAdminControls();
   let playerCards=[...document.querySelectorAll('#players .players-grid .player')];
-  const {data:dbPlayers,error}=await sb.from('players').select('id,nickname,active');
+  const {data:dbPlayers,error}=await sb.from('players').select('id,nickname,active,voting_enabled');
   const normalize=v=>String(v||'').normalize('NFKC')
     .replace(/[\u200B-\u200D\uFEFF]/g,'')
     .replace(/[«»“”]/g,'')
@@ -1648,10 +1668,13 @@ async function loadPlayers(){
     return {id:p?.id||null,nickname,dbNickname:p?.nickname||null,active:p?.active!==false};
   }).filter(p=>p.active);
   $('player-options').innerHTML=playersCache.map(p=>`
-    <label class="player-option${p.id?'':' player-option-missing'}">
-      <input type="radio" name="vote-player" value="${esc(p.id||'')}" ${p.id?'':'disabled'}>
-      <span>${esc(p.nickname)}</span>${p.id?'':' <small class="player-sync-hint">(UUID չկա)</small>'}
-    </label>`).join('');
+    <div class="player-option-wrap" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <label class="player-option${p.id?'':' player-option-missing'}${p.voting_enabled===false?' voting-disabled':''}" style="flex:1">
+        <input type="radio" name="vote-player" value="${esc(p.id||'')}" ${p.id&&p.voting_enabled!==false?'':'disabled'}>
+        <span>${esc(p.nickname)}${p.voting_enabled===false?' — քվեարկությունն անջատված է':''}</span>${p.id?'':' <small class="player-sync-hint">(UUID չկա)</small>'}
+      </label>
+      ${canManageRoster()&&p.id?`<button type="button" class="vote-player-toggle" data-player-id="${esc(p.id)}" data-enabled="${p.voting_enabled===false?'false':'true'}" style="padding:6px 8px;border:0;border-radius:7px;background:${p.voting_enabled===false?'#16a34a':'#d97706'};color:#fff;cursor:pointer">${p.voting_enabled===false?'▶ Միացնել':'⏸ Անջատել'}</button><button type="button" class="vote-player-delete" data-player-id="${esc(p.id)}" data-player-name="${esc(p.nickname)}" style="padding:6px 8px;border:0;border-radius:7px;background:#dc2626;color:#fff;cursor:pointer">🗑</button>`:''}
+    </div>`).join('');
   document.querySelectorAll('input[name="vote-player"]').forEach(i=>i.onchange=()=>{
     selectedPlayerId=i.value;
     document.querySelectorAll('.player-option').forEach(x=>x.classList.remove('selected'));
@@ -1659,6 +1682,8 @@ async function loadPlayers(){
     $('vote-btn').disabled=!currentUser||!selectedPlayerId;
     $('vote-status').textContent='';
   });
+  document.querySelectorAll('.vote-player-toggle').forEach(btn=>btn.onclick=()=>setPlayerVoting(btn.dataset.playerId,btn.dataset.enabled!=='false'));
+  document.querySelectorAll('.vote-player-delete').forEach(btn=>btn.onclick=()=>removeRosterPlayer(btn.dataset.playerId,btn.dataset.playerName));
   if(!currentUser||!selectedPlayerId)$('vote-btn').disabled=true;
 }
 
