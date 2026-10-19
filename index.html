@@ -4124,6 +4124,79 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
 })();
 </script>
 
+
+
+<script id="aimrelax-login-emergency-fix-20261019">
+(function(){
+  if(window.__aimrelaxLoginEmergencyFix20261019)return;
+  window.__aimrelaxLoginEmergencyFix20261019=true;
+  function byId(id){return document.getElementById(id);}
+  function openLogin(){
+    var modal=byId('account-modal'); if(!modal)return;
+    modal.classList.add('open');
+    modal.style.setProperty('display','flex','important');
+    modal.style.setProperty('visibility','visible','important');
+    modal.style.setProperty('opacity','1','important');
+    modal.style.setProperty('z-index','100000','important');
+    modal.setAttribute('aria-hidden','false');
+    ['modal-login','modal-register','modal-reset','modal-account'].forEach(function(id){
+      var panel=byId(id);if(panel)panel.style.display=id==='modal-login'?'block':'none';
+    });
+    ['tab-login','tab-register'].forEach(function(id){
+      var tab=byId(id);if(tab)tab.classList.toggle('active',id==='tab-login');
+    });
+  }
+  function getClient(){
+    if(!window.supabase||typeof window.supabase.createClient!=='function')throw new Error('Մուտքի ծառայությունը չի բեռնվել։ Թարմացրեք էջը և փորձեք կրկին։');
+    return window.__aimrelaxEmergencyAuthClient||(window.__aimrelaxEmergencyAuthClient=window.supabase.createClient(
+      'https://hvhlrbfjloiahbqmnrly.supabase.co',
+      'sb_publishable_EcZUkLdUCVv3qWDD7jlvhg_OjTYu1jA'
+    ));
+  }
+  window.addEventListener('click',function(event){
+    var target=event.target;if(!target||!target.closest)return;
+    if(target.closest('#account-open-btn')){
+      var b=byId('account-open-btn');
+      if(b && /ՄՈՒՏՔ|ԳՐԱՆՑՈՒՄ/i.test((b.textContent||'').trim())){
+        event.preventDefault();event.stopImmediatePropagation();openLogin();return;
+      }
+    }
+    if(target.closest('#success-login-btn')||target.closest('#tab-login')){
+      event.preventDefault();event.stopImmediatePropagation();
+      var success=byId('registration-success-page');if(success)success.style.display='none';
+      openLogin();return;
+    }
+    if(target.closest('#tab-register')){
+      event.preventDefault();event.stopImmediatePropagation();
+      var modal=byId('account-modal');if(modal){modal.classList.add('open');modal.style.setProperty('display','flex','important');modal.setAttribute('aria-hidden','false');}
+      ['modal-login','modal-register','modal-reset','modal-account'].forEach(function(id){var p=byId(id);if(p)p.style.display=id==='modal-register'?'block':'none';});
+      var reg=byId('tab-register');if(reg)reg.classList.add('active');var log=byId('tab-login');if(log)log.classList.remove('active');return;
+    }
+    if(target.closest('#google-oauth-fallback-btn')){
+      event.preventDefault();event.stopImmediatePropagation();
+      var button=byId('google-oauth-fallback-btn'),status=byId('m-login-status');
+      if(button)button.disabled=true;if(status)status.textContent='Բացում ենք Google մուտքը…';
+      (async function(){
+        try{
+          var client=getClient();
+          var result=await client.auth.signInWithOAuth({provider:'google',options:{redirectTo:'https://aimrelax-pubg.github.io/',queryParams:{prompt:'select_account'}}});
+          if(result.error)throw result.error;
+          if(result.data&&result.data.url)window.location.assign(result.data.url);
+          else throw new Error('Google մուտքի հղումը չստացվեց։');
+        }catch(error){
+          console.error('AiMRELAX emergency Google login:',error);
+          if(status)status.textContent='Google մուտքը չհաջողվեց։ '+(error&&error.message?error.message:'Փորձեք կրկին։');
+          if(button)button.disabled=false;
+        }
+      })();
+    }
+  },true);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){
+    var b=byId('account-open-btn');if(b)b.style.setProperty('pointer-events','auto','important');
+  },{once:true});
+})();
+</script>
+
 </body>
 </html>
   
