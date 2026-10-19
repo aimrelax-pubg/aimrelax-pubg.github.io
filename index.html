@@ -1030,7 +1030,7 @@ AIM<span>RELAX</span>-PUBG
 </div>
 
 <div class="stat">
-<strong>27</strong>
+<strong id="team-player-count">27</strong>
 <span>Խաղացողներ</span>
 </div>
 
@@ -1138,6 +1138,22 @@ AIM<span>RELAX</span>-PUBG
 </div>
 </section>
 
+
+<!-- Ավտոմատ հաշվարկել թիմի խաղացողների թիվը -->
+<script id="aimrelax-team-player-count">
+(function () {
+  function updateTeamPlayerCount() {
+    var count = document.querySelectorAll('#players .players-grid .player').length;
+    var counter = document.getElementById('team-player-count');
+    if (counter) counter.textContent = count;
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', updateTeamPlayerCount);
+  } else {
+    updateTeamPlayerCount();
+  }
+})();
+</script>
 
 <!-- Ձեռքբերումներ -->
 
