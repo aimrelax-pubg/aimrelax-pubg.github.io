@@ -3871,6 +3871,88 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
   });
 })();
 </script>
+
+<script id="aimrelax-login-recovery-v1">
+(function(){
+  if(window.__aimrelaxLoginRecoveryV1)return;
+  window.__aimrelaxLoginRecoveryV1=true;
+  const byId=id=>document.getElementById(id);
+  function openLogin(){
+    const modal=byId('account-modal');
+    if(!modal)return;
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden','false');
+    ['modal-register','modal-reset','modal-account'].forEach(id=>{const n=byId(id);if(n)n.style.display='none';});
+    const login=byId('modal-login');if(login)login.style.display='block';
+    const tab=byId('tab-login');if(tab)tab.classList.add('active');
+  }
+  const entry=byId('account-open-btn');
+  if(entry){
+    entry.addEventListener('click',function(){
+      setTimeout(()=>{const modal=byId('account-modal');if(modal&&!modal.classList.contains('open'))openLogin();},0);
+    },true);
+  }
+  function showGoogleLoadError(message){
+    const status=byId('m-login-status');
+    if(status)status.textContent=message;
+  }
+  function initGoogle(){
+    const target=byId('google-login-btn');
+    if(!target)return;
+    if(!window.google?.accounts?.id){
+      if(!document.querySelector('script[data-aimrelax-gsi-recovery]')){
+        const script=document.createElement('script');
+        script.src='https://accounts.google.com/gsi/client';
+        script.async=true;script.defer=true;script.dataset.aimrelaxGsiRecovery='1';
+        script.onload=()=>setTimeout(initGoogle,0);
+        script.onerror=()=>showGoogleLoadError('Google մուտքի ծառայությունը չի բեռնվում։ Ստուգեք ինտերնետը և կրկին փորձեք։');
+        document.head.appendChild(script);
+      }
+      return;
+    }
+    if(target.dataset.recoveryInitialized==='1')return;
+    try{
+      if(typeof window.handleGoogleCredential!=='function'){
+        window.handleGoogleCredential=async function(response){
+          const status=byId('m-login-status');
+          if(status)status.textContent='Google մուտք...';
+          try{
+            const client=window.__aimrelaxRecoverySupabase||(window.__aimrelaxRecoverySupabase=window.supabase.createClient(
+              'https://hvhlrbfjloiahbqmnrly.supabase.co',
+              'sb_publishable_EcZUkLdUCVv3qWDD7jlvhg_OjTYu1jA'
+            ));
+            const {error}=await client.auth.signInWithIdToken({provider:'google',token:response.credential});
+            if(error)throw error;
+            if(status)status.textContent='Մուտքը հաջողվեց։ Էջը թարմացվում է…';
+            location.reload();
+          }catch(error){
+            console.error('AiMRELAX Google login recovery failed:',error);
+            if(status)status.textContent='Google մուտքը չհաջողվեց։ '+(error?.message||'Փորձեք կրկին։');
+          }
+        };
+      }
+      google.accounts.id.initialize({
+        client_id:'553916262884-e6t38573765ffi5jjkkccbkaot452v24.apps.googleusercontent.com',
+        callback:window.handleGoogleCredential,
+        auto_select:false
+      });
+      target.replaceChildren();
+      google.accounts.id.renderButton(target,{type:'standard',theme:'outline',size:'large',text:'signin_with',shape:'rectangular',logo_alignment:'left',width:240,locale:'hy'});
+      target.dataset.recoveryInitialized='1';
+    }catch(error){
+      console.error('AiMRELAX Google button recovery failed:',error);
+      target.dataset.recoveryInitialized='';
+      showGoogleLoadError('Google մուտքի կոճակը չբեռնվեց։ Փակեք պատուհանը և կրկին բացեք մուտքը։');
+    }
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initGoogle,{once:true});
+  else initGoogle();
+  document.addEventListener('click',function(event){
+    if(event.target.closest('#tab-login'))setTimeout(initGoogle,0);
+  });
+})();
+</script>
+
 </body>
 </html>
   
