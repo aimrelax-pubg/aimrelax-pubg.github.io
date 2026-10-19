@@ -1653,7 +1653,7 @@ async function loadPlayers(){
   initialCards.forEach(card=>{
     const heading=card.querySelector('h3');
     const oldNickname=heading?.textContent.trim()||'';
-    const p=byExact.get(normalize(oldNickname))||byCompact.get(compact(oldNickname))||null;
+    const p=(card.dataset.playerId&&(dbPlayers||[]).find(row=>String(row.id)===card.dataset.playerId))||byExact.get(normalize(oldNickname))||byCompact.get(compact(oldNickname))||null;
     if(p){
       represented.add(String(p.id));
       if(heading)heading.textContent=p.nickname;
