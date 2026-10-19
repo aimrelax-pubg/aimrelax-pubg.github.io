@@ -1665,7 +1665,7 @@ async function loadPlayers(){
   if(playerStatCount)playerStatCount.textContent=String(error?24:activeUniquePlayerCount);
   playersCache=rosterNicknames.map(nickname=>{
     const p=byExact.get(normalize(nickname))||byCompact.get(compact(nickname))||null;
-    return {id:p?.id||null,nickname,dbNickname:p?.nickname||null,active:p?.active!==false};
+    return {id:p?.id||null,nickname,dbNickname:p?.nickname||null,active:p?.active!==false,voting_enabled:p?.voting_enabled!==false};
   }).filter(p=>p.active);
   $('player-options').innerHTML=playersCache.map(p=>`
     <div class="player-option-wrap" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
