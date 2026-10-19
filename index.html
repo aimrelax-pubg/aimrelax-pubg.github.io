@@ -3925,6 +3925,21 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
     liveStatus('Ընտրեք LIVE-ը ցանկից՝ դիտումը սկսելու համար։');
     await refreshLiveList();
     setButtons();
+
+    // FCM LIVE notifications open the shared site with ?live=<stream-id>.
+    // Once the user is authenticated and the list is loaded, open that stream.
+    const requestedLiveId=new URLSearchParams(window.location.search).get('live');
+    if(requestedLiveId && liveState.autoOpenedStreamId!==requestedLiveId){
+      const watchButton=el('live-list')?.querySelector('.live-watch-btn[data-live-id="'+CSS.escape(requestedLiveId)+'"]');
+      if(watchButton){
+        liveState.autoOpenedStreamId=requestedLiveId;
+        const stage=el('live-video-stage');
+        if(stage)stage.scrollIntoView({behavior:'smooth',block:'start'});
+        setTimeout(()=>watchButton.click(),250);
+      }else{
+        liveStatus('Այս LIVE-ը այլևս հասանելի չէ։','warn');
+      }
+    }
   }
 
   el('live-leave-btn')?.addEventListener('click',leaveViewer);
