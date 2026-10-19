@@ -1496,28 +1496,31 @@ async function handleGoogleCredential(response){
   }
 }
 function initGoogleIdentityButton(){
+  // Keep the Google Identity button as a secondary option. The stable, visible
+  // primary action below uses Supabase OAuth and does not depend on GIS iframe rendering.
   const button=$('google-login-btn');
-  if(!button||button.dataset.initialized==='1')return;
+  if(!button)return;
+  if(button.dataset.initialized==='1')return;
   if(!window.google?.accounts?.id){
-    button.textContent='Google մուտքը չի բեռնվել։ Թարմացրեք էջը։';
+    button.textContent='';
     return;
   }
-  button.dataset.initialized='1';
-  google.accounts.id.initialize({
-    client_id:'553916262884-e6t38573765ffi5jjkkccbkaot452v24.apps.googleusercontent.com',
-    callback:handleGoogleCredential,
-    auto_select:false
-  });
-  google.accounts.id.renderButton(button,{
-    type:'standard',
-    theme:'outline',
-    size:'large',
-    text:'signin_with',
-    shape:'rectangular',
-    logo_alignment:'left',
-    width:240,
-    locale:'hy'
-  });
+  try{
+    button.dataset.initialized='1';
+    google.accounts.id.initialize({
+      client_id:'553916262884-e6t38573765ffi5jjkkccbkaot452v24.apps.googleusercontent.com',
+      callback:handleGoogleCredential,
+      auto_select:false
+    });
+    google.accounts.id.renderButton(button,{
+      type:'standard',theme:'outline',size:'large',text:'signin_with',
+      shape:'rectangular',logo_alignment:'left',width:240,locale:'hy'
+    });
+  }catch(error){
+    console.error('AiMRELAX Google Identity button failed:',error);
+    button.dataset.initialized='';
+    button.textContent='';
+  }
 }
 initGoogleIdentityButton();
 $('m-reset-btn').onclick=async()=>{const email=$('m-reset-email').value.trim(),status=$('m-reset-status');if(!email){status.textContent='Գրեք email-ը։';return}const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:siteUrl});status.textContent=error?error.message:'Վերականգնման հղումը ուղարկվեց email-ին։ ✅'};
@@ -3889,11 +3892,10 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
   }
   const entry=byId('account-open-btn');
   if(entry){
-    // Open the login dialog synchronously for the logged-out button. This fallback
-    // remains functional even if another script fails before assigning onclick.
+    // Always make the logged-out account button open the modal, even if an earlier
+    // application script failed before wiring its normal click handler.
     entry.addEventListener('click',function(){
-      const label=(entry.textContent||'').trim();
-      if(/ՄՈՒՏՔ|ԳՐԱՆՑՈՒՄ/i.test(label)){
+      if(!document.querySelector('#account-area .user-dropdown.open')){
         openLogin();
       }
     },true);
@@ -3971,6 +3973,7 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
   const button=document.getElementById('google-oauth-fallback-btn');
   if(!button||button.dataset.bound==='1')return;
   button.dataset.bound='1';
+  // A single, explicit OAuth action avoids relying on a rendered Google iframe.
   button.addEventListener('click',async function(){
     const status=document.getElementById('m-login-status');
     button.disabled=true;
