@@ -8,6 +8,12 @@ on:
     branches:
       - main
       - feature/tiktok-live-overlay
+    # Database/Edge Function-only fixes do not need a new Android APK.
+    # Ignore this workflow file too, so changing these filters doesn't itself
+    # trigger a build; Android/app source changes still trigger the workflow.
+    paths-ignore:
+      - 'supabase/**'
+      - '.github/workflows/build-apk.yml'
 
 permissions:
   contents: write
