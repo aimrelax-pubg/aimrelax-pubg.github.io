@@ -3969,26 +3969,19 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
 
 <script id="aimrelax-google-oauth-single-handler">
 (function(){
-  if(window.__aimrelaxGoogleOAuthSingleHandler)return;
-  window.__aimrelaxGoogleOAuthSingleHandler=true;
   function byId(id){return document.getElementById(id);}
   function setStatus(text,isError){
     var node=byId('m-login-status');
     if(node){node.textContent=text;node.style.color=isError?'#ff7777':'';}
   }
-  function getAuthClient(){
-    if(typeof sb!=='undefined'&&sb&&sb.auth)return sb;
-    if(!window.supabase||typeof window.supabase.createClient!=='function')
-      throw new Error('Մուտքի ծառայությունը չի բեռնվել։ Թարմացրեք էջը և կրկին փորձեք։');
-    return window.__aimrelaxGoogleOAuthClient||(window.__aimrelaxGoogleOAuthClient=window.supabase.createClient(
-      'https://hvhlrbfjloiahbqmnrly.supabase.co',
-      'sb_publishable_EcZUkLdUCVv3qWDD7jlvhg_OjTYu1jA'
-    ));
-  }
   function openLogin(){
-    var modal=byId('account-modal');if(!modal)return;
+    var modal=byId('account-modal');
+    if(!modal)return;
     modal.classList.add('open');
     modal.style.setProperty('display','flex','important');
+    modal.style.setProperty('visibility','visible','important');
+    modal.style.setProperty('opacity','1','important');
+    modal.style.setProperty('z-index','100000','important');
     modal.setAttribute('aria-hidden','false');
     ['modal-login','modal-register','modal-reset','modal-account'].forEach(function(id){
       var panel=byId(id);if(panel)panel.style.display=id==='modal-login'?'block':'none';
@@ -3997,24 +3990,34 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
       var tab=byId(id);if(tab)tab.classList.toggle('active',id==='tab-login');
     });
   }
-  document.addEventListener('click',async function(event){
-    var target=event.target;if(!target||!target.closest)return;
-    var googleButton=target.closest('#google-oauth-fallback-btn');
-    if(googleButton){
+  var entry=byId('account-open-btn');
+  if(entry){
+    entry.addEventListener('click',function(){
+      if(/ՄՈՒՏՔ|ԳՐԱՆՑՈՒՄ/i.test((entry.textContent||'').trim()))openLogin();
+    },true);
+  }
+  var success=byId('success-login-btn');
+  if(success)success.addEventListener('click',function(){
+    var page=byId('registration-success-page');if(page)page.style.display='none';
+    openLogin();
+  },true);
+
+  // Bind directly to the visible fallback button; avoid competing document-level
+  // capture handlers that can swallow the click before this handler runs.
+  var googleButton=byId('google-oauth-fallback-btn');
+  if(googleButton){
+    googleButton.addEventListener('click',async function(event){
       event.preventDefault();
-      event.stopImmediatePropagation();
       if(googleButton.dataset.oauthBusy==='1')return;
       googleButton.dataset.oauthBusy='1';
       googleButton.disabled=true;
       googleButton.textContent='Միանում է Google-ին…';
       setStatus('Բացում ենք Google մուտքը…',false);
       try{
-        var result=await getAuthClient().auth.signInWithOAuth({
+        if(typeof sb==='undefined'||!sb||!sb.auth)throw new Error('Մուտքի ծառայությունը չի բեռնվել։ Թարմացրեք էջը և կրկին փորձեք։');
+        var result=await sb.auth.signInWithOAuth({
           provider:'google',
-          options:{
-            redirectTo:'https://aimrelax-pubg.github.io/',
-            queryParams:{prompt:'select_account'}
-          }
+          options:{redirectTo:'https://aimrelax-pubg.github.io/',queryParams:{prompt:'select_account'}}
         });
         if(result.error)throw result.error;
         if(result.data&&result.data.url){window.location.assign(result.data.url);return;}
@@ -4026,16 +4029,8 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
         googleButton.dataset.oauthBusy='';
         googleButton.textContent='Կրկին փորձել Google-ով';
       }
-      return;
-    }
-    if(target.closest('#account-open-btn')||target.closest('#success-login-btn')){
-      var account=byId('account-open-btn');
-      if(target.closest('#success-login-btn')||(account&&/ՄՈՒՏՔ|ԳՐԱՆՑՈՒՄ/i.test((account.textContent||'').trim()))){
-        event.preventDefault();
-        openLogin();
-      }
-    }
-  },true);
+    });
+  }
 })();
 </script>
 </body>
