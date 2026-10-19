@@ -1518,27 +1518,46 @@ function initGoogleIdentityButton(){
   const button=$('google-login-btn');
   if(!button||button.dataset.initialized==='1')return;
   if(!window.google?.accounts?.id){
-    button.textContent='Google մուտքը չի բեռնվել։ Թարմացրեք էջը։';
+    if(!button.querySelector('#google-login-fallback')){
+      button.innerHTML='<button id="google-login-fallback" type="button" style="width:240px;max-width:100%;background:#fff;color:#222;border:1px solid #dadce0;border-radius:5px;padding:12px 16px;font-weight:600;cursor:pointer">Մուտք Google-ով</button>';
+      $('google-login-fallback').onclick=()=>{
+        if(window.google?.accounts?.id){initGoogleIdentityButton();google.accounts.id.prompt();}
+        else{$('m-login-status').textContent='Google մուտքը դեռ չի բեռնվել։ Ստուգեք ինտերնետը և կրկին փորձեք։';}
+      };
+    }
     return;
   }
-  button.dataset.initialized='1';
-  google.accounts.id.initialize({
-    client_id:'553916262884-e6t38573765ffi5jjkkccbkaot452v24.apps.googleusercontent.com',
-    callback:handleGoogleCredential,
-    auto_select:false
-  });
-  google.accounts.id.renderButton(button,{
-    type:'standard',
-    theme:'outline',
-    size:'large',
-    text:'signin_with',
-    shape:'rectangular',
-    logo_alignment:'left',
-    width:240,
-    locale:'hy'
-  });
+  try{
+    google.accounts.id.initialize({
+      client_id:'553916262884-e6t38573765ffi5jjkkccbkaot452v24.apps.googleusercontent.com',
+      callback:handleGoogleCredential,
+      auto_select:false
+    });
+    button.innerHTML='';
+    google.accounts.id.renderButton(button,{
+      type:'standard',
+      theme:'outline',
+      size:'large',
+      text:'signin_with',
+      shape:'rectangular',
+      logo_alignment:'left',
+      width:240,
+      locale:'hy'
+    });
+    button.dataset.initialized='1';
+  }catch(error){
+    console.error('AiMRELAX Google button initialization failed:',error);
+    $('m-login-status').textContent='Google կոճակը չբեռնվեց։ Թարմացրեք էջը և կրկին փորձեք։';
+  }
 }
 initGoogleIdentityButton();
+window.addEventListener('load',initGoogleIdentityButton);
+let googleButtonRetryCount=0;
+const googleButtonRetryTimer=setInterval(()=>{
+  initGoogleIdentityButton();
+  googleButtonRetryCount++;
+  if(googleButtonRetryCount>=20||$('google-login-btn')?.dataset.initialized==='1')clearInterval(googleButtonRetryTimer);
+},500);
 $('m-reset-btn').onclick=async()=>{const email=$('m-reset-email').value.trim(),status=$('m-reset-status');if(!email){status.textContent='Գրեք email-ը։';return}const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:siteUrl});status.textContent=error?error.message:'Վերականգնման հղումը ուղարկվեց email-ին։ ✅'};
 async function saveSettings(){
  if(!currentUser)return;
