@@ -3895,9 +3895,8 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
     // Always make the logged-out account button open the modal, even if an earlier
     // application script failed before wiring its normal click handler.
     entry.addEventListener('click',function(){
-      if(!document.querySelector('#account-area .user-dropdown.open')){
-        openLogin();
-      }
+      const label=(entry.textContent||'').trim();
+      if(/ՄՈՒՏՔ|ԳՐԱՆՑՈՒՄ/i.test(label))openLogin();
     },true);
     entry.addEventListener('keydown',function(event){
       if((event.key==='Enter'||event.key===' ')&&/ՄՈՒՏՔ|ԳՐԱՆՑՈՒՄ/i.test((entry.textContent||'').trim())){
