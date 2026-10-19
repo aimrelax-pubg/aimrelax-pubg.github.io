@@ -1500,10 +1500,25 @@ $('friend-notify-btn').onclick=async(e)=>{e.stopPropagation();if(!currentUser){o
 document.addEventListener('click',e=>{if(!e.target.closest('#account-area')){['friend-notify-popup','friends-menu-popup','user-dropdown'].forEach(id=>{$(id).classList.remove('open');$(id).setAttribute('aria-hidden','true')})}});$('account-modal').onclick=e=>{if(e.target===$('account-modal'))closeModal()};$('tab-login').onclick=()=>showModal('login');$('tab-register').onclick=()=>showModal('register');$('m-show-reset').onclick=()=>showModal('reset');$('m-back-login').onclick=()=>showModal('login');
 $('m-reg-btn').onclick=async()=>{const nickname=$('m-reg-nickname').value.trim(),email=$('m-reg-email').value.trim(),password=$('m-reg-password').value,password2=$('m-reg-password2').value,status=$('m-reg-status');if(!nickname||!email||!password){status.textContent='Լրացրեք բոլոր դաշտերը։';return}if(password.length<6){status.textContent='Գաղտնաբառը պետք է լինի առնվազն 6 նիշ։';return}if(password!==password2){status.textContent='Գաղտնաբառերը չեն համընկնում։';return}status.textContent='Գրանցում...';const {data,error}=await sb.auth.signUp({email,password,options:{data:{nickname},emailRedirectTo:siteUrl}});if(error){status.textContent=error.message;return}if(data.user&&!data.session)status.textContent='Հաստատման նամակը ուղարկվեց email-ին։ 📧';else{closeModal();await refreshUser()}};
 $('m-login-btn').onclick=async()=>{const email=$('m-login-email').value.trim(),password=$('m-login-password').value,status=$('m-login-status');status.textContent='Մուտք...';const {data,error}=await sb.auth.signInWithPassword({email,password});if(error){status.textContent=error.message;return}if(!data.user?.email_confirmed_at){await sb.auth.signOut();status.textContent='Խնդրում ենք նախ հաստատել ձեր email-ը։';return}closeModal();await refreshUser()};
+async function startGoogleOAuthFallback(){
+  const status=$('m-login-status');
+  status.textContent='Բացում ենք Google մուտքը...';
+  try{
+    const {error}=await sb.auth.signInWithOAuth({
+      provider:'google',
+      options:{redirectTo:siteUrl}
+    });
+    if(error)throw error;
+  }catch(error){
+    console.error('AiMRELAX Google OAuth fallback failed:',error);
+    status.textContent='Google մուտքը չբացվեց։ '+(error?.message||'Ստուգեք ինտերնետը և կրկին փորձեք։');
+  }
+}
 async function handleGoogleCredential(response){
   const status=$('m-login-status');
   status.textContent='Google մուտք...';
   try{
+    if(!response?.credential)throw new Error('Google-ից մուտքի հաստատում չստացվեց։');
     const {data,error}=await sb.auth.signInWithIdToken({provider:'google',token:response.credential});
     if(error) throw error;
     status.textContent='';
@@ -1511,7 +1526,8 @@ async function handleGoogleCredential(response){
     await refreshUser();
   }catch(error){
     console.error('AiMRELAX Google sign-in failed:',error);
-    status.textContent='Google մուտքը չհաջողվեց։ '+(error?.message||'Փորձեք կրկին։');
+    status.innerHTML='Google մուտքը չհաջողվեց։ '+esc(error?.message||'Փորձեք կրկին։')+'<br><button id="google-oauth-retry" type="button" style="width:100%;background:#fff;color:#222;border:1px solid #dadce0;border-radius:5px;padding:11px;cursor:pointer">Փորձել Google մուտքի այլ եղանակը</button>';
+    $('google-oauth-retry').onclick=startGoogleOAuthFallback;
   }
 }
 function initGoogleIdentityButton(){
@@ -1521,8 +1537,8 @@ function initGoogleIdentityButton(){
     if(!button.querySelector('#google-login-fallback')){
       button.innerHTML='<button id="google-login-fallback" type="button" style="width:240px;max-width:100%;background:#fff;color:#222;border:1px solid #dadce0;border-radius:5px;padding:12px 16px;font-weight:600;cursor:pointer">Մուտք Google-ով</button>';
       $('google-login-fallback').onclick=()=>{
-        if(window.google?.accounts?.id){initGoogleIdentityButton();google.accounts.id.prompt();}
-        else{$('m-login-status').textContent='Google մուտքը դեռ չի բեռնվել։ Ստուգեք ինտերնետը և կրկին փորձեք։';}
+        if(window.google?.accounts?.id){initGoogleIdentityButton();return;}
+        startGoogleOAuthFallback();
       };
     }
     return;
@@ -1547,7 +1563,10 @@ function initGoogleIdentityButton(){
     button.dataset.initialized='1';
   }catch(error){
     console.error('AiMRELAX Google button initialization failed:',error);
-    $('m-login-status').textContent='Google կոճակը չբեռնվեց։ Թարմացրեք էջը և կրկին փորձեք։';
+    button.dataset.initialized='0';
+    button.innerHTML='<button id="google-login-fallback" type="button" style="width:240px;max-width:100%;background:#fff;color:#222;border:1px solid #dadce0;border-radius:5px;padding:12px 16px;font-weight:600;cursor:pointer">Մուտք Google-ով</button>';
+    $('google-login-fallback').onclick=startGoogleOAuthFallback;
+    $('m-login-status').textContent='Google կոճակը չբեռնվեց։ Կարող եք փորձել մուտքի այլ եղանակը։';
   }
 }
 initGoogleIdentityButton();
