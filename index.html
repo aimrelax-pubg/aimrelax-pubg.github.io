@@ -3985,15 +3985,15 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
     const now=Date.now();
     if(now-lastRefreshAt<8000)return;
     lastRefreshAt=now;
-    if(!window.sb||!window.currentUser)return;
+    if(typeof sb==='undefined'||!currentUser)return;
     const jobs=[];
-    if(typeof window.loadPlayers==='function')jobs.push(window.loadPlayers());
-    if(typeof window.loadVotes==='function')jobs.push(window.loadVotes());
-    if(typeof window.loadFriends==='function')jobs.push(window.loadFriends());
-    if(typeof window.loadFriendNotifications==='function')jobs.push(window.loadFriendNotifications());
-    if(typeof window.refreshNotificationBadge==='function')jobs.push(window.refreshNotificationBadge());
-    if(typeof window.loadUserNotifications==='function'&&document.getElementById('notification-center-modal')?.classList.contains('show'))jobs.push(window.loadUserNotifications());
-    if(typeof window.loadPrivateMessages==='function'&&window.selectedFriendId&&document.getElementById('private-chat-popup')?.classList.contains('open'))jobs.push(window.loadPrivateMessages());
+    if(typeof loadPlayers==='function')jobs.push(loadPlayers());
+    if(typeof loadVotes==='function')jobs.push(loadVotes());
+    if(typeof loadFriends==='function')jobs.push(loadFriends());
+    if(typeof loadFriendNotifications==='function')jobs.push(loadFriendNotifications());
+    if(typeof refreshNotificationBadge==='function')jobs.push(refreshNotificationBadge());
+    if(typeof loadUserNotifications==='function'&&document.getElementById('notification-center-modal')?.classList.contains('show'))jobs.push(loadUserNotifications());
+    if(typeof loadPrivateMessages==='function'&&selectedFriendId&&document.getElementById('private-chat-popup')?.classList.contains('open'))jobs.push(loadPrivateMessages());
     await Promise.allSettled(jobs);
   }
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshSharedData();});
