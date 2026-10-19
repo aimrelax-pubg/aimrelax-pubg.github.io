@@ -558,10 +558,16 @@ footer strong{
 .player-option-wrap .player-option span{line-height:1.4;overflow-wrap:anywhere}
 .player-option-wrap .player-option input{width:17px;height:17px;flex:0 0 auto}
 .player-option-wrap .player-option.voting-disabled{
-  opacity:.62;
-  border-style:dashed;
-  border-color:#555;
+  opacity:1;
+  border-color:#303030;
   cursor:not-allowed;
+  background:#080808;
+}
+.player-option-wrap .player-option.voting-disabled span{
+  color:#4b4b4b;
+}
+.player-option-wrap .player-option.voting-disabled input{
+  filter:grayscale(1);
 }
 .player-option-wrap button.vote-player-toggle,
 .player-option-wrap button.vote-player-delete{
@@ -1741,7 +1747,7 @@ async function loadPlayers(){
     <div class="player-option-wrap" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <label class="player-option${p.id?'':' player-option-missing'}${p.voting_enabled===false?' voting-disabled':''}" style="flex:1">
         <input type="radio" name="vote-player" value="${esc(p.id||'')}" ${p.id&&p.voting_enabled!==false?'':'disabled'}>
-        <span>${esc(p.nickname)}${p.voting_enabled===false?' — քվեարկությունն անջատված է':''}</span>${p.id?'':' <small class="player-sync-hint">(UUID չկա)</small>'}
+        <span>${esc(p.nickname)}</span>${p.id?'':' <small class="player-sync-hint">(UUID չկա)</small>'}
       </label>
       ${canManageRoster()&&p.id?`<button type="button" class="vote-player-toggle" data-player-id="${esc(p.id)}" data-enabled="${p.voting_enabled===false?'false':'true'}" style="padding:6px 8px;border:0;border-radius:7px;background:${p.voting_enabled===false?'#16a34a':'#d97706'};color:#fff;cursor:pointer">${p.voting_enabled===false?'▶ Միացնել':'⏸ Անջատել'}</button><button type="button" class="vote-player-delete" data-player-id="${esc(p.id)}" data-player-name="${esc(p.nickname)}" style="padding:6px 8px;border:0;border-radius:7px;background:#dc2626;color:#fff;cursor:pointer">🗑</button>`:''}
     </div>`).join('');
