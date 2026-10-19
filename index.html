@@ -1532,7 +1532,17 @@ async function handleGoogleCredential(response){
 }
 function initGoogleIdentityButton(){
   const button=$('google-login-btn');
-  if(!button||button.dataset.initialized==='1')return;
+  if(!button)return;
+  if(!$('google-oauth-fallback-link')){
+    const fallback=document.createElement('button');
+    fallback.id='google-oauth-fallback-link';
+    fallback.type='button';
+    fallback.textContent='Եթե կոճակը չի աշխատում՝ փորձել այլ եղանակով';
+    fallback.style.cssText='display:block;width:100%;max-width:280px;margin:8px auto 0;padding:9px;background:#222;color:#fff;border:1px solid #555;border-radius:5px;cursor:pointer;font-size:13px';
+    fallback.addEventListener('click',startGoogleOAuthFallback);
+    button.insertAdjacentElement('afterend',fallback);
+  }
+  if(button.dataset.initialized==='1')return;
   if(!window.google?.accounts?.id){
     if(!button.querySelector('#google-login-fallback')){
       button.innerHTML='<button id="google-login-fallback" type="button" style="width:240px;max-width:100%;background:#fff;color:#222;border:1px solid #dadce0;border-radius:5px;padding:12px 16px;font-weight:600;cursor:pointer">Մուտք Google-ով</button>';
