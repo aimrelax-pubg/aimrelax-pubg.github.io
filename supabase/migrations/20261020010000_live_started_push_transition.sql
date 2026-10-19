@@ -36,13 +36,16 @@ begin
       'Content-Type', 'application/json',
       'x-push-secret', v_push_secret
     ),
+    -- The currently deployed Edge Function expects an INSERT event for LIVE.
+    -- Send a normalized event after this trigger has verified the real transition,
+    -- so the fix works without redeploying the Edge Function.
     body := jsonb_build_object(
-      'type', tg_op,
-      'event', tg_op,
+      'type', 'INSERT',
+      'event', 'INSERT',
       'schema', 'public',
       'table', 'live_streams',
       'record', to_jsonb(new),
-      'old_record', case when tg_op = 'UPDATE' then to_jsonb(old) else '{}'::jsonb end
+      'old_record', '{}'::jsonb
     ),
     timeout_milliseconds := 5000
   );
