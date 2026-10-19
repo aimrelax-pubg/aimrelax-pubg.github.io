@@ -183,9 +183,15 @@ Deno.serve(async (request) => {
       type = "private_chat";
       url = "https://aimrelax-pubg.github.io/?chat=" + encodeURIComponent(chatId);
     } else if (table === "live_streams") {
-      // Broadcast a push to every registered Android device when a streamer starts LIVE.
-      if (event !== "INSERT" || String(record.status ?? "").toLowerCase() !== "live") {
-        return new Response(JSON.stringify({ ok: true, skipped: "live stream is not a new LIVE session" }), {
+      // Broadcast once when a stream first becomes LIVE, whether the row is
+      // inserted as LIVE or transitions from starting/paused to LIVE.
+      const oldRecord = (body.old_record && typeof body.old_record === "object"
+        ? body.old_record
+        : {}) as JsonRecord;
+      const isLive = String(record.status ?? "").toLowerCase() === "live";
+      const wasLive = String(oldRecord.status ?? "").toLowerCase() === "live";
+      if (!isLive || !["INSERT", "UPDATE"].includes(event) || (event === "UPDATE" && wasLive)) {
+        return new Response(JSON.stringify({ ok: true, skipped: "stream did not transition into LIVE" }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
