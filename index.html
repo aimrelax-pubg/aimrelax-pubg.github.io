@@ -1457,7 +1457,7 @@ const siteUrl='https://aimrelax-pubg.github.io/';
 let selectedPlayerId=null,playersCache=[],currentUser=null;
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
 function openModal(){ $('account-modal').classList.add('open'); $('account-modal').setAttribute('aria-hidden','false'); showModal('login'); }
-function closeModal(){ $('account-modal').classList.remove('open'); $('account-modal').setAttribute('aria-hidden','true'); }
+function closeModal(){ const modal=$('account-modal'); modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); ['display','visibility','opacity','z-index'].forEach(p=>modal.style.removeProperty(p)); }
 function showModal(which){ ['modal-login','modal-register','modal-reset','modal-account'].forEach(id=>$(id).style.display='none'); ['tab-login','tab-register'].forEach(id=>$(id).classList.remove('active')); if(which==='login'){ $('modal-login').style.display='block';$('tab-login').classList.add('active'); } if(which==='register'){ $('modal-register').style.display='block';$('tab-register').classList.add('active'); } if(which==='reset')$('modal-reset').style.display='block'; if(which==='account')$('modal-account').style.display='block'; }
 $('account-open-btn').onclick=(e)=>{e.stopPropagation();if(!currentUser){openModal();return}const menu=$('user-dropdown');const ab=$('admin-menu-btn');if(ab && currentUser.id==='5f1c951f-1e76-4f82-9849-46becf038b55'){ab.style.setProperty('display','block','important');ab.style.setProperty('visibility','visible','important');ab.style.setProperty('opacity','1','important');mySiteRole='owner';}menu.classList.toggle('open');menu.setAttribute('aria-hidden',String(!menu.classList.contains('open')))};
 $('user-settings-menu').onclick=(e)=>{e.stopPropagation();$('user-dropdown').classList.remove('open');$('user-dropdown').setAttribute('aria-hidden','true');openAccountSettings()};
@@ -3846,10 +3846,7 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
     var modal=byId('account-modal');
     if(!modal)return;
     modal.classList.add('open');
-    modal.style.setProperty('display','flex','important');
-    modal.style.setProperty('visibility','visible','important');
-    modal.style.setProperty('opacity','1','important');
-    modal.style.setProperty('z-index','100000','important');
+    ['display','visibility','opacity','z-index'].forEach(function(p){modal.style.removeProperty(p);});
     modal.setAttribute('aria-hidden','false');
     ['modal-login','modal-register','modal-reset','modal-account'].forEach(function(id){
       var panel=byId(id);if(panel)panel.style.display=id==='modal-login'?'block':'none';
