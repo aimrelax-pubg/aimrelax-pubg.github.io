@@ -13,6 +13,8 @@ on:
     # trigger a build; Android/app source changes still trigger the workflow.
     paths-ignore:
       - 'supabase/**'
+      - 'web/**'
+      - 'live-studio.html'
       - '.github/workflows/build-apk.yml'
 
 permissions:
