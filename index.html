@@ -4147,6 +4147,9 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
     });
   }
   function getClient(){
+    // Reuse the page's primary Supabase client so OAuth shares the same auth
+    // storage and configuration as password login and the rest of the site.
+    if(typeof sb!=='undefined' && sb && sb.auth)return sb;
     if(!window.supabase||typeof window.supabase.createClient!=='function')throw new Error('Մուտքի ծառայությունը չի բեռնվել։ Թարմացրեք էջը և փորձեք կրկին։');
     return window.__aimrelaxEmergencyAuthClient||(window.__aimrelaxEmergencyAuthClient=window.supabase.createClient(
       'https://hvhlrbfjloiahbqmnrly.supabase.co',
