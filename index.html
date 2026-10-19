@@ -1030,7 +1030,7 @@ AIM<span>RELAX</span>-PUBG
 </div>
 
 <div class="stat">
-<strong>27</strong>
+<strong id="player-stat-count">27</strong>
 <span>Խաղացողներ</span>
 </div>
 
@@ -1596,6 +1596,8 @@ async function loadPlayers(){
       remove.onclick=()=>removeRosterPlayer(p.id,nickname);
     }else if(remove)remove.remove();
   });
+  const playerStatCount=document.getElementById('player-stat-count');
+  if(playerStatCount)playerStatCount.textContent=String(playerCards.filter(card=>!card.hidden).length);
   playersCache=rosterNicknames.map(nickname=>{
     const p=byExact.get(normalize(nickname))||byCompact.get(compact(nickname))||null;
     return {id:p?.id||null,nickname,dbNickname:p?.nickname||null,active:p?.active!==false};
