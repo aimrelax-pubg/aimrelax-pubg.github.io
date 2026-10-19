@@ -3994,6 +3994,60 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
   });
 })();
 </script>
+
+<script id="aimrelax-login-click-recovery">
+(function(){
+  // Keep login controls usable even if an earlier optional auth initializer fails.
+  document.addEventListener('click',function(event){
+    const accountButton=event.target.closest('#account-open-btn');
+    if(accountButton){
+      setTimeout(function(){
+        const modal=document.getElementById('account-modal');
+        const menu=document.getElementById('user-dropdown');
+        if(modal && !modal.classList.contains('open') && !(menu && menu.classList.contains('open'))){
+          modal.classList.add('open');
+          modal.setAttribute('aria-hidden','false');
+          ['modal-login','modal-register','modal-reset','modal-account'].forEach(function(id){
+            const panel=document.getElementById(id);
+            if(panel)panel.style.display=id==='modal-login'?'block':'none';
+          });
+          ['tab-login','tab-register'].forEach(function(id){
+            const tab=document.getElementById(id);
+            if(tab)tab.classList.toggle('active',id==='tab-login');
+          });
+        }
+      },80);
+      return;
+    }
+    const googleButton=event.target.closest('#google-oauth-fallback-btn');
+    if(!googleButton || googleButton.dataset.bound==='1')return;
+    event.preventDefault();
+    googleButton.disabled=true;
+    const status=document.getElementById('m-login-status');
+    if(status)status.textContent='Բացում ենք Google մուտքը…';
+    try{
+      const supa=window.supabase;
+      if(!supa || typeof supa.createClient!=='function')throw new Error('Մուտքի ծառայությունը դեռ չի բեռնվել։ Փորձեք կրկին։');
+      const client=window.__aimrelaxClickRecoveryClient||(window.__aimrelaxClickRecoveryClient=supa.createClient(
+        'https://hvhlrbfjloiahbqmnrly.supabase.co',
+        'sb_publishable_EcZUkLdUCVv3qWDD7jlvhg_OjTYu1jA'
+      ));
+      client.auth.signInWithOAuth({provider:'google',options:{redirectTo:'https://aimrelax-pubg.github.io/',queryParams:{prompt:'select_account'}}}).then(function(result){
+        if(result.error)throw result.error;
+      }).catch(function(error){
+        console.error('AiMRELAX Google click recovery failed:',error);
+        if(status)status.textContent='Google մուտքը չհաջողվեց։ '+(error.message||'Փորձեք կրկին։');
+        googleButton.disabled=false;
+      });
+    }catch(error){
+      console.error('AiMRELAX Google click recovery failed:',error);
+      if(status)status.textContent='Google մուտքը չհաջողվեց։ '+(error.message||'Փորձեք կրկին։');
+      googleButton.disabled=false;
+    }
+  },true);
+})();
+</script>
+
 </body>
 </html>
   
