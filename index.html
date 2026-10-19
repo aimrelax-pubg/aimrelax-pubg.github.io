@@ -1030,7 +1030,7 @@ AIM<span>RELAX</span>-PUBG
 </div>
 
 <div class="stat">
-<strong id="team-player-count">27</strong>
+<strong>27</strong>
 <span>Խաղացողներ</span>
 </div>
 
@@ -1103,7 +1103,6 @@ AIM<span>RELAX</span>-PUBG
 <div class="section-title">
 <small>Մեր Թիմը</small>
 <h2>Խաղացողներ</h2>
-<button id="admin-add-player-btn" type="button" class="roster-remove-btn" style="display:none;margin:14px auto 0">➕ Ավելացնել խաղացող</button>
 </div>
 
 <div class="players-grid">
@@ -1139,25 +1138,6 @@ AIM<span>RELAX</span>-PUBG
 </div>
 </section>
 
-
-<!-- Ավտոմատ հաշվարկել թիմի խաղացողների թիվը -->
-<script id="aimrelax-team-player-count">
-(function () {
-  window.updateTeamPlayerCount = function () {
-    var cards = document.querySelectorAll('#players .players-grid .player');
-    var count = Array.from(cards).filter(function (card) {
-      return !card.hidden && getComputedStyle(card).display !== 'none';
-    }).length;
-    var counter = document.getElementById('team-player-count');
-    if (counter) counter.textContent = count;
-  };
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', window.updateTeamPlayerCount);
-  } else {
-    window.updateTeamPlayerCount();
-  }
-})();
-</script>
 
 <!-- Ձեռքբերումներ -->
 
@@ -1466,47 +1446,6 @@ status.innerHTML="Չհաջողվեց ուղարկել նամակը ❌";
     <script>function updateArmeniaTime() { const now = new Date(); const time = new Intl.DateTimeFormat('hy-AM', { timeZone: 'Asia/Yerevan', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(now); const date = new Intl.DateTimeFormat('hy-AM', { timeZone: 'Asia/Yerevan', day: 'numeric', month: 'long', year: 'numeric' }).format(now); document.getElementById('arm-time').textContent = time; document.getElementById('arm-date').textContent = date; } async function updateWeather() { try { const url = 'https://api.open-meteo.com/v1/forecast?latitude=40.1872&longitude=44.5152&current=temperature_2m,weather_code&timezone=Asia%2FYerevan'; const response = await fetch(url); const data = await response.json(); const temp = Math.round(data.current.temperature_2m); const code = data.current.weather_code; let weather = '☀️ Պարզ'; if (code === 1 || code === 2) weather = '🌤️ Մասամբ ամպամած'; else if (code === 3) weather = '☁️ Ամպամած'; else if (code >= 51 && code <= 67) weather = '🌧️ Անձրև'; else if (code >= 71 && code <= 77) weather = '❄️ Ձյուն'; else if (code >= 80 && code <= 82) weather = '🌦️ Անձրևային'; else if (code >= 95) weather = '⛈️ Ամպրոպ'; document.getElementById('arm-weather').textContent = weather + ' ' + temp + '°C'; } catch (error) { document.getElementById('arm-weather').textContent = 'Եղանակը հասանելի չէ'; } } updateArmeniaTime(); updateWeather(); setInterval(updateArmeniaTime, 1000); setInterval(updateWeather, 600000);</script>
 
 
-<!-- Emergency auth-modal opener: keeps login choices reachable if another page script fails. -->
-<script id="aimrelax-auth-modal-bootstrap">
-(function(){
-  function showAuth(which){
-    var modal=document.getElementById('account-modal');
-    if(!modal)return;
-    modal.classList.add('open');
-    modal.setAttribute('aria-hidden','false');
-    ['modal-login','modal-register','modal-reset','modal-account'].forEach(function(id){
-      var panel=document.getElementById(id);
-      if(panel)panel.style.display='none';
-    });
-    ['tab-login','tab-register'].forEach(function(id){
-      var tab=document.getElementById(id);
-      if(tab)tab.classList.remove('active');
-    });
-    var panel=document.getElementById(which==='register'?'modal-register':which==='reset'?'modal-reset':'modal-login');
-    if(panel)panel.style.display='block';
-    var tab=document.getElementById(which==='register'?'tab-register':'tab-login');
-    if(tab)tab.classList.add('active');
-  }
-  document.addEventListener('click',function(e){
-    var target=e.target;
-    if(!target||!target.closest)return;
-    if(target.closest('#account-open-btn')){
-      e.preventDefault();
-      var modal=document.getElementById('account-modal');
-      if(modal&&modal.classList.contains('open'))return;
-      showAuth('login');
-    }else if(target.closest('#tab-login')){showAuth('login');}
-    else if(target.closest('#tab-register')){showAuth('register');}
-    else if(target.closest('#m-show-reset')){showAuth('reset');}
-    else if(target.closest('#m-back-login')){showAuth('login');}
-    else if(target.id==='account-close'||target===document.getElementById('account-modal')) {
-      var modal=document.getElementById('account-modal');
-      if(modal){modal.classList.remove('open');modal.setAttribute('aria-hidden','true');}
-    }
-  },true);
-})();
-</script>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://accounts.google.com/gsi/client"></script>
 <script>
@@ -1541,25 +1480,10 @@ $('friend-notify-btn').onclick=async(e)=>{e.stopPropagation();if(!currentUser){o
 document.addEventListener('click',e=>{if(!e.target.closest('#account-area')){['friend-notify-popup','friends-menu-popup','user-dropdown'].forEach(id=>{$(id).classList.remove('open');$(id).setAttribute('aria-hidden','true')})}});$('account-modal').onclick=e=>{if(e.target===$('account-modal'))closeModal()};$('tab-login').onclick=()=>showModal('login');$('tab-register').onclick=()=>showModal('register');$('m-show-reset').onclick=()=>showModal('reset');$('m-back-login').onclick=()=>showModal('login');
 $('m-reg-btn').onclick=async()=>{const nickname=$('m-reg-nickname').value.trim(),email=$('m-reg-email').value.trim(),password=$('m-reg-password').value,password2=$('m-reg-password2').value,status=$('m-reg-status');if(!nickname||!email||!password){status.textContent='Լրացրեք բոլոր դաշտերը։';return}if(password.length<6){status.textContent='Գաղտնաբառը պետք է լինի առնվազն 6 նիշ։';return}if(password!==password2){status.textContent='Գաղտնաբառերը չեն համընկնում։';return}status.textContent='Գրանցում...';const {data,error}=await sb.auth.signUp({email,password,options:{data:{nickname},emailRedirectTo:siteUrl}});if(error){status.textContent=error.message;return}if(data.user&&!data.session)status.textContent='Հաստատման նամակը ուղարկվեց email-ին։ 📧';else{closeModal();await refreshUser()}};
 $('m-login-btn').onclick=async()=>{const email=$('m-login-email').value.trim(),password=$('m-login-password').value,status=$('m-login-status');status.textContent='Մուտք...';const {data,error}=await sb.auth.signInWithPassword({email,password});if(error){status.textContent=error.message;return}if(!data.user?.email_confirmed_at){await sb.auth.signOut();status.textContent='Խնդրում ենք նախ հաստատել ձեր email-ը։';return}closeModal();await refreshUser()};
-async function startGoogleOAuthFallback(){
-  const status=$('m-login-status');
-  status.textContent='Բացում ենք Google մուտքը...';
-  try{
-    const {error}=await sb.auth.signInWithOAuth({
-      provider:'google',
-      options:{redirectTo:siteUrl}
-    });
-    if(error)throw error;
-  }catch(error){
-    console.error('AiMRELAX Google OAuth fallback failed:',error);
-    status.textContent='Google մուտքը չբացվեց։ '+(error?.message||'Ստուգեք ինտերնետը և կրկին փորձեք։');
-  }
-}
 async function handleGoogleCredential(response){
   const status=$('m-login-status');
   status.textContent='Google մուտք...';
   try{
-    if(!response?.credential)throw new Error('Google-ից մուտքի հաստատում չստացվեց։');
     const {data,error}=await sb.auth.signInWithIdToken({provider:'google',token:response.credential});
     if(error) throw error;
     status.textContent='';
@@ -1567,67 +1491,34 @@ async function handleGoogleCredential(response){
     await refreshUser();
   }catch(error){
     console.error('AiMRELAX Google sign-in failed:',error);
-    status.innerHTML='Google մուտքը չհաջողվեց։ '+esc(error?.message||'Փորձեք կրկին։')+'<br><button id="google-oauth-retry" type="button" style="width:100%;background:#fff;color:#222;border:1px solid #dadce0;border-radius:5px;padding:11px;cursor:pointer">Փորձել Google մուտքի այլ եղանակը</button>';
-    $('google-oauth-retry').onclick=startGoogleOAuthFallback;
+    status.textContent='Google մուտքը չհաջողվեց։ '+(error?.message||'Փորձեք կրկին։');
   }
 }
 function initGoogleIdentityButton(){
   const button=$('google-login-btn');
-  if(!button)return;
-  if(!$('google-oauth-fallback-link')){
-    const fallback=document.createElement('button');
-    fallback.id='google-oauth-fallback-link';
-    fallback.type='button';
-    fallback.textContent='Եթե կոճակը չի աշխատում՝ փորձել այլ եղանակով';
-    fallback.style.cssText='display:block;width:100%;max-width:280px;margin:8px auto 0;padding:9px;background:#222;color:#fff;border:1px solid #555;border-radius:5px;cursor:pointer;font-size:13px';
-    fallback.addEventListener('click',startGoogleOAuthFallback);
-    button.insertAdjacentElement('afterend',fallback);
-  }
-  if(button.dataset.initialized==='1')return;
+  if(!button||button.dataset.initialized==='1')return;
   if(!window.google?.accounts?.id){
-    if(!button.querySelector('#google-login-fallback')){
-      button.innerHTML='<button id="google-login-fallback" type="button" style="width:240px;max-width:100%;background:#fff;color:#222;border:1px solid #dadce0;border-radius:5px;padding:12px 16px;font-weight:600;cursor:pointer">Մուտք Google-ով</button>';
-      $('google-login-fallback').onclick=()=>{
-        if(window.google?.accounts?.id){initGoogleIdentityButton();return;}
-        startGoogleOAuthFallback();
-      };
-    }
+    button.textContent='Google մուտքը չի բեռնվել։ Թարմացրեք էջը։';
     return;
   }
-  try{
-    google.accounts.id.initialize({
-      client_id:'553916262884-e6t38573765ffi5jjkkccbkaot452v24.apps.googleusercontent.com',
-      callback:handleGoogleCredential,
-      auto_select:false
-    });
-    button.innerHTML='';
-    google.accounts.id.renderButton(button,{
-      type:'standard',
-      theme:'outline',
-      size:'large',
-      text:'signin_with',
-      shape:'rectangular',
-      logo_alignment:'left',
-      width:240,
-      locale:'hy'
-    });
-    button.dataset.initialized='1';
-  }catch(error){
-    console.error('AiMRELAX Google button initialization failed:',error);
-    button.dataset.initialized='0';
-    button.innerHTML='<button id="google-login-fallback" type="button" style="width:240px;max-width:100%;background:#fff;color:#222;border:1px solid #dadce0;border-radius:5px;padding:12px 16px;font-weight:600;cursor:pointer">Մուտք Google-ով</button>';
-    $('google-login-fallback').onclick=startGoogleOAuthFallback;
-    $('m-login-status').textContent='Google կոճակը չբեռնվեց։ Կարող եք փորձել մուտքի այլ եղանակը։';
-  }
+  button.dataset.initialized='1';
+  google.accounts.id.initialize({
+    client_id:'553916262884-e6t38573765ffi5jjkkccbkaot452v24.apps.googleusercontent.com',
+    callback:handleGoogleCredential,
+    auto_select:false
+  });
+  google.accounts.id.renderButton(button,{
+    type:'standard',
+    theme:'outline',
+    size:'large',
+    text:'signin_with',
+    shape:'rectangular',
+    logo_alignment:'left',
+    width:240,
+    locale:'hy'
+  });
 }
 initGoogleIdentityButton();
-window.addEventListener('load',initGoogleIdentityButton);
-let googleButtonRetryCount=0;
-const googleButtonRetryTimer=setInterval(()=>{
-  initGoogleIdentityButton();
-  googleButtonRetryCount++;
-  if(googleButtonRetryCount>=20||$('google-login-btn')?.dataset.initialized==='1')clearInterval(googleButtonRetryTimer);
-},500);
 $('m-reset-btn').onclick=async()=>{const email=$('m-reset-email').value.trim(),status=$('m-reset-status');if(!email){status.textContent='Գրեք email-ը։';return}const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:siteUrl});status.textContent=error?error.message:'Վերականգնման հղումը ուղարկվեց email-ին։ ✅'};
 async function saveSettings(){
  if(!currentUser)return;
@@ -1671,7 +1562,6 @@ async function saveSettings(){
 }
 $('settings-save-btn').onclick=saveSettings;
 async function doLogout(){
-  stopFriendRequestRealtime();
   stopAimrelaxNotificationCenter();
   const {error}=await sb.auth.signOut();
   if(error){console.error('Logout failed:',error);return;}
@@ -1701,28 +1591,6 @@ $('header-logout-btn').onclick=doLogout;
 function canManageRoster(){
   return !!currentUser && (currentUser.id==='5f1c951f-1e76-4f82-9849-46becf038b55' || mySiteRole==='owner' || mySiteRole==='admin');
 }
-const addRosterButton=$('admin-add-player-btn');
-if(addRosterButton){
-  addRosterButton.onclick=async()=>{
-    if(!canManageRoster()){alert('Այս գործողությունը հասանելի է միայն ադմինին։');return;}
-    const nickname=prompt('Մուտքագրեք նոր խաղացողի նիկը։');
-    if(nickname===null)return;
-    const clean=nickname.trim();
-    if(!clean){alert('Նիկը չի կարող դատարկ լինել։');return;}
-    if(clean.length>80){alert('Նիկը պետք է լինի առավելագույնը 80 նիշ։');return;}
-    addRosterButton.disabled=true;
-    try{
-      const {error}=await sb.rpc('admin_add_player',{p_nickname:clean});
-      if(error)throw error;
-      await loadPlayers();
-      await loadVotes();
-      alert('Խաղացողը ավելացվեց։ Կայքն ու հավելվածը կօգտագործեն նույն տվյալը։');
-    }catch(error){
-      console.error('Player add failed:',error);
-      alert('Չհաջողվեց ավելացնել խաղացողին։ '+(error?.message||'Ստուգեք admin_add_player SQL ֆունկցիան Supabase-ում։'));
-    }finally{addRosterButton.disabled=false;}
-  };
-}
 async function removeRosterPlayer(playerId,nickname){
   if(!canManageRoster()){alert('Այս գործողությունը հասանելի է միայն ադմինին։');return;}
   if(!confirm('Հեռացնե՞լ «'+nickname+'»-ին Խաղացողներ և Քվեարկություն բաժիններից։'))return;
@@ -1738,73 +1606,40 @@ async function removeRosterPlayer(playerId,nickname){
   }
 }
 async function loadPlayers(){
-  if(addRosterButton)addRosterButton.style.display=canManageRoster()?'block':'none';
-  const grid=document.querySelector('#players .players-grid');
-  if(!grid)return;
+  const playerCards=[...document.querySelectorAll('#players .players-grid .player')];
+  const rosterNicknames=playerCards.map(card=>card.querySelector('h3')?.textContent.trim()||'').filter(Boolean);
+  const {data:dbPlayers,error}=await sb.from('players').select('id,nickname,active');
   const normalize=v=>String(v||'').normalize('NFKC')
-    .replace(/[\\u200B-\\u200D\\uFEFF]/g,'')
+    .replace(/[\u200B-\u200D\uFEFF]/g,'')
     .replace(/[«»“”]/g,'')
-    .replace(/\\s+/g,' ').trim().toLocaleLowerCase('hy-AM');
-  const compact=v=>normalize(v).replace(/[\\s_\\-.'’`]/g,'');
-  const initialCards=[...grid.querySelectorAll('.player')];
-  const staticNames=initialCards.map(card=>card.querySelector('h3')?.textContent.trim()||'').filter(Boolean);
-  const {data:dbPlayers,error}=await sb.from('players').select('id,nickname,active').order('nickname');
-  if(error){
-    console.error('players load error',error);
-    playersCache=staticNames.map(nickname=>({id:null,nickname,dbNickname:null,active:true}));
-    $('player-options').innerHTML=playersCache.map(p=>`
-      <label class="player-option player-option-missing"><input type="radio" name="vote-player" value="" disabled><span>${esc(p.nickname)}</span> <small class="player-sync-hint">(տվյալները հասանելի չեն)</small></label>`).join('');
-    if(typeof window.updateTeamPlayerCount==='function')window.updateTeamPlayerCount();
-    return;
-  }
+    .replace(/\s+/g,' ').trim().toLocaleLowerCase('hy-AM');
+  const compact=v=>normalize(v).replace(/[\s_\-.'’`]/g,'');
   const byExact=new Map(),byCompact=new Map();
+  if(error)console.error('players load error',error);
   (dbPlayers||[]).forEach(p=>{
     if(!p?.id||!p?.nickname)return;
     if(!byExact.has(normalize(p.nickname)))byExact.set(normalize(p.nickname),p);
     if(!byCompact.has(compact(p.nickname)))byCompact.set(compact(p.nickname),p);
   });
-  const represented=new Set();
-  initialCards.forEach(card=>{
-    const heading=card.querySelector('h3');
-    const oldNickname=heading?.textContent.trim()||'';
-    const p=(card.dataset.playerId&&(dbPlayers||[]).find(row=>String(row.id)===card.dataset.playerId))||byExact.get(normalize(oldNickname))||byCompact.get(compact(oldNickname))||null;
-    if(p){
-      represented.add(String(p.id));
-      if(heading)heading.textContent=p.nickname;
-      card.dataset.playerId=String(p.id);
-      card.hidden=p.active===false;
-      let remove=card.querySelector('.roster-remove-btn');
-      if(canManageRoster()&&p.active!==false){
-        if(!remove){remove=document.createElement('button');remove.type='button';remove.className='roster-remove-btn';remove.textContent='🗑 Հեռացնել';card.appendChild(remove);}
-        remove.onclick=()=>removeRosterPlayer(p.id,p.nickname);
-      }else if(remove)remove.remove();
-    }else{
-      card.hidden=false;
-      delete card.dataset.playerId;
-      const remove=card.querySelector('.roster-remove-btn');
-      if(remove)remove.remove();
-    }
-  });
-  (dbPlayers||[]).filter(p=>p?.id&&p?.nickname&&p.active!==false&&!represented.has(String(p.id))).forEach(p=>{
-    const card=document.createElement('div');
-    card.className='player';
-    card.dataset.playerId=String(p.id);
-    const avatar=document.createElement('div');avatar.className='player-avatar';avatar.textContent='👤';
-    const heading=document.createElement('h3');heading.textContent=p.nickname;
-    card.append(avatar,heading);
-    if(canManageRoster()){
-      const remove=document.createElement('button');remove.type='button';remove.className='roster-remove-btn';remove.textContent='🗑 Հեռացնել';
-      remove.onclick=()=>removeRosterPlayer(p.id,p.nickname);card.appendChild(remove);
-    }
-    grid.appendChild(card);
-    represented.add(String(p.id));
-  });
-  const activeDbPlayers=(dbPlayers||[]).filter(p=>p?.id&&p?.nickname&&p.active!==false);
-  const legacyOnly=staticNames.map(nickname=>{
+  playerCards.forEach(card=>{
+    const nickname=card.querySelector('h3')?.textContent.trim()||'';
     const p=byExact.get(normalize(nickname))||byCompact.get(compact(nickname))||null;
-    return p?null:{id:null,nickname,dbNickname:null,active:true};
-  }).filter(Boolean);
-  playersCache=[...activeDbPlayers.map(p=>({id:p.id,nickname:p.nickname,dbNickname:p.nickname,active:true})),...legacyOnly];
+    card.hidden=!!(p && p.active===false);
+    let remove=card.querySelector('.roster-remove-btn');
+    if(canManageRoster() && p && p.active!==false){
+      if(!remove){
+        remove=document.createElement('button');
+        remove.type='button';remove.className='roster-remove-btn';
+        remove.textContent='🗑 Հեռացնել';
+        card.appendChild(remove);
+      }
+      remove.onclick=()=>removeRosterPlayer(p.id,nickname);
+    }else if(remove)remove.remove();
+  });
+  playersCache=rosterNicknames.map(nickname=>{
+    const p=byExact.get(normalize(nickname))||byCompact.get(compact(nickname))||null;
+    return {id:p?.id||null,nickname,dbNickname:p?.nickname||null,active:p?.active!==false};
+  }).filter(p=>p.active);
   $('player-options').innerHTML=playersCache.map(p=>`
     <label class="player-option${p.id?'':' player-option-missing'}">
       <input type="radio" name="vote-player" value="${esc(p.id||'')}" ${p.id?'':'disabled'}>
@@ -1818,15 +1653,6 @@ async function loadPlayers(){
     $('vote-status').textContent='';
   });
   if(!currentUser||!selectedPlayerId)$('vote-btn').disabled=true;
-  if(typeof window.updateTeamPlayerCount==='function')window.updateTeamPlayerCount();
-  if(!window.__aimrelaxPlayersRealtime && sb.channel){
-    window.__aimrelaxPlayersRealtime=true;
-    sb.channel('aimrelax-shared-player-roster')
-      .on('postgres_changes',{event:'*',schema:'public',table:'players'},async()=>{
-        await loadPlayers();
-        await loadVotes();
-      }).subscribe();
-  }
 }
 
 async function loadVotes(){
@@ -2143,25 +1969,7 @@ function renderAdminOnlineUsers(){
     :'<div class="loading-text">Օգտատեր չի գտնվել։</div>';
 }
 
-let aimrelaxFriendRequestsChannel=null;
-function stopFriendRequestRealtime(){
-  if(aimrelaxFriendRequestsChannel){try{sb.removeChannel(aimrelaxFriendRequestsChannel)}catch(e){}aimrelaxFriendRequestsChannel=null;}
-}
-function startFriendRequestRealtime(){
-  if(!currentUser||aimrelaxFriendRequestsChannel||!sb.channel)return;
-  const watchedUserId=currentUser.id;
-  aimrelaxFriendRequestsChannel=sb.channel('aimrelax-friend-requests-'+watchedUserId)
-    .on('postgres_changes',{event:'*',schema:'public',table:'friend_requests'},payload=>{
-      if(!currentUser||currentUser.id!==watchedUserId)return;
-      const row=payload.new&&Object.keys(payload.new).length?payload.new:payload.old;
-      if(!row||(row.requester_id!==watchedUserId&&row.addressee_id!==watchedUserId))return;
-      loadFriendNotifications().catch(()=>{});
-      loadFriends().catch(()=>{});
-    })
-    .subscribe();
-}
 async function loadFriendNotifications(){
- if(currentUser)startFriendRequestRealtime();
  if(!currentUser){$('friend-badge').classList.remove('show');$('friend-notify-list').innerHTML='<div class="loading-text">Մուտք գործեք՝ հայտերը տեսնելու համար։</div>';return}
  const {data,error}=await sb.from('friend_requests').select('id,requester_id,status,profiles!friend_requests_requester_id_fkey(nickname)').eq('addressee_id',currentUser.id).eq('status','pending').order('created_at',{ascending:false});
  if(error){$('friend-notify-list').innerHTML='<div class="loading-text">Չհաջողվեց բեռնել հայտերը։</div>';return}
@@ -2562,7 +2370,6 @@ async function refreshUser(){
 }
 sb.auth.onAuthStateChange((event,session)=>{
   if(event==='SIGNED_OUT'){
-    stopFriendRequestRealtime();
     stopAimrelaxNotificationCenter();
     currentUser=null;
     mySiteRole=null;
@@ -4014,21 +3821,6 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
     liveStatus('Ընտրեք LIVE-ը ցանկից՝ դիտումը սկսելու համար։');
     await refreshLiveList();
     setButtons();
-
-    // FCM LIVE notifications open the shared site with ?live=<stream-id>.
-    // Once the user is authenticated and the list is loaded, open that stream.
-    const requestedLiveId=new URLSearchParams(window.location.search).get('live');
-    if(requestedLiveId && liveState.autoOpenedStreamId!==requestedLiveId){
-      const watchButton=el('live-list')?.querySelector('.live-watch-btn[data-live-id="'+CSS.escape(requestedLiveId)+'"]');
-      if(watchButton){
-        liveState.autoOpenedStreamId=requestedLiveId;
-        const stage=el('live-video-stage');
-        if(stage)stage.scrollIntoView({behavior:'smooth',block:'start'});
-        setTimeout(()=>watchButton.click(),250);
-      }else{
-        liveStatus('Այս LIVE-ը այլևս հասանելի չէ։','warn');
-      }
-    }
   }
 
   el('live-leave-btn')?.addEventListener('click',leaveViewer);
@@ -4038,18 +3830,6 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
       .on('postgres_changes',{event:'*',schema:'public',table:'live_streams'},()=>refreshLiveList())
       .subscribe();
   }
-
-  // Re-fetch LIVE status after the tab/WebView returns from background.
-  let lastLiveListRefresh=0;
-  const refreshLiveListOnReturn=()=>{
-    if(document.visibilityState==='hidden'||!navigator.onLine)return;
-    const now=Date.now();
-    if(now-lastLiveListRefresh<5000)return;
-    lastLiveListRefresh=now;
-    refreshLiveList().catch(error=>console.warn('LIVE list refresh failed:',error));
-  };
-  document.addEventListener('visibilitychange',refreshLiveListOnReturn);
-  window.addEventListener('focus',refreshLiveListOnReturn);
 
   window.addEventListener('beforeunload',()=>{
     if(liveState.mode==='streamer' && liveState.streamId){
@@ -4089,31 +3869,6 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
       setTimeout(initLive,100);
     }
   });
-})();
-</script>
-
-<!-- Keep shared Supabase data fresh when the site/WebView returns to foreground. -->
-<script id="aimrelax-shared-data-refresh">
-(function(){
-  let lastRefreshAt=0;
-  async function refreshSharedData(){
-    if(document.visibilityState==='hidden'||!navigator.onLine)return;
-    const now=Date.now();
-    if(now-lastRefreshAt<8000)return;
-    lastRefreshAt=now;
-    if(typeof sb==='undefined'||!currentUser)return;
-    const jobs=[];
-    if(typeof loadPlayers==='function')jobs.push(loadPlayers());
-    if(typeof loadVotes==='function')jobs.push(loadVotes());
-    if(typeof loadFriends==='function')jobs.push(loadFriends());
-    if(typeof loadFriendNotifications==='function')jobs.push(loadFriendNotifications());
-    if(typeof refreshNotificationBadge==='function')jobs.push(refreshNotificationBadge());
-    if(typeof loadUserNotifications==='function'&&document.getElementById('notification-center-modal')?.classList.contains('show'))jobs.push(loadUserNotifications());
-    if(typeof loadPrivateMessages==='function'&&selectedFriendId&&document.getElementById('private-chat-popup')?.classList.contains('open'))jobs.push(loadPrivateMessages());
-    await Promise.allSettled(jobs);
-  }
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshSharedData();});
-  window.addEventListener('focus',refreshSharedData);
 })();
 </script>
 </body>
