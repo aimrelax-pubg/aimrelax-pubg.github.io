@@ -3888,8 +3888,19 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
   }
   const entry=byId('account-open-btn');
   if(entry){
+    // Open the login dialog synchronously for the logged-out button. This fallback
+    // remains functional even if another script fails before assigning onclick.
     entry.addEventListener('click',function(){
-      setTimeout(()=>{try{if(typeof currentUser!=='undefined'&&currentUser)return;}catch(e){}const modal=byId('account-modal');if(modal&&!modal.classList.contains('open'))openLogin();},0);
+      const label=(entry.textContent||'').trim();
+      if(/ՄՈՒՏՔ|ԳՐԱՆՑՈՒՄ/i.test(label)){
+        openLogin();
+      }
+    },true);
+    entry.addEventListener('keydown',function(event){
+      if((event.key==='Enter'||event.key===' ')&&/ՄՈՒՏՔ|ԳՐԱՆՑՈՒՄ/i.test((entry.textContent||'').trim())){
+        event.preventDefault();
+        openLogin();
+      }
     },true);
   }
   function showGoogleLoadError(message){
