@@ -1455,7 +1455,7 @@ const {createClient}=supabase;
 const sb=createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const $=id=>document.getElementById(id);
 const siteUrl='https://aimrelax-pubg.github.io/';
-let selectedPlayerId=null,playersCache=[],currentUser=null,playersRealtimeChannel=null;
+let selectedPlayerId=null,playersCache=[],currentUser=null;
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
 function openModal(){ $('account-modal').classList.add('open'); $('account-modal').setAttribute('aria-hidden','false'); showModal('login'); }
 function closeModal(){ const modal=$('account-modal'); modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); ['display','visibility','opacity','z-index'].forEach(p=>modal.style.removeProperty(p)); }
@@ -1591,14 +1591,6 @@ async function removeRosterPlayer(playerId,nickname){
 }
 async function loadPlayers(){
   updateRosterAdminControls();
-  if(!playersRealtimeChannel){
-    playersRealtimeChannel=sb.channel('website-player-roster')
-      .on('postgres_changes',{event:'*',schema:'public',table:'players'},async()=>{
-        await loadPlayers();
-        await loadVotes();
-      })
-      .subscribe();
-  }
   let playerCards=[...document.querySelectorAll('#players .players-grid .player')];
   const {data:dbPlayers,error}=await sb.from('players').select('id,nickname,active');
   const normalize=v=>String(v||'').normalize('NFKC')
