@@ -3975,6 +3975,31 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
   });
 })();
 </script>
+
+<!-- Keep shared Supabase data fresh when the site/WebView returns to foreground. -->
+<script id="aimrelax-shared-data-refresh">
+(function(){
+  let lastRefreshAt=0;
+  async function refreshSharedData(){
+    if(document.visibilityState==='hidden'||!navigator.onLine)return;
+    const now=Date.now();
+    if(now-lastRefreshAt<8000)return;
+    lastRefreshAt=now;
+    if(!window.sb||!window.currentUser)return;
+    const jobs=[];
+    if(typeof window.loadPlayers==='function')jobs.push(window.loadPlayers());
+    if(typeof window.loadVotes==='function')jobs.push(window.loadVotes());
+    if(typeof window.loadFriends==='function')jobs.push(window.loadFriends());
+    if(typeof window.loadFriendNotifications==='function')jobs.push(window.loadFriendNotifications());
+    if(typeof window.refreshNotificationBadge==='function')jobs.push(window.refreshNotificationBadge());
+    if(typeof window.loadUserNotifications==='function'&&document.getElementById('notification-center-modal')?.classList.contains('show'))jobs.push(window.loadUserNotifications());
+    if(typeof window.loadPrivateMessages==='function'&&window.selectedFriendId&&document.getElementById('private-chat-popup')?.classList.contains('open'))jobs.push(window.loadPrivateMessages());
+    await Promise.allSettled(jobs);
+  }
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshSharedData();});
+  window.addEventListener('focus',refreshSharedData);
+})();
+</script>
 </body>
 </html>
   
