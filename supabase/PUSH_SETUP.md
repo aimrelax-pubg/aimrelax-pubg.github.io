@@ -21,7 +21,7 @@ Install the newly built APK after the GitHub Actions build finishes. On OPPO, al
 
 ## LIVE-start push (no APK rebuild)
 
-Run `supabase/migrations/20261019010000_live_started_push.sql` once in the Supabase SQL Editor. It attaches an `AFTER INSERT` trigger to `public.live_streams` and calls the existing `aimrelax-push-send` Edge Function when a stream is inserted with status `live`. The function sends the notification to registered Android tokens except the broadcaster's own token. This is a database-only change; it does not require rebuilding the APK. It depends on the existing `aimrelax_push_api_key` Vault secret, `pg_net`, and the already-deployed `aimrelax-push-send` function.
+Use the current migration `supabase/migrations/20261020010000_live_started_push_transition.sql` in the Supabase SQL Editor. It handles both a stream inserted directly as `live` and the normal `starting` → `live` update, then forwards a normalized INSERT event to the existing `aimrelax-push-send` Edge Function. If you already ran this migration successfully, do not rerun older LIVE migrations. The function sends the notification to registered Android tokens except the broadcaster's own token. This is a database-only change; it does not require rebuilding the APK. It depends on the existing `aimrelax_push_api_key` Vault secret, `pg_net`, and the already-deployed `aimrelax-push-send` function.
 
 ## Covered events
 
