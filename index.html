@@ -787,7 +787,7 @@ section{position:relative}.section-title h2{letter-spacing:-.02em}
       <input id="m-login-email" type="email" placeholder="Ձեր E-mail">
       <input id="m-login-password" type="password" placeholder="Գաղտնաբառ">
       <button id="m-login-btn" type="button">ՄՈՒՏՔ ԳՈՐԾԵԼ</button>
-      <button id="google-oauth-fallback-btn" type="button" class="google-oauth-fallback-btn">Մուտք Google-ով</button>
+      <a id="google-oauth-fallback-btn" class="google-oauth-fallback-btn" href="https://hvhlrbfjloiahbqmnrly.supabase.co/auth/v1/authorize?provider=google&amp;redirect_to=https%3A%2F%2Faimrelax-pubg.github.io%2F" style="display:block;text-align:center;text-decoration:none;cursor:pointer">Մուտք Google-ով</a>
       <span id="m-show-reset" class="auth-link">Մոռացե՞լ եք գաղտնաբառը</span>
       <p id="m-login-status" class="auth-status"></p>
     </div>
@@ -3870,35 +3870,9 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
     openLogin();
   },true);
 
-  // Bind directly to the visible fallback button; avoid competing document-level
-  // capture handlers that can swallow the click before this handler runs.
-  var googleButton=byId('google-oauth-fallback-btn');
-  if(googleButton){
-    googleButton.addEventListener('click',async function(event){
-      event.preventDefault();
-      if(googleButton.dataset.oauthBusy==='1')return;
-      googleButton.dataset.oauthBusy='1';
-      googleButton.disabled=true;
-      googleButton.textContent='Միանում է Google-ին…';
-      setStatus('Բացում ենք Google մուտքը…',false);
-      try{
-        if(typeof sb==='undefined'||!sb||!sb.auth)throw new Error('Մուտքի ծառայությունը չի բեռնվել։ Թարմացրեք էջը և կրկին փորձեք։');
-        var result=await sb.auth.signInWithOAuth({
-          provider:'google',
-          options:{redirectTo:'https://aimrelax-pubg.github.io/',queryParams:{prompt:'select_account'}}
-        });
-        if(result.error)throw result.error;
-        if(result.data&&result.data.url){window.location.assign(result.data.url);return;}
-        throw new Error('Google մուտքի հղումը չստացվեց։ Կրկին փորձեք։');
-      }catch(error){
-        console.error('AiMRELAX Google sign-in:',error);
-        setStatus('Google մուտքը չհաջողվեց։ '+(error&&error.message?error.message:'Ստուգեք ինտերնետը և կրկին փորձեք։'),true);
-        googleButton.disabled=false;
-        googleButton.dataset.oauthBusy='';
-        googleButton.textContent='Կրկին փորձել Google-ով';
-      }
-    });
-  }
+  // Google sign-in uses a direct Supabase authorize link in the anchor above.
+  // This avoids JavaScript click-handler conflicts in mobile browsers and WebView.
+
 })();
 </script>
 
