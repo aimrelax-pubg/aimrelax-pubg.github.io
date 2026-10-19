@@ -19,6 +19,10 @@ The database triggers use the shared `x-push-secret`: friend requests and clan n
 
 Install the newly built APK after the GitHub Actions build finishes. On OPPO, allow notifications and enable **Auto launch / Background activity** and set battery use for AIMRELAX to **Allow background activity**. Android's system-level Force stop can block FCM until the app is opened again; an app cannot override that OS restriction.
 
+## LIVE-start push (no APK rebuild)
+
+Run `supabase/migrations/20261019010000_live_started_push.sql` once in the Supabase SQL Editor. It attaches an `AFTER INSERT` trigger to `public.live_streams` and calls the existing `aimrelax-push-send` Edge Function when a stream is inserted with status `live`. The function sends the notification to registered Android tokens except the broadcaster's own token. This is a database-only change; it does not require rebuilding the APK. It depends on the existing `aimrelax_push_api_key` Vault secret, `pg_net`, and the already-deployed `aimrelax-push-send` function.
+
 ## Covered events
 
 - Incoming friend requests and accepted requests
