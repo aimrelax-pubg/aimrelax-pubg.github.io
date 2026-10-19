@@ -3889,7 +3889,7 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
   const entry=byId('account-open-btn');
   if(entry){
     entry.addEventListener('click',function(){
-      setTimeout(()=>{const modal=byId('account-modal');if(modal&&!modal.classList.contains('open'))openLogin();},0);
+      setTimeout(()=>{try{if(typeof currentUser!=='undefined'&&currentUser)return;}catch(e){}const modal=byId('account-modal');if(modal&&!modal.classList.contains('open'))openLogin();},0);
     },true);
   }
   function showGoogleLoadError(message){
