@@ -1582,6 +1582,7 @@ async function saveSettings(){
 }
 $('settings-save-btn').onclick=saveSettings;
 async function doLogout(){
+  stopFriendRequestRealtime();
   stopAimrelaxNotificationCenter();
   const {error}=await sb.auth.signOut();
   if(error){console.error('Logout failed:',error);return;}
@@ -2053,7 +2054,25 @@ function renderAdminOnlineUsers(){
     :'<div class="loading-text">Օգտատեր չի գտնվել։</div>';
 }
 
+let aimrelaxFriendRequestsChannel=null;
+function stopFriendRequestRealtime(){
+  if(aimrelaxFriendRequestsChannel){try{sb.removeChannel(aimrelaxFriendRequestsChannel)}catch(e){}aimrelaxFriendRequestsChannel=null;}
+}
+function startFriendRequestRealtime(){
+  if(!currentUser||aimrelaxFriendRequestsChannel||!sb.channel)return;
+  const watchedUserId=currentUser.id;
+  aimrelaxFriendRequestsChannel=sb.channel('aimrelax-friend-requests-'+watchedUserId)
+    .on('postgres_changes',{event:'*',schema:'public',table:'friend_requests'},payload=>{
+      if(!currentUser||currentUser.id!==watchedUserId)return;
+      const row=payload.new&&Object.keys(payload.new).length?payload.new:payload.old;
+      if(!row||(row.requester_id!==watchedUserId&&row.addressee_id!==watchedUserId))return;
+      loadFriendNotifications().catch(()=>{});
+      loadFriends().catch(()=>{});
+    })
+    .subscribe();
+}
 async function loadFriendNotifications(){
+ if(currentUser)startFriendRequestRealtime();
  if(!currentUser){$('friend-badge').classList.remove('show');$('friend-notify-list').innerHTML='<div class="loading-text">Մուտք գործեք՝ հայտերը տեսնելու համար։</div>';return}
  const {data,error}=await sb.from('friend_requests').select('id,requester_id,status,profiles!friend_requests_requester_id_fkey(nickname)').eq('addressee_id',currentUser.id).eq('status','pending').order('created_at',{ascending:false});
  if(error){$('friend-notify-list').innerHTML='<div class="loading-text">Չհաջողվեց բեռնել հայտերը։</div>';return}
@@ -2454,6 +2473,7 @@ async function refreshUser(){
 }
 sb.auth.onAuthStateChange((event,session)=>{
   if(event==='SIGNED_OUT'){
+    stopFriendRequestRealtime();
     stopAimrelaxNotificationCenter();
     currentUser=null;
     mySiteRole=null;
