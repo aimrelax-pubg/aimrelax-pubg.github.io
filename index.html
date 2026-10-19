@@ -4048,6 +4048,82 @@ if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.s
 })();
 </script>
 
+
+<script id="aimrelax-auth-hard-recovery-v2">
+(function(){
+  if(window.__aimrelaxAuthHardRecoveryV2)return;
+  window.__aimrelaxAuthHardRecoveryV2=true;
+  const el=id=>document.getElementById(id);
+  function authClient(){
+    if(!window.supabase||typeof window.supabase.createClient!=='function')throw new Error('Մուտքի ծառայությունը դեռ չի բեռնվել։ Թարմացրեք էջը և փորձեք կրկին։');
+    return window.__aimrelaxHardAuthClient||(window.__aimrelaxHardAuthClient=window.supabase.createClient(
+      'https://hvhlrbfjloiahbqmnrly.supabase.co',
+      'sb_publishable_EcZUkLdUCVv3qWDD7jlvhg_OjTYu1jA'
+    ));
+  }
+  function show(which){
+    const modal=el('account-modal');
+    if(!modal)return;
+    modal.classList.add('open');
+    modal.style.setProperty('display','flex','important');
+    modal.style.setProperty('z-index','100000','important');
+    modal.setAttribute('aria-hidden','false');
+    ['modal-login','modal-register','modal-reset','modal-account'].forEach(id=>{const p=el(id);if(p)p.style.display=id===which?'block':'none';});
+    ['tab-login','tab-register'].forEach(id=>{const t=el(id);if(t)t.classList.toggle('active',id===(which==='register'?'tab-register':'tab-login'));});
+  }
+  function message(id,text,isError){
+    const node=el(id);if(!node)return;
+    node.textContent=text;
+    node.style.color=isError?'#ff7777':'#ff9a32';
+  }
+  document.addEventListener('click',function(event){
+    const target=event.target;
+    if(!target||!target.closest)return;
+    const account=target.closest('#account-open-btn');
+    if(account && /ՄՈՒՏՔ|ԳՐԱՆՑՈՒՄ/i.test((account.textContent||'').trim())){
+      event.preventDefault();event.stopImmediatePropagation();show('modal-login');return;
+    }
+    if(target.closest('#success-login-btn')){event.preventDefault();event.stopImmediatePropagation();const page=el('registration-success-page');if(page)page.style.display='none';show('modal-login');return;}
+    if(target.closest('#tab-login')){event.preventDefault();event.stopImmediatePropagation();show('modal-login');return;}
+    if(target.closest('#tab-register')){event.preventDefault();event.stopImmediatePropagation();show('modal-register');return;}
+    if(target.closest('#account-close')){event.preventDefault();event.stopImmediatePropagation();const modal=el('account-modal');if(modal){modal.classList.remove('open');modal.style.removeProperty('display');modal.setAttribute('aria-hidden','true');}return;}
+    if(target.closest('#m-login-btn')){
+      event.preventDefault();event.stopImmediatePropagation();
+      (async()=>{const email=(el('m-login-email')?.value||'').trim(),password=el('m-login-password')?.value||'';
+        if(!email||!password){message('m-login-status','Լրացրեք էլ․ փոստը և գաղտնաբառը։',true);return;}
+        message('m-login-status','Մուտք...',false);
+        try{const {data,error}=await authClient().auth.signInWithPassword({email,password});if(error)throw error;
+          if(!data.user?.email_confirmed_at){await authClient().auth.signOut();message('m-login-status','Խնդրում ենք նախ հաստատել ձեր email-ը։',true);return;}
+          message('m-login-status','Մուտքը հաջողվեց։ Բացում ենք հաշիվը…',false);location.reload();
+        }catch(e){console.error('AiMRELAX password login recovery:',e);message('m-login-status',e.message||'Մուտքը չհաջողվեց։ Փորձեք կրկին։',true);}
+      })();return;
+    }
+    if(target.closest('#m-reg-btn')){
+      event.preventDefault();event.stopImmediatePropagation();
+      (async()=>{const nickname=(el('m-reg-nickname')?.value||'').trim(),email=(el('m-reg-email')?.value||'').trim(),password=el('m-reg-password')?.value||'',password2=el('m-reg-password2')?.value||'';
+        if(!nickname||!email||!password||!password2){message('m-reg-status','Լրացրեք բոլոր դաշտերը։',true);return;}
+        if(password.length<6){message('m-reg-status','Գաղտնաբառը պետք է լինի առնվազն 6 նիշ։',true);return;}
+        if(password!==password2){message('m-reg-status','Գաղտնաբառերը չեն համընկնում։',true);return;}
+        message('m-reg-status','Գրանցում...',false);
+        try{const {data,error}=await authClient().auth.signUp({email,password,options:{data:{nickname},emailRedirectTo:'https://aimrelax-pubg.github.io/'}});
+          if(error)throw error;
+          if(data.user&&!data.session)message('m-reg-status','Հաստատման նամակը ուղարկվեց email-ին։ 📧',false);
+          else{message('m-reg-status','Գրանցումը հաջողվեց։ Էջը թարմացվում է…',false);location.reload();}
+        }catch(e){console.error('AiMRELAX registration recovery:',e);message('m-reg-status',e.message||'Գրանցումը չհաջողվեց։ Փորձեք կրկին։',true);}
+      })();return;
+    }
+    if(target.closest('#google-oauth-fallback-btn')){
+      event.preventDefault();event.stopImmediatePropagation();
+      (async()=>{const b=el('google-oauth-fallback-btn');message('m-login-status','Բացում ենք Google մուտքը…',false);if(b)b.disabled=true;
+        try{const {error}=await authClient().auth.signInWithOAuth({provider:'google',options:{redirectTo:'https://aimrelax-pubg.github.io/',queryParams:{prompt:'select_account'}}});if(error)throw error;}
+        catch(e){console.error('AiMRELAX Google OAuth recovery:',e);message('m-login-status','Google մուտքը չհաջողվեց։ '+(e.message||'Փորձեք կրկին։'),true);if(b)b.disabled=false;}
+      })();
+    }
+  },true);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){const b=el('account-open-btn');if(b)b.style.pointerEvents='auto';},{once:true});
+})();
+</script>
+
 </body>
 </html>
   
