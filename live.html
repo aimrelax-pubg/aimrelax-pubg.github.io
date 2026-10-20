@@ -994,6 +994,31 @@ body.live-page #live .live-empty{padding:24px 12px}
 }
 </style>
 
+<style id="aimrelax-live-home-button-position-fix">
+@media(max-width:800px){
+ body.live-page a.live-page-home-link{
+  position:fixed!important;
+  top:10px!important;
+  left:10px!important;
+  right:auto!important;
+  z-index:100200!important;
+  margin:0!important;
+  display:inline-flex!important;
+  min-height:36px!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:7px 10px!important;
+  font-size:10px!important;
+  line-height:1.2!important;
+  white-space:nowrap!important;
+ }
+ body.live-page #live{padding-top:78px!important}
+}
+@media(max-width:420px){
+ body.live-page a.live-page-home-link{top:10px!important;left:8px!important;padding:7px 8px!important;font-size:9px!important}
+ body.live-page #live{padding-top:74px!important}
+}
+</style>
 </head>
 
 <body class="live-page">
