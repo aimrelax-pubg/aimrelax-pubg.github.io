@@ -824,6 +824,51 @@ section{position:relative}.section-title h2{letter-spacing:-.02em}
 @keyframes liveHeartRise{0%{transform:translateY(0) scale(.65) rotate(-8deg);opacity:0}12%{opacity:1}70%{opacity:.9}100%{transform:translateY(-230px) translateX(var(--heart-drift, -15px)) scale(1.25) rotate(14deg);opacity:0}}
 @media(prefers-reduced-motion:reduce){.live-float-heart{animation-duration:.4s}}
 .live-video-label{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:10px 0 0;color:#aaa;font-size:13px}.live-dot{display:inline-flex;align-items:center;gap:7px;color:#ff5252;font-weight:900}.live-dot i{width:9px;height:9px;background:#ff2020;border-radius:50%;display:inline-block;box-shadow:0 0 12px #ff2020}.live-controls{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}.live-controls button{border:0;border-radius:9px;padding:12px 15px;font-weight:900;cursor:pointer;background:#252525;color:#fff}.live-controls button.primary{background:#ff7200;color:#111}.live-controls button.danger{background:#b51d1d;color:#fff}.live-controls button:disabled{opacity:.45;cursor:not-allowed}.live-title-input{width:100%;box-sizing:border-box;margin-top:12px;padding:13px 14px;border-radius:9px;border:1px solid #303030;background:#151515;color:#fff;outline:none}.live-title-input:focus{border-color:#ff7200}.live-status{margin-top:12px;padding:12px;border-radius:9px;background:#151515;color:#bbb;line-height:1.5;min-height:22px}.live-status.ok{color:#8cff9b}.live-status.err{color:#ff8f8f}.live-status.warn{color:#ffd27a}.live-list{display:flex;flex-direction:column;gap:10px;max-height:510px;overflow:auto}.live-item{padding:13px;border:1px solid #292929;background:#141414;border-radius:12px}.live-item-head{display:flex;justify-content:space-between;gap:8px;align-items:center}.live-item-name{font-weight:900;color:#fff}.live-item-title{color:#aaa;font-size:13px;margin-top:5px}.live-watch-btn{width:100%;margin-top:10px;border:0;border-radius:8px;padding:10px;background:#ff7200;color:#111;font-weight:900;cursor:pointer}.live-empty{color:#777;text-align:center;padding:25px 10px}.live-note{font-size:13px;color:#888;line-height:1.6;margin-top:12px}.live-support{display:none;margin-top:12px;padding:13px;border-radius:10px;border:1px solid #6b3b00;background:#241700;color:#ffd79b;line-height:1.55}@media(max-width:800px){.live-grid{grid-template-columns:1fr}#live{padding:45px 8px}.live-card{padding:10px}.live-video{width:100%;height:auto;min-height:220px;max-height:72vh;aspect-ratio:auto}}
+/* AIMRELAX LIVE UI POLISH */
+#live .section-title h2{letter-spacing:.3px}
+#live .live-grid{align-items:start;gap:18px}
+#live .live-card{min-width:0;padding:16px;background:linear-gradient(155deg,#131313 0%,#0c0c0c 100%);border-color:#2b2b2b}
+#live .live-viewer-card{position:relative}
+#live .live-video-stage{border:1px solid #303030;box-shadow:0 8px 28px rgba(0,0,0,.35)}
+#live .live-video{min-height:0;max-height:76vh;aspect-ratio:16/9;object-fit:contain}
+#live .live-video-label{padding:3px 2px;font-size:13px}
+#live .live-status{border:1px solid #282828;font-size:13px}
+#live #live-fullscreen-btn{transition:background .18s,border-color .18s}
+#live #live-fullscreen-btn:hover{background:#262626!important;border-color:#ff7200!important}
+#live #live-leave-btn:hover{border-color:#ff7200!important}
+#live #live-comments-panel{background:linear-gradient(160deg,#0e0e0e,#080808)!important}
+#live #live-comments-list{scrollbar-width:thin;scrollbar-color:#444 #0a0a0a;line-height:1.55}
+#live #live-comments-input{font-size:14px;outline:none}
+#live #live-comments-input:focus{border-color:#ff7200!important}
+#live #live-comments-form button{min-width:44px;min-height:40px;cursor:pointer;transition:filter .15s}
+#live #live-comments-form button:not(:disabled):hover{filter:brightness(1.12)}
+#live .live-list{max-height:560px;padding-right:3px;scrollbar-width:thin;scrollbar-color:#444 #111}
+#live .live-item{transition:border-color .18s,transform .18s;background:linear-gradient(145deg,#171717,#101010)}
+#live .live-item:hover{border-color:#68401f}
+#live .live-watch-btn{min-height:42px;transition:filter .15s,transform .15s}
+#live .live-watch-btn:hover{filter:brightness(1.1)}
+#live .live-empty{border:1px dashed #303030;border-radius:10px;line-height:1.6}
+#live .live-viewer-hint{line-height:1.65}
+@media(max-width:800px){
+ #live{padding:42px 12px}
+ #live .live-grid{gap:14px;margin-top:20px}
+ #live .live-card{padding:11px;border-radius:13px}
+ #live .live-video{max-height:62vh;min-height:0;aspect-ratio:16/9}
+ #live .live-like-btn{width:50px;height:50px;font-size:25px;right:12px;bottom:12px}
+ #live .live-like-counter{top:9px;left:9px;font-size:13px}
+ #live .live-list{max-height:300px}
+ #live #live-comments-list{height:160px!important}
+ #live #live-comments-panel{padding:10px!important}
+ #live #live-fullscreen-btn{min-height:44px}
+}
+@media(max-width:420px){
+ #live{padding-left:8px;padding-right:8px}
+ #live .live-video{aspect-ratio:16/10}
+ #live .live-video-label{font-size:12px;flex-wrap:wrap}
+ #live .live-status{padding:10px;font-size:12px}
+ #live .live-viewer-hint{font-size:12px}
+ #live #live-comments-input{padding:10px 8px}
+}
 /* AIMRELAX SCREEN SHARE / BROWSER FALLBACK */
 .live-browser-help{display:none;margin-top:12px;padding:14px;border-radius:10px;border:1px solid #6b3b00;background:#241700;color:#ffd79b;line-height:1.55}
 .live-browser-help.show{display:block}
