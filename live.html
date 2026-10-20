@@ -996,6 +996,12 @@ body.live-page #live .live-empty{padding:24px 12px}
 
 <style id="aimrelax-live-home-button-position-fix">
 @media(max-width:800px){
+ /* backdrop-filter on the header can make fixed descendants position relative to the header */
+ body.live-page header{
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+ }
+
  body.live-page a.live-page-home-link{
   position:fixed!important;
   top:10px!important;
