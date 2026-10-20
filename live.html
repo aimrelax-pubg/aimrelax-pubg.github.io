@@ -913,6 +913,72 @@ body.live-page .live-page-shortcut{display:none!important}
 }
 </style>
 
+
+<style id="aimrelax-tiktok-live-layout">
+/* TikTok-inspired LIVE viewing layout — keeps the existing stream/auth logic intact */
+body.live-page{background:#050505}
+body.live-page header{background:rgba(7,7,7,.92)!important;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+body.live-page #live{padding-top:94px}
+body.live-page #live .section-title{margin-bottom:22px}
+body.live-page #live .section-title small{font-size:10px;letter-spacing:2px}
+body.live-page #live .section-title h2{font-size:clamp(25px,3vw,36px);margin-top:5px}
+body.live-page #live .section-title p{font-size:13px!important;margin-top:5px!important}
+body.live-page #live .live-grid{grid-template-columns:minmax(0,1.8fr) minmax(280px,.72fr);gap:16px}
+body.live-page #live .live-viewer-card{padding:12px;border-radius:18px}
+body.live-page #live .live-video-stage{border-radius:15px;background:#000;overflow:hidden}
+body.live-page #live .live-video{display:block;width:100%;aspect-ratio:16/9;max-height:68vh;min-height:0;object-fit:contain;background:#000}
+body.live-page #live .live-like-counter{top:12px;left:12px;background:rgba(0,0,0,.7);border-color:rgba(255,255,255,.2)}
+body.live-page #live .live-like-btn{width:52px;height:52px;right:12px;bottom:12px;box-shadow:0 5px 24px rgba(255,35,85,.35)}
+body.live-page #live #live-fullscreen-btn{min-height:42px;margin-top:9px!important;border-radius:11px!important;background:#1a1a1a!important}
+body.live-page #live .live-video-label{margin-top:11px}
+body.live-page #live #live-status{margin-top:10px}
+body.live-page #live #live-comments-panel{margin-top:12px!important;padding:12px!important;border-radius:14px!important}
+body.live-page #live #live-comments-list{height:190px!important;overscroll-behavior:contain}
+body.live-page #live #live-comments-form{gap:8px!important}
+body.live-page #live #live-comments-input{min-height:43px;border-radius:12px!important;font-size:14px}
+body.live-page #live #live-comments-form button{min-width:45px;border-radius:12px!important}
+body.live-page #live .live-grid > .live-card:not(.live-viewer-card){position:sticky;top:78px;max-height:calc(100vh - 96px);overflow:hidden;display:flex;flex-direction:column}
+body.live-page #live .live-grid > .live-card:not(.live-viewer-card) .section-title{flex-shrink:0}
+body.live-page #live .live-list{max-height:none;min-height:120px;overscroll-behavior:contain}
+body.live-page #live .live-item{border-radius:13px}
+body.live-page #live .live-watch-btn{min-height:42px;border-radius:11px}
+body.live-page #live .live-empty{padding:24px 12px}
+@media(max-width:800px){
+ body.live-page header .nav{min-height:54px}
+ body.live-page #live{padding:76px 0 24px}
+ body.live-page #live .live-wrap{width:100%}
+ body.live-page #live .section-title{margin:0 14px 13px;text-align:left}
+ body.live-page #live .section-title h2{font-size:25px}
+ body.live-page #live .section-title p{max-width:none!important;line-height:1.45!important}
+ body.live-page #live .live-grid{display:flex;flex-direction:column;gap:12px;margin-top:0}
+ body.live-page #live .live-viewer-card{order:1;width:100%;padding:9px;border-radius:0;border-left:0;border-right:0}
+ body.live-page #live .live-video-stage{border-radius:12px}
+ body.live-page #live .live-video{aspect-ratio:16/9;width:100%;height:auto;min-height:0;max-height:52svh;object-fit:contain}
+ body.live-page #live .live-like-counter{top:9px;left:9px;padding:6px 9px;font-size:12px}
+ body.live-page #live .live-like-btn{width:48px;height:48px;right:10px;bottom:10px;font-size:25px}
+ body.live-page #live #live-fullscreen-btn{margin-top:8px!important;padding:10px!important;min-height:40px}
+ body.live-page #live .live-video-label{margin-top:9px;font-size:12px}
+ body.live-page #live #live-status{padding:9px 10px;font-size:12px}
+ body.live-page #live .live-viewer-hint{padding:9px 10px;margin-top:9px;font-size:11px}
+ body.live-page #live #live-comments-panel{margin-top:10px!important;padding:10px!important}
+ body.live-page #live #live-comments-list{height:150px!important;max-height:22svh}
+ body.live-page #live .live-grid > .live-card:not(.live-viewer-card){order:2;position:static;width:100%;max-height:none;overflow:visible;padding:12px 10px;border-radius:0;border-left:0;border-right:0}
+ body.live-page #live .live-grid > .live-card:not(.live-viewer-card) .section-title{margin:0 2px 10px;text-align:left}
+ body.live-page #live .live-grid > .live-card:not(.live-viewer-card) .section-title h2{font-size:21px!important}
+ body.live-page #live .live-grid > .live-card:not(.live-viewer-card)>p{font-size:11px!important;margin-bottom:9px!important}
+ body.live-page #live .live-list{display:flex;flex-direction:row;gap:10px;max-height:none;overflow-x:auto;overflow-y:hidden;padding:2px 2px 10px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+ body.live-page #live .live-item{flex:0 0 min(78vw,300px);min-width:0;padding:12px;scroll-snap-align:start}
+ body.live-page #live .live-item-head{align-items:flex-start}
+ body.live-page #live .live-watch-btn{min-height:40px;margin-top:9px}
+ body.live-page #live .live-empty{flex:0 0 82%;padding:18px 12px}
+}
+@media(max-width:380px){
+ body.live-page #live .live-video{max-height:46svh}
+ body.live-page #live #live-comments-list{height:125px!important}
+ body.live-page .live-page-home-link{font-size:9px!important;padding:8px!important}
+}
+</style>
+
 </head>
 
 <body class="live-page">
