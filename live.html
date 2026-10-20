@@ -915,6 +915,21 @@ body.live-page .live-page-shortcut{display:none!important}
 
 
 <style id="aimrelax-tiktok-live-layout">
+/* Keep the home button separate from the language switcher on small screens. */
+@media(max-width:800px){
+ body.live-page .live-page-home-link{
+  position:fixed!important;top:64px!important;left:10px!important;right:auto!important;
+  z-index:10050!important;display:inline-flex!important;
+  padding:8px 11px!important;font-size:11px!important;
+  background:rgba(17,17,17,.96)!important;box-shadow:0 4px 14px rgba(0,0,0,.35);
+ }
+ body.live-page #live{padding-top:118px!important}
+}
+@media(max-width:420px){
+ body.live-page .live-page-home-link{top:62px!important;left:8px!important;padding:7px 9px!important;font-size:10px!important}
+ body.live-page #live{padding-top:112px!important}
+}
+
 /* TikTok-inspired LIVE viewing layout — keeps the existing stream/auth logic intact */
 body.live-page{background:#050505}
 body.live-page header{background:rgba(7,7,7,.92)!important;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
