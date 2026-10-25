@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="hy">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0d">
+<meta name="description" content="AiMRELAX Studio — անվճար վիդեոմոնտաժ բրաուզերում։">
+<title>AiMRELAX Studio</title>
+<style>
+:root{color-scheme:dark;--bg:#0b0b0d;--panel:#151519;--line:#2a2a31;--muted:#a4a4af;--accent:#ff7a00;--white:#f8f8fa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--white);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}button,input{font:inherit}button{cursor:pointer;border:1px solid var(--line);border-radius:10px;background:#202026;color:var(--white);padding:10px 14px;font-weight:650}button:disabled{opacity:.45;cursor:not-allowed}.primary{background:var(--accent);color:#17100a;border-color:var(--accent)}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px clamp(14px,3vw,30px);border-bottom:1px solid var(--line);position:sticky;top:0;background:#0b0b0df2;backdrop-filter:blur(12px);z-index:4}.brand{font-size:18px;font-weight:900;letter-spacing:.2px}.brand span{color:var(--accent)}.top small{color:var(--muted)}main{max-width:1300px;margin:auto;padding:20px;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,.8fr);gap:16px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;min-width:0}.preview{display:flex;align-items:center;justify-content:center;background:#050506;border-radius:12px;min-height:230px;aspect-ratio:16/9;overflow:hidden;position:relative}video{display:block;max-width:100%;max-height:65vh;width:100%;object-fit:contain}.empty{padding:24px;text-align:center;color:var(--muted)}.overlay{position:absolute;inset:auto 5% 8%;font-size:clamp(18px,4vw,36px);font-weight:900;text-align:center;text-shadow:0 2px 8px #000;overflow-wrap:anywhere;pointer-events:none}.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.section-head h2{font-size:16px;margin:0}.muted{color:var(--muted);font-size:13px}.controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}.field{display:flex;flex-direction:column;gap:6px;min-width:0}.field label{font-size:13px;color:#d5d5dc}.field input[type=text],.field input[type=number]{width:100%;min-width:0;background:#0d0d10;color:white;border:1px solid var(--line);border-radius:9px;padding:10px}.field input[type=range]{width:100%;accent-color:var(--accent)}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.side{display:flex;flex-direction:column;gap:16px}.upload{border:1px dashed #555560;border-radius:12px;padding:18px;text-align:center}.upload input{max-width:100%;margin-top:10px}.timeline{margin-top:16px}.track{height:42px;border-radius:8px;background:linear-gradient(90deg,#4c2c13,#b85a0a,#5a3519);border:1px solid #70401c;position:relative;overflow:hidden}.playhead{position:absolute;top:0;bottom:0;width:2px;background:white;left:0;box-shadow:0 0 6px #fff}.track-label{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin:6px 0}.notice{border-left:3px solid var(--accent);padding:10px 12px;background:#21170f;border-radius:5px;color:#f4d4b5;font-size:13px}.status{color:var(--muted);font-size:13px;min-height:20px;margin-top:10px}.project-list{display:flex;gap:8px;flex-wrap:wrap}.footer{max-width:1300px;margin:0 auto;padding:0 20px 24px;color:var(--muted);font-size:12px}.hidden{display:none!important}
+@media(max-width:850px){main{grid-template-columns:1fr;padding:12px}.top{padding:12px}.panel{padding:12px}.preview{min-height:190px}.side{display:grid;grid-template-columns:1fr}.controls{gap:10px}}
+@media(max-width:420px){.top small{display:none}.controls{grid-template-columns:1fr}.actions button{flex:1}.brand{font-size:16px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="brand">AiMRELAX <span>Studio</span></div><small>Անվճար վիդեոմոնտաժ • Փուլ 1</small><button id="saveBtn">Պահպանել նախագիծը</button></header>
+<main>
+<section class="panel">
+  <div class="section-head"><h2>Նախադիտում</h2><span class="muted" id="durationLabel">Տեսանյութ ընտրված չէ</span></div>
+  <div class="preview" id="preview">
+    <div class="empty" id="emptyState">Ընտրիր տեսանյութ՝ մոնտաժը սկսելու համար։<br><span class="muted">Ֆայլը մշակվում է քո սարքում։</span></div>
+    <video id="video" playsinline controls class="hidden"></video><div class="overlay hidden" id="titleOverlay"></div>
+  </div>
+  <div class="timeline">
+    <div class="section-head"><h2>Ժամանակագիծ</h2><span class="muted" id="timeLabel">00:00 / 00:00</span></div>
+    <div class="track" id="track"><div class="playhead" id="playhead"></div></div>
+    <div class="track-label"><span id="startLabel">Սկիզբ՝ 0 վրկ</span><span id="endLabel">Ավարտ՝ 0 վրկ</span></div>
+  </div>
+  <div class="controls">
+    <div class="field"><label for="start">Կտրելու սկիզբ (վայրկյան)</label><input id="start" type="number" min="0" step=".1" value="0"></div>
+    <div class="field"><label for="end">Կտրելու ավարտ (վայրկյան)</label><input id="end" type="number" min="0" step=".1" value="0"></div>
+    <div class="field"><label for="titleText">Տեքստ տեսանյութի վրա</label><input id="titleText" type="text" maxlength="120" placeholder="Գրիր վերնագիրը"></div>
+    <div class="field"><label for="titleSize">Տեքստի չափը</label><input id="titleSize" type="range" min="18" max="64" value="36"></div>
+  </div>
+  <div class="actions"><button id="setStart">Սկիզբը՝ ընթացիկ դիրքից</button><button id="setEnd">Ավարտը՝ ընթացիկ դիրքից</button><button id="previewCut" class="primary">Նախադիտել հատվածը</button><button id="exportBtn" disabled>Արտահանել տեսանյութը</button></div>
+  <div class="status" id="status" role="status" aria-live="polite">Ընտրիր տեսանյութ՝ սկսելու համար։</div>
+</section>
+<aside class="side">
+  <section class="panel">
+    <div class="section-head"><h2>Մեդիա ֆայլեր</h2></div>
+    <div class="upload"><strong>Ավելացնել տեսանյութ</strong><div class="muted">MP4, WebM և բրաուզերի կողմից աջակցվող ձևաչափեր</div><input id="fileInput" type="file" accept="video/*"></div>
+    <div class="actions"><button id="playBtn" disabled>▶ Նվագարկել</button><button id="pauseBtn" disabled>Ⅱ Դադար</button></div>
+    <p class="muted">Այս նախնական տարբերակում ընտրված մեդիան չի վերբեռնվում սերվեր։ Թարմացնելուց հետո ֆայլը կարող է անհրաժեշտ լինել նորից ընտրել։</p>
+  </section>
+  <section class="panel">
+    <div class="section-head"><h2>Նախագծեր</h2></div>
+    <p class="muted">Պահպանիր խմբագրման կարգավորումները այս սարքում կամ ներբեռնիր նախագծի JSON ֆայլը՝ հետագայում տեղափոխելու համար։</p>
+    <div class="actions"><button id="downloadProject">Ներբեռնել նախագիծը (.json)</button><button id="loadProject">Բացել նախագիծը (.json)</button><input id="projectInput" class="hidden" type="file" accept="application/json,.json"></div>
+    <div class="status" id="projectStatus"></div>
+  </section>
+  <section class="panel">
+    <div class="section-head"><h2>Հաջորդ փուլերը</h2></div>
+    <p class="muted">☑ Բջջային հարմարեցում<br>☑ Տեսանյութի նախադիտում<br>☑ Կտրման կարգավորումներ<br>☑ Տեղային նախագծի պահպանում<br>□ Supabase մուտք և ամպային համաժամեցում<br>□ Android APK ինտեգրում<br>□ Բազմաշերտ մոնտաժ և լրացուցիչ էֆեկտներ</p>
+  </section>
+  <div class="notice">Արտահանումը կախված է բրաուզերի MediaRecorder աջակցությունից։ Որոշ Android բրաուզերներում ձայնի պահպանումը կամ երկար տեսանյութերի արտահանումը կարող է սահմանափակվել։</div>
+</aside>
+</main>
+<div class="footer">AiMRELAX Studio • Փուլ 1 — բրաուզերում աշխատող նախնական խմբագրիչ։ Ամպային համաժամեցումն ու APK կապը հաջորդ փուլերում են։</div>
+<script>
+(()=> {
+ const $=id=>document.getElementById(id);
+ const video=$('video'), fileInput=$('fileInput'), status=$('status');
+ let objectUrl=null, fileName='', duration=0, exporting=false;
+ const fmt=s=>{s=Math.max(0,Number(s)||0);const m=Math.floor(s/60),sec=Math.floor(s%60);return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0')};
+ const say=t=>status.textContent=t;
+ const valid=()=>video.readyState>=1&&duration>0;
+ const bounds=()=>{let a=Math.max(0,Math.min(duration,Number($('start').value)||0));let b=Math.max(0,Math.min(duration,Number($('end').value)||duration));if(b<=a)b=Math.min(duration,a+.1);return {a,b}};
+ function update(){if(!valid())return;let {a,b}=bounds();$('start').max=duration;$('end').max=duration;$('durationLabel').textContent=fmt(duration)+' • '+fileName;$('timeLabel').textContent=fmt(video.currentTime)+' / '+fmt(duration);$('startLabel').textContent='Սկիզբ՝ '+a.toFixed(1)+' վրկ';$('endLabel').textContent='Ավարտ՝ '+b.toFixed(1)+' վրկ';$('playhead').style.left=(video.currentTime/duration*100)+'%';$('titleOverlay').textContent=$('titleText').value;$('titleOverlay').classList.toggle('hidden',!$('titleText').value.trim());$('titleOverlay').style.fontSize=$('titleSize').value+'px';$('exportBtn').disabled=!valid()||!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream;}
+ fileInput.addEventListener('change',()=>{const f=fileInput.files&&fileInput.files[0];if(!f)return;if(!f.type.startsWith('video/')){say('Ընտրիր վիդեո ֆայլ։');return}if(objectUrl)URL.revokeObjectURL(objectUrl);objectUrl=URL.createObjectURL(f);fileName=f.name;video.src=objectUrl;video.classList.remove('hidden');$('emptyState').classList.add('hidden');video.onloadedmetadata=()=>{duration=video.duration;$('start').value=0;$('end').value=duration.toFixed(1);$('playBtn').disabled=false;$('pauseBtn').disabled=false;update();say('Տեսանյութը պատրաստ է մոնտաժի։')};video.onerror=()=>say('Չհաջողվեց բացել ֆայլը։ Փորձիր MP4 կամ WebM ձևաչափ։')});
+ video.addEventListener('timeupdate',update);video.addEventListener('seeked',update);
+ $('playBtn').onclick=()=>video.play().catch(()=>say('Չհաջողվեց սկսել նվագարկումը։'));$('pauseBtn').onclick=()=>video.pause();
+ $('setStart').onclick=()=>{if(valid()){$('start').value=Math.min(video.currentTime,Number($('end').value)-.1).toFixed(1);update()}};
+ $('setEnd').onclick=()=>{if(valid()){$('end').value=Math.max(video.currentTime,Number($('start').value)+.1).toFixed(1);update()}};
+ $('start').addEventListener('input',()=>{if(valid()&&Number($('start').value)<Number($('end').value))video.currentTime=Number($('start').value);update()});
+ $('end').addEventListener('input',update);$('titleText').addEventListener('input',update);$('titleSize').addEventListener('input',update);
+ $('previewCut').onclick=()=>{if(!valid())return;const {a}=bounds();video.currentTime=a;video.play().catch(()=>{});say('Հատվածի նախադիտումը սկսվեց։ Ավարտի դիրքին հասնելիս դադարեցրու կամ փոխիր կարգավորումները։')};
+ function project(){return {app:'AiMRELAX Studio',version:1,mediaName:fileName,title:$('titleText').value,titleSize:Number($('titleSize').value),start:Number($('start').value)||0,end:Number($('end').value)||duration,updatedAt:new Date().toISOString()}}
+ $('saveBtn').onclick=()=>{try{localStorage.setItem('aimrelaxStudioProject',JSON.stringify(project()));$('projectStatus').textContent='Նախագծի կարգավորումները պահպանվեցին այս սարքում։';say('Նախագիծը պահպանվեց այս բրաուզերում։')}catch(e){say('Տեղային պահպանումը հասանելի չէ։ Ներբեռնիր JSON նախագիծը։')}};
+ $('downloadProject').onclick=()=>{const blob=new Blob([JSON.stringify(project(),null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='aimrelax-studio-project.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+ $('loadProject').onclick=()=>$('projectInput').click();
+ $('projectInput').addEventListener('change',async()=>{const f=$('projectInput').files[0];if(!f)return;try{const p=JSON.parse(await f.text());if(p.app!=='AiMRELAX Studio')throw Error('not studio');$('titleText').value=String(p.title||'');$('titleSize').value=Math.max(18,Math.min(64,Number(p.titleSize)||36));if(valid()){$('start').value=Math.max(0,Math.min(duration,Number(p.start)||0));$('end').value=Math.max(Number($('start').value)+.1,Math.min(duration,Number(p.end)||duration))}update();$('projectStatus').textContent='Նախագիծը բեռնվեց։ Անհրաժեշտության դեպքում ընտրիր սկզբնական մեդիա ֆայլը։';say('Նախագծի կարգավորումները բացվեցին։')}catch(e){$('projectStatus').textContent='Այս JSON-ը AiMRELAX Studio նախագծի ֆայլ չէ կամ վնասված է։'}});
+ $('exportBtn').onclick=async()=>{if(!valid()||exporting)return;const {a,b}=bounds();if(b<=a){say('Ավարտի դիրքը պետք է լինի սկզբից հետո։');return}if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream){say('Այս բրաուզերը չի աջակցում տեսանյութի արտահանմանը։');return}
+ exporting=true;$('exportBtn').disabled=true;let recorder, chunks=[];const canvas=document.createElement('canvas');canvas.width=Math.min(1280,video.videoWidth||1280);canvas.height=Math.round(canvas.width*(video.videoHeight||720)/(video.videoWidth||1280));const ctx=canvas.getContext('2d');let raf=0,stream=null,audioStream=null;
+ try{video.pause();video.currentTime=a;await new Promise((res,rej)=>{const t=()=>{video.removeEventListener('seeked',t);res()};video.addEventListener('seeked',t,{once:true});setTimeout(res,500)});stream=canvas.captureStream(30);if(video.captureStream){audioStream=video.captureStream();audioStream.getAudioTracks().forEach(t=>stream.addTrack(t))}const mime=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(t=>MediaRecorder.isTypeSupported(t));recorder=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};const finished=new Promise((res,rej)=>{recorder.onstop=res;recorder.onerror=()=>rej(Error('recorder'))});function draw(){ctx.fillStyle='#000';ctx.fillRect(0,0,canvas.width,canvas.height);const vw=video.videoWidth||canvas.width,vh=video.videoHeight||canvas.height,scale=Math.min(canvas.width/vw,canvas.height/vh),w=vw*scale,h=vh*scale;ctx.drawImage(video,(canvas.width-w)/2,(canvas.height-h)/2,w,h);const title=$('titleText').value.trim();if(title){ctx.font='900 '+Math.round(Number($('titleSize').value)*canvas.width/720)+'px system-ui, sans-serif';ctx.textAlign='center';ctx.textBaseline='bottom';ctx.lineWidth=4;ctx.strokeStyle='rgba(0,0,0,.85)';ctx.fillStyle='#fff';ctx.strokeText(title,canvas.width/2,canvas.height*.9,canvas.width*.9);ctx.fillText(title,canvas.width/2,canvas.height*.9,canvas.width*.9)}if(video.currentTime>=b||video.ended){if(recorder.state!=='inactive')recorder.stop();video.pause();return}raf=requestAnimationFrame(draw)}recorder.start(250);await video.play();draw();await finished;cancelAnimationFrame(raf);const blob=new Blob(chunks,{type:recorder.mimeType||'video/webm'});if(!blob.size)throw Error('empty');const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='aimrelax-studio-export.webm';link.click();setTimeout(()=>URL.revokeObjectURL(url),5000);say('Արտահանումն ավարտվեց։ Ներբեռնված ֆայլը WebM ձևաչափով է։')}catch(e){say('Արտահանումը չհաջողվեց այս սարքում։ Փորձիր ավելի կարճ հատված կամ աջակցվող բրաուզեր։')}finally{if(raf)cancelAnimationFrame(raf);if(stream)stream.getTracks().forEach(t=>t.stop());if(audioStream)audioStream.getTracks().forEach(t=>t.stop());video.pause();exporting=false;update()}};
+ try{const saved=JSON.parse(localStorage.getItem('aimrelaxStudioProject')||'null');if(saved&&saved.app==='AiMRELAX Studio'){$('titleText').value=saved.title||'';$('titleSize').value=saved.titleSize||36;$('projectStatus').textContent='Գտնվեց նախկինում պահպանված կարգավորում։ Ընտրիր համապատասխան մեդիա ֆայլը։'}}catch(e){}
+})();
+</script>
+</body>
+</html>
